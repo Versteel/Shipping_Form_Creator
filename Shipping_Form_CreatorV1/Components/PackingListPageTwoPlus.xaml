@@ -1,0 +1,396 @@
+﻿<UserControl
+    x:Class="Shipping_Form_CreatorV1.Components.PackingListPageTwoPlus"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:Shipping_Form_CreatorV1.Components"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:syncfusion="http://schemas.syncfusion.com/wpf"
+    xmlns:ui="http://schemas.modernwpf.com/2019"
+    x:Name="Root"
+    d:DesignHeight="1200"
+    d:DesignWidth="900"
+    mc:Ignorable="d">
+    <Border Padding="20" Background="#e6e6e6">
+        <Border
+            x:Name="PackingListPage2PlusPrintArea"
+            MinWidth="816"
+            MinHeight="1056"
+            MaxWidth="816"
+            MaxHeight="1056"
+            Padding="48"
+            HorizontalAlignment="Center"
+            Background="White">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <Grid Grid.Row="0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition />
+                        <ColumnDefinition />
+                        <ColumnDefinition />
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0" Orientation="Vertical">
+                        <Image
+                            Width="150"
+                            Height="Auto"
+                            HorizontalAlignment="Left"
+                            Source="{Binding Header.LogoImagePath, RelativeSource={RelativeSource AncestorType=UserControl}}" />
+                        <TextBlock FontSize="14" Text="2332 Cathy Lane" />
+                        <TextBlock FontSize="14" Text="Jasper, Indiana  47546" />
+                        <TextBlock FontSize="14" Text="800.876.2120" />
+                        <TextBlock FontSize="14" Text="versteel.com" />
+                    </StackPanel>
+                    <StackPanel Grid.Column="1" Orientation="Vertical">
+                        <TextBlock
+                            HorizontalAlignment="Center"
+                            FontSize="25"
+                            FontWeight="Bold"
+                            Text="Packing List" />
+                        <StackPanel HorizontalAlignment="Center" Orientation="Horizontal">
+                            <TextBlock
+                                FontSize="18"
+                                FontWeight="Bold"
+                                Text="Order Number: " />
+                            <TextBlock
+                                FontSize="18"
+                                FontWeight="Bold"
+                                Text="{Binding Header.OrderNumber, RelativeSource={RelativeSource AncestorType=UserControl}}" />
+                        </StackPanel>
+                    </StackPanel>
+                    <StackPanel Grid.Column="2" Orientation="Vertical">
+                        <TextBlock
+                            HorizontalAlignment="Right"
+                            FontSize="14"
+                            Text="{Binding PageNumberTwoPlusText, RelativeSource={RelativeSource AncestorType=UserControl}}" />
+                        <Grid
+                            Width="150"
+                            Margin="0,10"
+                            HorizontalAlignment="Right">
+                            <Grid.RowDefinitions>
+                                <RowDefinition />
+                                <RowDefinition />
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition />
+                                <ColumnDefinition />
+                            </Grid.ColumnDefinitions>
+
+                            <Border
+                                Grid.Row="0"
+                                Grid.Column="0"
+                                Background="#cccccc"
+                                BorderBrush="#000"
+                                BorderThickness="1">
+                                <TextBlock
+                                    Margin="5"
+                                    FontWeight="Bold"
+                                    Text="Order Date:" />
+                            </Border>
+                            <Border
+                                Grid.Row="0"
+                                Grid.Column="1"
+                                BorderBrush="#000"
+                                BorderThickness="0,1,1,1">
+                                <TextBlock Margin="5"
+                                           Text="{Binding Header.OrdEnterDate, RelativeSource={RelativeSource AncestorType=UserControl}}" />
+                            </Border>
+
+                            <Border
+                                Grid.Row="1"
+                                Grid.Column="0"
+                                Background="#cccccc"
+                                BorderBrush="#000"
+                                BorderThickness="1,0,1,1">
+                                <TextBlock
+                                    Margin="5"
+                                    FontWeight="Bold"
+                                    Text="Ship Date:" />
+                            </Border>
+                            <Border
+                                Grid.Row="1"
+                                Grid.Column="1"
+                                BorderBrush="#000"
+                                BorderThickness="0,0,1,1">
+                                <TextBlock Margin="5"
+                                           Text="{Binding Header.ShipDate, RelativeSource={RelativeSource AncestorType=UserControl}}" />
+                            </Border>
+                        </Grid>
+                    </StackPanel>
+                </Grid>
+                <Border
+                    Grid.Row="1"
+                    Margin="0,30,0,0"
+                    BorderBrush="#000"
+                    BorderThickness="1">
+                    <StackPanel Orientation="Vertical">
+                        <ItemsControl
+                            ItemsSource="{Binding Items, RelativeSource={RelativeSource AncestorType=UserControl}}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+
+                                    <StackPanel>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="1*" />
+                                                <ColumnDefinition Width="3*" />
+                                                <ColumnDefinition Width="1*" />
+                                                <ColumnDefinition Width="1*" />
+                                                <ColumnDefinition Width="1*" />
+                                            </Grid.ColumnDefinitions>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto" />
+                                                <RowDefinition Height="Auto" />
+                                                <RowDefinition Height="*" />
+                                            </Grid.RowDefinitions>
+                                            <Grid
+                                                Grid.Row="0"
+                                                Grid.ColumnSpan="6"
+                                                Background="#cccccc">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto" />
+                                                    <ColumnDefinition Width="1*" />
+                                                    <ColumnDefinition Width="3*" />
+                                                    <ColumnDefinition Width="1*" />
+                                                    <ColumnDefinition Width="1*" />
+                                                    <ColumnDefinition Width="1*" />
+                                                </Grid.ColumnDefinitions>
+                                                <TextBlock
+                                                    Grid.Column="0"
+                                                    Margin="5"
+                                                    FontWeight="Bold"
+                                                    Text="Line" />
+                                                <TextBlock
+                                                    Grid.Column="1"
+                                                    Margin="5"
+                                                    FontWeight="Bold"
+                                                    Text="Product" />
+                                                <TextBlock
+                                                    Grid.Column="2"
+                                                    Margin="5"
+                                                    FontWeight="Bold"
+                                                    Text="Description" />
+                                                <TextBlock
+                                                    Grid.Column="3"
+                                                    Margin="5"
+                                                    FontWeight="Bold"
+                                                    Text="Ordered" />
+                                                <TextBlock
+                                                    Grid.Column="4"
+                                                    Margin="5"
+                                                    FontWeight="Bold"
+                                                    Text="Shipped" />
+                                                <TextBlock
+                                                    Grid.Column="5"
+                                                    Margin="5"
+                                                    FontWeight="Bold"
+                                                    Text="Backorder" />
+                                            </Grid>
+
+                                            <TextBlock
+                                                Grid.Row="1"
+                                                Grid.Column="0"
+                                                Margin="5"
+                                                Text="{Binding LineItemHeader.LineItemNumber}" />
+                                            <TextBlock
+                                                Grid.Row="1"
+                                                Grid.Column="1"
+                                                Margin="5"
+                                                Text="{Binding LineItemHeader.ProductNumber}" />
+                                            <TextBlock
+                                                Grid.Row="1"
+                                                Grid.Column="2"
+                                                Margin="5"
+                                                Text="{Binding LineItemHeader.ProductDescription}" />
+                                            <TextBlock
+                                                Grid.Row="1"
+                                                Grid.Column="3"
+                                                Margin="5"
+                                                Text="{Binding LineItemHeader.OrderedQuantity}" />
+                                            <TextBlock
+                                                Grid.Row="1"
+                                                Grid.Column="4"
+                                                Margin="5"
+                                                Text="{Binding LineItemHeader.PickOrShipQuantity}" />
+                                            <TextBlock
+                                                Grid.Row="1"
+                                                Grid.Column="5"
+                                                Margin="5"
+                                                Text="{Binding LineItemHeader.BackOrderQuantity}" />
+                                            <Border Grid.Row="2" Grid.ColumnSpan="6" Grid.Column="0" BorderBrush="#cccccc" BorderThickness="0 0 0 1">
+                                                <Grid >
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition />
+                                                        <ColumnDefinition />
+                                                    </Grid.ColumnDefinitions>
+
+                                                    <ItemsControl
+                                                        Grid.Column="0"
+                                                        Margin="38,10,0,0"
+                                                        ItemsSource="{Binding LineItemDetails}">
+                                                        <ItemsControl.ItemTemplate>
+                                                            <DataTemplate>
+                                                                <TextBlock Text="{Binding NoteText}"
+                                                                           TextWrapping="Wrap" />
+                                                            </DataTemplate>
+                                                        </ItemsControl.ItemTemplate>
+                                                    </ItemsControl>
+                                                    <Border Grid.Column="1" Margin="0,10,0,0">
+                                                        <StackPanel x:Name="PackingUnitsDropDownStackPanel"
+                                                                    Orientation="Vertical">
+
+                                                            <ui:HyperlinkButton
+                                                                HorizontalAlignment="Center"
+                                                                Command="{Binding AddPackUnitCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                                CommandParameter="{Binding}"
+                                                                Content="Add New Packing Unit" />
+
+                                                            <ScrollViewer
+                                                                Height="175"
+                                                                HorizontalScrollBarVisibility="Disabled"
+                                                                VerticalScrollBarVisibility="Auto">
+                                                                <ItemsControl
+                                                                    ItemsSource="{Binding LineItemPackingUnits}">
+                                                                    <ItemsControl.Style>
+                                                                        <Style TargetType="ItemsControl">
+                                                                            <Setter Property="Visibility"
+                                                                                    Value="Collapsed" />
+                                                                            <Style.Triggers>
+                                                                                <Trigger Property="HasItems"
+                                                                                    Value="True">
+                                                                                    <Setter Property="Visibility"
+                                                                                        Value="Visible" />
+                                                                                </Trigger>
+                                                                            </Style.Triggers>
+                                                                        </Style>
+                                                                    </ItemsControl.Style>
+                                                                    <ItemsControl.ItemTemplate>
+                                                                        <DataTemplate>
+                                                                            <StackPanel Margin="0,4,0,0"
+                                                                                    Orientation="Horizontal">
+                                                                                <syncfusion:ButtonAdv
+                                                                                    Width="20"
+                                                                                    Height="20"
+                                                                                    Margin="0,10,0,0"
+                                                                                    VerticalAlignment="Center"
+                                                                                    VerticalContentAlignment="Center"
+                                                                                    Background="Transparent"
+                                                                                    BorderThickness="0"
+                                                                                    Command="{Binding RemovePackUnitCommand, ElementName=Root}"
+                                                                                    CommandParameter="{Binding}"
+                                                                                    Cursor="Hand"
+                                                                                    Label=""
+                                                                                    SmallIcon="/delete.png" />
+                                                                                <StackPanel x:Name="sfQty"
+                                                                                    Orientation="Vertical">
+                                                                                    <TextBlock FontSize="10" Text="Qty" />
+                                                                                    <syncfusion:IntegerTextBox
+                                                                                        Width="50"
+                                                                                        Value="{Binding Quantity, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                                                                </StackPanel>
+                                                                                <StackPanel Orientation="Vertical">
+                                                                                    <TextBlock FontSize="10"
+                                                                                        Text="Unit Type" />
+                                                                                    <syncfusion:ComboBoxAdv
+                                                                                        Width="110"
+                                                                                        Height="20"
+                                                                                        ItemsSource="{x:Static local:PackingListPageTwoPlus.CartonOrSkidOptions}"
+                                                                                        SelectedItem="{Binding CartonOrSkid, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                                                                </StackPanel>
+                                                                                <StackPanel x:Name="spTypeOfUnit"
+                                                                                    Orientation="Vertical">
+                                                                                    <TextBlock FontSize="10"
+                                                                                        Text="Contents" />
+                                                                                    <syncfusion:SfTextBoxExt
+                                                                                        Width="100"
+                                                                                        Height="20"
+                                                                                        Text="{Binding TypeOfUnit, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                                                                </StackPanel>
+                                                                                <StackPanel
+                                                                                    x:Name="spLineNumber"
+                                                                                    Orientation="Vertical"
+                                                                                    Visibility="Collapsed">
+                                                                                    <TextBlock FontSize="10"
+                                                                                        Text="Line number" />
+                                                                                    <syncfusion:IntegerTextBox
+                                                                                        Width="80"
+                                                                                        Height="20"
+                                                                                        Value="{Binding LineNumber, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
+                                                                                </StackPanel>
+
+                                                                                <StackPanel x:Name="spWeight"
+                                                                                    Orientation="Vertical">
+                                                                                    <TextBlock FontSize="10"
+                                                                                        Text="Weight" />
+                                                                                    <syncfusion:IntegerTextBox
+                                                                                        Width="50"
+                                                                                        Value="{Binding Weight, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                                                                </StackPanel>
+                                                                                <TextBlock
+                                                                                    x:Name="lbsDisplay"
+                                                                                    VerticalAlignment="Bottom"
+                                                                                    FontSize="14"
+                                                                                    Text="Lbs." />
+
+                                                                            </StackPanel>
+
+                                                                            <DataTemplate.Triggers>
+                                                                                <DataTrigger
+                                                                                    Binding="{Binding CartonOrSkid}"
+                                                                                    Value="Packed with line ">
+                                                                                    <Setter TargetName="spTypeOfUnit"
+                                                                                        Property="UIElement.Visibility"
+                                                                                        Value="Collapsed" />
+                                                                                    <Setter TargetName="spLineNumber"
+                                                                                        Property="UIElement.Visibility"
+                                                                                        Value="Visible" />
+                                                                                    <Setter TargetName="spWeight"
+                                                                                        Property="UIElement.Visibility"
+                                                                                        Value="Collapsed" />
+                                                                                    <Setter TargetName="lbsDisplay"
+                                                                                        Property="UIElement.Visibility"
+                                                                                        Value="Collapsed" />
+                                                                                    <Setter TargetName="sfQty"
+                                                                                        Property="UIElement.Visibility"
+                                                                                        Value="Collapsed" />
+                                                                                </DataTrigger>
+                                                                            </DataTemplate.Triggers>
+                                                                        </DataTemplate>
+                                                                    </ItemsControl.ItemTemplate>
+                                                                </ItemsControl>
+                                                            </ScrollViewer>
+                                                        </StackPanel>
+                                                    </Border>
+                                                </Grid>
+                                            </Border>
+
+                                        </Grid>
+
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </Border>
+                <StackPanel
+                    Grid.Row="2"
+                    Grid.ColumnSpan="4"
+                    Orientation="Vertical">
+                    <TextBlock
+                        Margin="0,10,0,20"
+                        FontWeight="Bold"
+                        Text="Your signature acknowledges that this order was delivered complete, or otherwise noted."
+                        TextAlignment="Center" />
+                    <TextBlock
+                        Text="X____________________________________________________ DATE________________________"
+                        TextAlignment="Center" />
+                </StackPanel>
+            </Grid>
+        </Border>
+    </Border>
+</UserControl>
