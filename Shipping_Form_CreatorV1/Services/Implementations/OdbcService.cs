@@ -151,7 +151,7 @@ public class OdbcService : IOdbcService
                 CustomerPONumber = GetSafeString(reader, "HDSPO#"),
                 DueDate = FormatDate(GetSafeInt(reader, "HDPRMD")),
                 SalesPerson = GetSafeString(reader, "SPNAME"),
-                CarrierName = GetSafeString(reader, "HDSHPC"),
+                CarrierName = GetSafeString(reader, "HDCARN"),
                 FreightTerms = GetSafeString(reader, "HDFRTT"),
             };
 
