@@ -1,4 +1,4 @@
-﻿using Shipping_Form_CreatorV1.Utilites;
+﻿using Shipping_Form_CreatorV1.Utilities;
 
 namespace Shipping_Form_CreatorV1.Models;
 

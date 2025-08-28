@@ -1,5 +1,5 @@
 ﻿using Shipping_Form_CreatorV1.Models;
-using Shipping_Form_CreatorV1.Utilites;
+using Shipping_Form_CreatorV1.Utilities;
 using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Controls;
@@ -36,6 +36,18 @@ namespace Shipping_Form_CreatorV1.Components
                 new FrameworkPropertyMetadata(
                     null,
                     FrameworkPropertyMetadataOptions.BindsTwoWayByDefault));
+        public bool IsPrinting
+        {
+            get => (bool)GetValue(IsPrintingProperty);
+            set => SetValue(IsPrintingProperty, value);
+        }
+
+        public static readonly DependencyProperty IsPrintingProperty =
+            DependencyProperty.Register(
+                nameof(IsPrinting),
+                typeof(bool),
+                typeof(PackingListPageOne),
+                new PropertyMetadata(false));
 
         public int PackUnitQty { get; set; }
         public string CartonOrSkid { get; set; } = string.Empty;

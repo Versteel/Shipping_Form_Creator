@@ -1,5 +1,5 @@
 ﻿using Shipping_Form_CreatorV1.Models;
-using Shipping_Form_CreatorV1.Utilites;
+using Shipping_Form_CreatorV1.Utilities;
 using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Controls;
@@ -17,6 +17,19 @@ namespace Shipping_Form_CreatorV1.Components
 
         public static readonly DependencyProperty ItemsProperty =
             DependencyProperty.Register(nameof(Items), typeof(ObservableCollection<LineItem>), typeof(PackingListPageTwoPlus), new PropertyMetadata(null));
+
+        public bool IsPrinting
+        {
+            get => (bool)GetValue(IsPrintingProperty);
+            set => SetValue(IsPrintingProperty, value);
+        }
+
+        public static readonly DependencyProperty IsPrintingProperty =
+            DependencyProperty.Register(
+                nameof(IsPrinting),
+                typeof(bool),
+                typeof(PackingListPageTwoPlus),
+                new PropertyMetadata(false));
 
         public string PageNumberTwoPlusText
         {

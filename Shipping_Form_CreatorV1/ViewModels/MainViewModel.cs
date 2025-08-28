@@ -4,7 +4,7 @@ using Shipping_Form_CreatorV1.Components.Dialogs;
 using Shipping_Form_CreatorV1.Models;
 using Shipping_Form_CreatorV1.Services.Implementations;
 using Shipping_Form_CreatorV1.Services.Interfaces;
-using Shipping_Form_CreatorV1.Utilites;
+using Shipping_Form_CreatorV1.Utilities;
 using System.ComponentModel;
 using System.Data.Odbc;
 using System.Linq;

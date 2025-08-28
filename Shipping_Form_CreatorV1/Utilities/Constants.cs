@@ -1,4 +1,4 @@
-namespace Shipping_Form_CreatorV1.Utilites;
+namespace Shipping_Form_CreatorV1.Utilities;
 
 public class Constants
 {
