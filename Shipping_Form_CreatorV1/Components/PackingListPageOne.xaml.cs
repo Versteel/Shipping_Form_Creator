@@ -56,6 +56,7 @@ namespace Shipping_Form_CreatorV1.Components
 
         public string UomText => string.Equals(CartonOrSkid?.Trim(), Constants.CartonOrSkidOptions[2], StringComparison.OrdinalIgnoreCase) ? string.Empty : "Lbs";
         public static string[] CartonOrSkidOptions => Constants.CartonOrSkidOptions;
+        public static string[] PackingUnitCategories => Constants.PackingUnitCategories;
 
         public ObservableCollection<LineItemPackingUnit> PackingUnits
         {

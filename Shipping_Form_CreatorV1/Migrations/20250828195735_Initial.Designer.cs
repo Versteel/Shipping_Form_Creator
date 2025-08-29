@@ -10,7 +10,7 @@ using Shipping_Form_CreatorV1.Data;
 namespace Shipping_Form_CreatorV1.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250828175103_Initial")]
+    [Migration("20250828195735_Initial")]
     partial class Initial
     {
         /// <inheritdoc />

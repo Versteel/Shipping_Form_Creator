@@ -218,17 +218,17 @@
                                                 Grid.Row="1"
                                                 Grid.Column="3"
                                                 Margin="5"
-                                                Text="{Binding LineItemHeader.OrderedQuantity}" />
+                                                Text="{Binding LineItemHeader.OrderedQuantityInt}" />
                                             <TextBlock
                                                 Grid.Row="1"
                                                 Grid.Column="4"
                                                 Margin="5"
-                                                Text="{Binding LineItemHeader.PickOrShipQuantity}" />
+                                                Text="{Binding LineItemHeader.PickOrShipQuantityInt}" />
                                             <TextBlock
                                                 Grid.Row="1"
                                                 Grid.Column="5"
                                                 Margin="5"
-                                                Text="{Binding LineItemHeader.BackOrderQuantity}" />
+                                                Text="{Binding LineItemHeader.BackOrderQuantityInt}" />
 
                                             <!--  Details + Packing Units  -->
                                             <Border
@@ -316,12 +316,14 @@
                                                                                             SelectedItem="{Binding CartonOrSkid, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                                                                     </StackPanel>
 
+
                                                                                     <StackPanel x:Name="spTypeOfUnit" Orientation="Vertical">
                                                                                         <TextBlock FontSize="10" Text="Contents" />
-                                                                                        <syncfusion:SfTextBoxExt
-                                                                                            Width="100"
+                                                                                        <syncfusion:ComboBoxAdv
+                                                                                            Width="110"
                                                                                             Height="20"
-                                                                                            Text="{Binding TypeOfUnit, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                                                                            ItemsSource="{x:Static local:PackingListPageOne.PackingUnitCategories}"
+                                                                                            SelectedItem="{Binding TypeOfUnit, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                                                                     </StackPanel>
 
                                                                                     <StackPanel

@@ -50,6 +50,8 @@ namespace Shipping_Form_CreatorV1.Components
         }
 
         public static string[] CartonOrSkidOptions => Constants.CartonOrSkidOptions;
+        public static string[] PackingUnitCategories => Constants.PackingUnitCategories;
+
 
         // You can bind to these globally and pass the LineItem as CommandParameter
         public ICommand AddPackUnitCommand => new RelayCommand(param =>

@@ -17,6 +17,20 @@ public class Constants
         "Packed with line "
     ];
 
+    public static readonly string[] PackingUnitCategories = 
+    [
+        "TABLE TOPS",
+        "TABLE LEGS, TUBULAR STL EXC 1 QTR DIAMETER, N-G-T 2 INCH DIAMETER",
+        "CHAIRS, CURVARE, IMMIX, OLLIE",
+        "ROVERS, TABLES ALUMINUM STEEL",
+        "ELECTRICAL WIRING PLUG",
+        "TRANSPORTS",
+        "HARDWARE/STRETCHERS",
+        "KEYBOARDS/CPU HOLDERS",
+        "WIRE BASKETS/WIRE RUNNERS",
+        "STORAGE CABINET/LIGHT BAR",
+    ];
+
     public static readonly string DITTO_LOGO = "pack://application:,,,/ditto_logo.jpg";
     public static readonly string VERSTEEL_LOGO = "pack://application:,,,/blackoutlinelogo.png";
 }

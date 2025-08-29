@@ -8,6 +8,9 @@ using System.Windows.Documents;
 using System.Windows.Markup;
 using System.Windows.Media;
 using System.Windows.Shapes;
+using Shipping_Form_CreatorV1.Utilities;
+using System.Linq;
+using System.Collections.Generic;
 
 namespace Shipping_Form_CreatorV1.Services.Implementations;
 
@@ -19,6 +22,14 @@ public class PrintService
         var report = viewModel.SelectedReport;
         var header = report.Header;
 
+        // Normalize "TABLE LEGS"
+        var tableLegUnits = report.LineItems
+            .SelectMany(li => li.LineItemPackingUnits)
+            .Where(pu => pu.TypeOfUnit == Constants.PackingUnitCategories[1]);
+
+        foreach (var packingUnit in tableLegUnits)
+            packingUnit.TypeOfUnit = "TABLE LEGS";
+
         // Page 1
         if (report.LineItems.Count > 0)
         {
@@ -26,7 +37,7 @@ public class PrintService
             {
                 Header = header,
                 LineItem = report.LineItems.ToList()[0],
-                PageNumberText = "Page 1",
+                // Page number text set later in a post-pass
                 Details = new ObservableCollection<LineItemDetail>(
                     report.LineItems.ToList()[0].LineItemDetails.ToList())
             };
@@ -37,8 +48,6 @@ public class PrintService
         if (report.LineItems.Count > 1)
         {
             const int itemsPerPage = 2; // Adjust as needed
-            var pageNum = 2;
-
 
             var lineItems = report.LineItems
                 .Where(li => !IsNoteOnly(li))
@@ -46,34 +55,44 @@ public class PrintService
                 .OrderBy(li => li.LineItemHeader?.LineItemNumber ?? 0)
                 .ToList();
 
-
-
             for (var i = 1; i < lineItems.Count; i += itemsPerPage)
             {
-                var items = new ObservableCollection<LineItem>(
-                    lineItems.Skip(i).Take(itemsPerPage)
-                );
-                var filteredItems = new ObservableCollection<LineItem>([.. items.Where(li => li.LineItemDetails.Any(d => d.NoteSequenceNumber < 950))]);
+                var items = new ObservableCollection<LineItem>(lineItems.Skip(i).Take(itemsPerPage));
+                var filteredItems = new ObservableCollection<LineItem>(
+                    items.Where(li => li.LineItemDetails.Any(d => d.NoteSequenceNumber < 950)));
                 items = new ObservableCollection<LineItem>(filteredItems.Take(filteredItems.Count - 1));
+
                 var pageTwoPlus = new PackingListPageTwoPlus
                 {
                     Header = header,
-                    Items = items,
-                    PageNumberTwoPlusText = $"Page {pageNum++}"
+                    Items = items
+                    // Page number text set later in a post-pass
                 };
                 pages.Add(pageTwoPlus);
             }
         }
 
         // Notes page
-        if (viewModel.PackingListNotes is { Count: <= 0 }) return pages;
-        var notesPage = new PackingListNotesPage
+        if (viewModel.PackingListNotes is { Count: > 0 })
         {
-            Header = header,
-            Details = viewModel.PackingListNotes,
-            PageNumberText = $"Page {pages.Count + 1}"
-        };
-        pages.Add(notesPage);
+            var notesPage = new PackingListNotesPage
+            {
+                Header = header,
+                Details = viewModel.PackingListNotes
+                // Page number text set later in a post-pass
+            };
+            pages.Add(notesPage);
+        }
+
+        // --- Post-pass: set "Page X of Y" on any page type that exposes a page number property ---
+        var total = pages.Count;
+        for (int i = 0; i < total; i++)
+        {
+            var label = $"Page {i + 1} of {total}";
+            // Try common property names used by your page controls
+            SetStringPropIfExists(pages[i], "PageNumberText", label);
+            SetStringPropIfExists(pages[i], "PageNumberTwoPlusText", label);
+        }
 
         return pages;
     }
@@ -84,6 +103,14 @@ public class PrintService
         var noProduct = string.IsNullOrWhiteSpace(h?.ProductNumber);
         var qtyZero = h is { OrderedQuantity: 0m, PickOrShipQuantity: 0m, BackOrderQuantity: 0m };
         return noProduct && qtyZero;
+    }
+
+    // Reflection helper so we don't have to special-case each page class
+    private static void SetStringPropIfExists(object target, string propertyName, string value)
+    {
+        var prop = target.GetType().GetProperty(propertyName);
+        if (prop is { CanWrite: true } && prop.PropertyType == typeof(string))
+            prop.SetValue(target, value);
     }
 
     public void PrintPackingListPages(List<UserControl>? pages)
@@ -130,11 +157,7 @@ public class PrintService
                     Fill = brush
                 };
 
-                var fixedPage = new FixedPage
-                {
-                    Width = pageWidth,
-                    Height = pageHeight
-                };
+                var fixedPage = new FixedPage { Width = pageWidth, Height = pageHeight };
                 FixedPage.SetLeft(rect, 0);
                 FixedPage.SetTop(rect, 0);
                 fixedPage.Children.Add(rect);
@@ -155,7 +178,7 @@ public class PrintService
                 //(page as dynamic).IsPrinting = false;
             }
         }
-        
+
         printDialog.PrintDocument(fixedDoc.DocumentPaginator, "Packing List");
     }
 }
