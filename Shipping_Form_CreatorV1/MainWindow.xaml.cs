@@ -117,7 +117,15 @@ public partial class MainWindow : Window
 
     private void PrintBtn_OnClick(object sender, RoutedEventArgs e)
     {
-        var pages = _printService.BuildAllPackingListPages(_viewModel);
-        _printService.PrintPackingListPages(pages);
+        if(_viewModel.SelectedReportTitle == "PACKING LIST")
+        {
+            var pages = _printService.BuildAllPackingListPages(_viewModel);
+            _printService.PrintPackingListPages(pages);
+        }
+        if(_viewModel.SelectedReportTitle == "BILL OF LADING")
+        {
+            var page = _printService.BuildBillOfLadingPage(_viewModel);
+            _printService.PrintBillOfLading(page);
+        }
     }
 }

@@ -181,4 +181,65 @@ public class PrintService
 
         printDialog.PrintDocument(fixedDoc.DocumentPaginator, "Packing List");
     }
+
+    public BillOfLading BuildBillOfLadingPage(MainViewModel viewModel)
+    {
+        return new BillOfLading(viewModel);
+    }
+
+    public void PrintBillOfLading(Page bolPage)
+    {
+        var printDialog = new PrintDialog();
+        if (printDialog.ShowDialog() != true) return;
+
+        var pageWidth = printDialog.PrintableAreaWidth > 0 ? printDialog.PrintableAreaWidth : 816;
+        var pageHeight = printDialog.PrintableAreaHeight > 0 ? printDialog.PrintableAreaHeight : 1056;
+
+        var fixedDoc = new FixedDocument();
+
+        var printArea = bolPage.FindName("BillOfLadingPrintArea") as FrameworkElement;
+        if (printArea == null)
+        {
+            MessageBox.Show("BillOfLadingPrintArea not found.");
+            return;
+        }
+
+        if (double.IsNaN(printArea.Width)) printArea.Width = pageWidth;
+        if (double.IsNaN(printArea.Height)) printArea.Height = pageHeight;
+
+        printArea.Measure(new Size(printArea.Width, printArea.Height));
+        printArea.Arrange(new Rect(0, 0, printArea.Width, printArea.Height));
+        printArea.UpdateLayout();
+
+        var brush = new VisualBrush(printArea)
+        {
+            Stretch = Stretch.Uniform,
+            AlignmentX = AlignmentX.Left,
+            AlignmentY = AlignmentY.Top
+        };
+
+        var rect = new Rectangle
+        {
+            Width = pageWidth,
+            Height = pageHeight,
+            Fill = brush
+        };
+
+        var fixedPage = new FixedPage { Width = pageWidth, Height = pageHeight };
+        FixedPage.SetLeft(rect, 0);
+        FixedPage.SetTop(rect, 0);
+        fixedPage.Children.Add(rect);
+
+        fixedPage.Measure(new Size(pageWidth, pageHeight));
+        fixedPage.Arrange(new Rect(new Size(pageWidth, pageHeight)));
+        fixedPage.UpdateLayout();
+
+        var pageContent = new PageContent();
+        ((IAddChild)pageContent).AddChild(fixedPage);
+        fixedDoc.Pages.Add(pageContent);
+
+        printDialog.PrintDocument(fixedDoc.DocumentPaginator, "Bill of Lading");
+    }
+
+
 }
