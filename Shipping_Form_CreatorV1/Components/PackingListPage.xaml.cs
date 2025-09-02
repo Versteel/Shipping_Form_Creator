@@ -48,10 +48,10 @@ namespace Shipping_Form_CreatorV1.Components
             PageContainer.Children.Clear();
 
             var selectedReport = _viewModel.SelectedReport;
-            if (selectedReport.LineItems.Count == 0)
-            {
-                return;
-            }
+            //if (selectedReport.LineItems.Count == 0)
+            //{
+            //    return;
+            //}
             var isDittoUser = _viewModel.IsDittoUser;
 
             var header = selectedReport.Header;

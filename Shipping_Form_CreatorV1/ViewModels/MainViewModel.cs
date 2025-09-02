@@ -179,7 +179,7 @@ namespace Shipping_Form_CreatorV1.ViewModels
                         var type when type == Constants.PackingUnitCategories[6] => "95190-09",
                         var type when type == Constants.PackingUnitCategories[7] => "83060",
                         var type when type == Constants.PackingUnitCategories[8] => "22260-06",
-                        var type when type == Constants.PackingUnitCategories[9] => "793000-05",
+                        var type when type == Constants.PackingUnitCategories[9] => "79300-05",
                         _ => "000000-00",
                     }
                 })
@@ -203,13 +203,14 @@ namespace Shipping_Form_CreatorV1.ViewModels
         {
             if (string.IsNullOrWhiteSpace(orderNumberInput)) return;
 
-            IsLoading = true;
+            
 
             if (!TryGetOrderNumber(orderNumberInput, out var orderNumber))
             {
                 _dialogService.ShowErrorDialog("Invalid Sales Order Number. Please enter a valid number.");
                 return;
             }
+            IsLoading = true;
             await Task.Delay(1, ct);
             try
             {

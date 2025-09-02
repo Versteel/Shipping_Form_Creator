@@ -39,8 +39,8 @@ namespace Shipping_Form_CreatorV1
             // Register DbContext
             services.AddDbContextFactory<AppDbContext>(options =>
             {
-                var connectionString = @"\\store2\software\software\ShippingFormsCreator\Data\shippingforms.db";
-                options.UseSqlite($"Data Source={connectionString}")
+                //var connectionString = @"\\store2\software\software\ShippingFormsCreator\Data\shippingforms.db";
+                options.UseSqlServer("Server=reportingpc\\SQLEXPRESS;Database=ShippingFormsDb;Trusted_Connection=True;Encrypt=False;TrustServerCertificate=True;")
                 .EnableSensitiveDataLogging();
             });
 

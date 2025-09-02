@@ -9,11 +9,11 @@ namespace Shipping_Form_CreatorV1.Data
         {
             var optionsBuilder = new DbContextOptionsBuilder<AppDbContext>();
 
-            var connectionString = @"\\store2\software\software\ShippingFormsCreator\Data\shippingforms.db";
-            optionsBuilder.UseSqlite($"Data Source={connectionString}")
-            .EnableSensitiveDataLogging();
+            // Use your actual SQL Server connection string here
+            optionsBuilder.UseSqlServer("Server=reportingpc\\SQLEXPRESS;Database=ShippingFormsDb;Trusted_Connection=True;Encrypt=False;TrustServerCertificate=True;");
 
             return new AppDbContext(optionsBuilder.Options);
         }
     }
+
 }
