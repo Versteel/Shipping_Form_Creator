@@ -6,10 +6,12 @@
     xmlns:local="clr-namespace:Shipping_Form_CreatorV1"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:ui="http://schemas.modernwpf.com/2019"
-    Title="MainWindow"
+    Title="Shipping Form Creator"
     Width="800"
     Height="450"
     ui:WindowHelper.UseModernWindowStyle="True"
+    Icon="/delivery.png"
+    ResizeMode="CanMinimize"
     WindowState="Maximized"
     mc:Ignorable="d">
 
@@ -99,10 +101,10 @@
                     Margin="15,10,0,0"
                     Background="#e31f26"
                     Click="SaveChangesBtn_Click"
-                    IsEnabled="{Binding IsSaveEnabled}"
                     Content="Save"
                     Cursor="Hand"
-                    Foreground="#FFF" />
+                    Foreground="#FFF"
+                    IsEnabled="{Binding IsSaveEnabled}" />
                 <TextBlock
                     Margin="0,40,0,0"
                     FontSize="18"

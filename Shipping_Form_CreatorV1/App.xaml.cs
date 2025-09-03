@@ -39,10 +39,16 @@ namespace Shipping_Form_CreatorV1
             // Register DbContext
             services.AddDbContextFactory<AppDbContext>(options =>
             {
-                //var connectionString = @"\\store2\software\software\ShippingFormsCreator\Data\shippingforms.db";
-                options.UseSqlServer("Server=reportingpc\\SQLEXPRESS;Database=ShippingFormsDb;Trusted_Connection=True;Encrypt=False;TrustServerCertificate=True;")
+                options.UseSqlServer(
+                    "Server=reportingpc,1433;Database=ShippingFormsDb;Integrated Security=SSPI;Encrypt=False;TrustServerCertificate=True;MultipleActiveResultSets=True;",
+                    sql =>
+                    {
+                        sql.EnableRetryOnFailure(5, TimeSpan.FromSeconds(10), null);
+                        sql.CommandTimeout(60);
+                    })
                 .EnableSensitiveDataLogging();
             });
+
 
             // Register Services
             services.AddSingleton<IOdbcService, OdbcService>();

@@ -7,12 +7,18 @@ namespace Shipping_Form_CreatorV1.Data
     {
         public AppDbContext CreateDbContext(string[] args)
         {
-            var optionsBuilder = new DbContextOptionsBuilder<AppDbContext>();
+            var options = new DbContextOptionsBuilder<AppDbContext>();
 
             // Use your actual SQL Server connection string here
-            optionsBuilder.UseSqlServer("Server=reportingpc\\SQLEXPRESS;Database=ShippingFormsDb;Trusted_Connection=True;Encrypt=False;TrustServerCertificate=True;");
-
-            return new AppDbContext(optionsBuilder.Options);
+            options.UseSqlServer(
+                "Server=reportingpc,1433;Database=ShippingFormsDb;Integrated Security=SSPI;Encrypt=False;TrustServerCertificate=True;MultipleActiveResultSets=True;",
+                sql =>
+                {
+                    sql.EnableRetryOnFailure(5, TimeSpan.FromSeconds(10), null);
+                    sql.CommandTimeout(60);
+                })
+                .EnableSensitiveDataLogging();
+            return new AppDbContext(options.Options);
         }
     }
 

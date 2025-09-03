@@ -96,11 +96,14 @@
                                     BorderThickness="1">
                                     <StackPanel Orientation="Vertical">
                                         <Border
+                                            Padding="5,0"
                                             Background="#cccccc"
                                             BorderBrush="#000"
-                                            Padding="5 0"
                                             BorderThickness="0,0,0,1">
-                                            <TextBlock FontSize="14" FontWeight="Bold" Text="THIRD PARTY BILLING / SPECIAL INSTRUCTIONS" />
+                                            <TextBlock
+                                                FontSize="14"
+                                                FontWeight="Bold"
+                                                Text="THIRD PARTY BILLING / SPECIAL INSTRUCTIONS" />
                                         </Border>
                                         <ItemsControl ItemsSource="{Binding SelectedReport.LineItems, Converter={StaticResource BolFlagFilter}}">
                                             <ItemsControl.ItemTemplate>
@@ -223,7 +226,7 @@
                                         <TextBlock
                                             Padding="0,0,10,0"
                                             FontSize="8"
-                                            Text="RECEIVED, subject to the individually determined rates or contracts that have been agreed upon in writing between the carrier and shipper. If applicable, otherwise to the rates, classification and rules that have been established by the carrier and are available to the shipper, on request and in effect on the date of issue of this Bill of Lading, the property described above in apparent good order, except as noted (contents and condition packages unknown), marked, consigned and destined as indicated above which said carrier agrees to carry to the usual place of delivery at said destination. It is mutually agreed, as to each carrier of all or any of said property over all or any portion of said route to destination and as to each party at any time interested in all or any of said property, that every service to be performed hereunder shall be subject to all of the Bill of Lading terms and conditions in the governing classification on the day of shipment. Shipper hereby certifies that he is familiar with all the bill of lading terms and conditions in the governing classifications and the said terms and conditions are hereby agreed to by the shipper and accepted for himself and his assignees. This is to certify that the materials named herein are properly classified, described, packaged, marked and labeled and are in proper condition for transportation, according to the acceptable regulations of the Department of Transportation."
+                                            Text="RECEIVED, subject to the individually determined rates or contracts that have been agreed upon in writing between the carrier and shipper; if applicable, otherwise to the rates, classifications, and rules that have been established by the carrier and are available to the shipper on request and in effect on the date of issue of this Bill of Lading, the property described above in apparent good order, except as noted (contents and condition of packages unknown), marked, consigned, and destined as indicated above, which said carrier agrees to carry to the usual place of delivery at said destination. It is mutually agreed, as to each carrier of all or any of said property over all or any portion of said route to destination, and as to each party at any time interested in all or any of said property, that every service to be performed hereunder shall be subject to all of the Bill of Lading terms and conditions in the governing classification on the date of shipment. Shipper hereby certifies that it is familiar with all the Bill of Lading terms and conditions in the governing classifications, and the said terms and conditions are hereby agreed to by the shipper and accepted for itself and its assignees. This is to certify that the materials named herein are properly classified, described, packaged, marked, and labeled, and are in proper condition for transportation according to the applicable regulations of the Department of Transportation."
                                             TextWrapping="Wrap" />
                                     </StackPanel>
                                     <Grid
@@ -759,7 +762,7 @@
                                             BorderBrush="#000"
                                             BorderThickness="1,0,1,1">
                                             <TextBlock FontSize="10" TextWrapping="Wrap">
-                                                NOTE: Where the rate is dependent on value, shippers are required to state specifically in writing the agreed or declared value of the property. The agreed or declared value of the property is hereyb specifically stated by the shipper to be not exceeding
+                                                NOTE: Where the rate is dependent on value, shippers are required to state specifically in writing the agreed or declared value of the property. The agreed or declared value of the property is hereby specifically stated by the shipper to be not exceeding
                                                 <TextBlock Margin="40,0" FontSize="10">per</TextBlock>
                                             </TextBlock>
                                         </Border>
@@ -771,7 +774,7 @@
                                             BorderBrush="#000"
                                             BorderThickness="1,0,1,1">
                                             <StackPanel Orientation="Vertical">
-                                                <TextBlock FontSize="10" TextWrapping="Wrap">Subject to section (7) of teh condition, if this shipment is to be delivered to the consignee recourse on the shipper the shipper shall sign the following statement:</TextBlock>
+                                                <TextBlock FontSize="10" TextWrapping="Wrap">Subject to section (7) of the condition, if this shipment is to be delivered to the consignee recourse on the shipper the shipper shall sign the following statement:</TextBlock>
                                                 <TextBlock FontSize="10" TextWrapping="Wrap">The carrier shall not make delivery of this shipment without payment of freight and all other lawful charges.</TextBlock>
                                                 <TextBlock
                                                     Margin="0,10"

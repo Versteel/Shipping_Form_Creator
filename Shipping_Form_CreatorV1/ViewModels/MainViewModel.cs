@@ -214,21 +214,49 @@ namespace Shipping_Form_CreatorV1.ViewModels
             await Task.Delay(1, ct);
             try
             {
-                var cachedDocument = await _sqliteService.GetReportAsync(orderNumber, ct);
-                if (cachedDocument is not null)
-                {
-                    SelectedReport = cachedDocument;
-                    return;
-                }
-
+                // 1. Get the latest data from the ERP.
                 var erpDocument = await _odbcService.GetReportAsync(orderNumber, ct);
                 if (erpDocument is null)
                 {
                     _dialogService.ShowErrorDialog($"Sales Order {orderNumber} does not have a packing list.");
                     return;
                 }
+
+                // 2. Get the cached version from SQLite.
+                var cachedDocument = await _sqliteService.GetReportAsync(orderNumber, ct);
+
+                // 3. If a cached document exists, merge its data into the new ERP data.
+                if (cachedDocument is not null)
+                {
+                    // Update the main document IDs to ensure the save works correctly.
+                    erpDocument.Id = cachedDocument.Id;
+                    if (erpDocument.Header is not null && cachedDocument.Header is not null)
+                    {
+                        erpDocument.Header.Id = cachedDocument.Header.Id;
+                    }
+
+                    // Iterate through the LineItems to merge the packing units.
+                    foreach (var erpLineItem in erpDocument.LineItems)
+                    {
+                        var cachedLineItem = cachedDocument.LineItems
+                            .FirstOrDefault(li => li.LineItemHeader?.LineItemNumber == erpLineItem.LineItemHeader?.LineItemNumber);
+
+                        if (cachedLineItem is not null)
+                        {
+                            // Update the line item's ID for the save operation.
+                            erpLineItem.Id = cachedLineItem.Id;
+
+                            // Copy the user-added packing units from the cached item.
+                            // The existing IDs on these units will tell the database to update them.
+                            erpLineItem.LineItemPackingUnits = cachedLineItem.LineItemPackingUnits;
+                        }
+                    }
+                }
+
+                // 4. The 'erpDocument' now contains the latest ERP data
+                // combined with the user's local packing unit data.
                 SelectedReport = erpDocument;
-            }
+            }            
             catch (OperationCanceledException)
             {
                 // ignore (user canceled)

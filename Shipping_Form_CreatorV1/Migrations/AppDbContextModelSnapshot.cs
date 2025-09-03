@@ -276,9 +276,6 @@ namespace Shipping_Form_CreatorV1.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("ReportHeaderId")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
 
                     b.ToTable("ReportModels");
@@ -287,7 +284,7 @@ namespace Shipping_Form_CreatorV1.Migrations
             modelBuilder.Entity("Shipping_Form_CreatorV1.Models.LineItem", b =>
                 {
                     b.HasOne("Shipping_Form_CreatorV1.Models.LineItemHeader", "LineItemHeader")
-                        .WithOne()
+                        .WithOne("LineItem")
                         .HasForeignKey("Shipping_Form_CreatorV1.Models.LineItem", "LineItemHeaderId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -341,6 +338,12 @@ namespace Shipping_Form_CreatorV1.Migrations
                     b.Navigation("LineItemDetails");
 
                     b.Navigation("LineItemPackingUnits");
+                });
+
+            modelBuilder.Entity("Shipping_Form_CreatorV1.Models.LineItemHeader", b =>
+                {
+                    b.Navigation("LineItem")
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Shipping_Form_CreatorV1.Models.ReportModel", b =>
