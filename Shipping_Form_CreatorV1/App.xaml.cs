@@ -46,7 +46,8 @@ namespace Shipping_Form_CreatorV1
                         sql.EnableRetryOnFailure(5, TimeSpan.FromSeconds(10), null);
                         sql.CommandTimeout(60);
                     })
-                .EnableSensitiveDataLogging();
+                .EnableSensitiveDataLogging()
+                .LogTo(Console.WriteLine);
             });
 
 

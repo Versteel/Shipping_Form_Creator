@@ -27,10 +27,10 @@
             <Button
                 x:Name="OkButton"
                 Width="50"
-                Cursor="Hand"
                 HorizontalAlignment="Right"
                 Click="OkButton_Click"
-                Content="Okay" />
+                Content="Okay"
+                Cursor="Hand" />
         </Border>
     </Grid>
 </Window>

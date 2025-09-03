@@ -20,17 +20,22 @@ public class SqliteService(IDbContextFactory<AppDbContext> dbContext) : ISqliteS
     {
         await using var db = await _dbContext.CreateDbContextAsync(ct);
 
+        var reportModelId = await db.ReportHeaders
+            .Where(h => h.OrderNumber == orderNumber)
+            .Select(h => h.ReportModelId)
+            .FirstOrDefaultAsync(ct);
+
+        if (reportModelId == 0)
+            return null;
+
         var report = await db.ReportModels
-          .AsNoTracking()
-          .AsSplitQuery()
-          .Include(r => r.Header)
-          .Include(r => r.LineItems)
-            .ThenInclude(li => li.LineItemHeader)
-          .Include(r => r.LineItems)
-            .ThenInclude(li => li.LineItemDetails)
-          .Include(r => r.LineItems)
-            .ThenInclude(li => li.LineItemPackingUnits)
-          .SingleOrDefaultAsync(r => r.Header.OrderNumber == orderNumber, ct);
+            .AsNoTracking()
+            .AsSplitQuery()
+            .Include(r => r.Header)
+            .Include(r => r.LineItems).ThenInclude(li => li.LineItemHeader)
+            .Include(r => r.LineItems).ThenInclude(li => li.LineItemDetails)
+            .Include(r => r.LineItems).ThenInclude(li => li.LineItemPackingUnits)
+            .FirstOrDefaultAsync(r => r.Id == reportModelId, ct);
 
         return report;
     }
@@ -41,27 +46,23 @@ public class SqliteService(IDbContextFactory<AppDbContext> dbContext) : ISqliteS
 
         if (report.Id == 0)
         {
-            // Add new report with all children
             AddNewReport(db, report, ct);
         }
         else
         {
-            // Update existing report and children
             await UpdateExistingReportAsync(db, report, ct);
         }
 
         await db.SaveChangesAsync(ct);
     }
 
-    private void AddNewReport(DbContext db, ReportModel report, CancellationToken ct)
+    private static void AddNewReport(DbContext db, ReportModel report, CancellationToken ct)
     {
-        // Add the report - EF will cascade to children
         db.Set<ReportModel>().Add(report);
     }
 
     private async Task UpdateExistingReportAsync(DbContext db, ReportModel report, CancellationToken ct)
     {
-        // Load existing report with all related data
         var existingReport = await db.Set<ReportModel>()
             .Include(r => r.Header)
             .Include(r => r.LineItems)
@@ -70,24 +71,18 @@ public class SqliteService(IDbContextFactory<AppDbContext> dbContext) : ISqliteS
                 .ThenInclude(li => li.LineItemDetails)
             .Include(r => r.LineItems)
                 .ThenInclude(li => li.LineItemPackingUnits)
-            .FirstOrDefaultAsync(r => r.Id == report.Id, ct);
+            .FirstOrDefaultAsync(r => r.Id == report.Id, ct) 
+            ?? throw new InvalidOperationException($"Report with ID {report.Id} not found.");
 
-        if (existingReport == null)
-        {
-            throw new InvalidOperationException($"Report with ID {report.Id} not found.");
-        }
-
-        // Update header properties
         if (report.Header != null)
         {
             UpdateReportHeader(existingReport.Header, report.Header);
         }
 
-        // Update line items
         UpdateLineItems(db, existingReport, report.LineItems, ct);
     }
 
-    private void UpdateReportHeader(ReportHeader existing, ReportHeader updated)
+    private static void UpdateReportHeader(ReportHeader existing, ReportHeader updated)
     {
         existing.LogoImagePath = updated.LogoImagePath;
         existing.OrderNumber = updated.OrderNumber;
@@ -123,7 +118,6 @@ public class SqliteService(IDbContextFactory<AppDbContext> dbContext) : ISqliteS
         var existingLineItemIds = existingReport.LineItems.Select(li => li.Id).ToHashSet();
         var updatedLineItemIds = updatedLineItems.Where(li => li.Id != 0).Select(li => li.Id).ToHashSet();
 
-        // Remove line items that are no longer present
         var lineItemsToRemove = existingReport.LineItems.Where(li => !updatedLineItemIds.Contains(li.Id)).ToList();
         foreach (var lineItem in lineItemsToRemove)
         {
@@ -131,18 +125,15 @@ public class SqliteService(IDbContextFactory<AppDbContext> dbContext) : ISqliteS
             db.Set<LineItem>().Remove(lineItem);
         }
 
-        // Process each updated line item
         foreach (var updatedLineItem in updatedLineItems)
         {
             if (updatedLineItem.Id == 0)
             {
-                // Add new line item
                 updatedLineItem.ReportModelId = existingReport.Id;
                 existingReport.LineItems.Add(updatedLineItem);
             }
             else
             {
-                // Update existing line item
                 var existingLineItem = existingReport.LineItems.FirstOrDefault(li => li.Id == updatedLineItem.Id);
                 if (existingLineItem != null)
                 {
@@ -154,7 +145,6 @@ public class SqliteService(IDbContextFactory<AppDbContext> dbContext) : ISqliteS
 
     private void UpdateLineItem(DbContext db, LineItem existingLineItem, LineItem updatedLineItem, CancellationToken ct)
     {
-        // Update line item header
         if (updatedLineItem.LineItemHeader != null)
         {
             if (existingLineItem.LineItemHeader == null)
@@ -168,14 +158,12 @@ public class SqliteService(IDbContextFactory<AppDbContext> dbContext) : ISqliteS
             }
         }
 
-        // Update line item details
         UpdateLineItemDetails(db, existingLineItem, updatedLineItem.LineItemDetails);
 
-        // Update line item packing units
         UpdateLineItemPackingUnits(db, existingLineItem, updatedLineItem.LineItemPackingUnits);
     }
 
-    private void UpdateLineItemHeader(LineItemHeader existing, LineItemHeader updated)
+    private static void UpdateLineItemHeader(LineItemHeader existing, LineItemHeader updated)
     {
         existing.LineItemNumber = updated.LineItemNumber;
         existing.ProductNumber = updated.ProductNumber;
@@ -190,7 +178,6 @@ public class SqliteService(IDbContextFactory<AppDbContext> dbContext) : ISqliteS
         var existingDetailIds = existingLineItem.LineItemDetails.Select(d => d.Id).ToHashSet();
         var updatedDetailIds = updatedDetails.Where(d => d.Id != 0).Select(d => d.Id).ToHashSet();
 
-        // Remove details that are no longer present
         var detailsToRemove = existingLineItem.LineItemDetails.Where(d => !updatedDetailIds.Contains(d.Id)).ToList();
         foreach (var detail in detailsToRemove)
         {
@@ -198,18 +185,15 @@ public class SqliteService(IDbContextFactory<AppDbContext> dbContext) : ISqliteS
             db.Set<LineItemDetail>().Remove(detail);
         }
 
-        // Process each updated detail
         foreach (var updatedDetail in updatedDetails)
         {
             if (updatedDetail.Id == 0)
             {
-                // Add new detail
                 updatedDetail.LineItemId = existingLineItem.Id;
                 existingLineItem.LineItemDetails.Add(updatedDetail);
             }
             else
             {
-                // Update existing detail
                 var existingDetail = existingLineItem.LineItemDetails.FirstOrDefault(d => d.Id == updatedDetail.Id);
                 if (existingDetail != null)
                 {
@@ -219,7 +203,7 @@ public class SqliteService(IDbContextFactory<AppDbContext> dbContext) : ISqliteS
         }
     }
 
-    private void UpdateLineItemDetail(LineItemDetail existing, LineItemDetail updated)
+    private static void UpdateLineItemDetail(LineItemDetail existing, LineItemDetail updated)
     {
         existing.ModelItem = updated.ModelItem;
         existing.NoteSequenceNumber = updated.NoteSequenceNumber;
@@ -233,7 +217,6 @@ public class SqliteService(IDbContextFactory<AppDbContext> dbContext) : ISqliteS
         var existingPackingUnitIds = existingLineItem.LineItemPackingUnits.Select(pu => pu.Id).ToHashSet();
         var updatedPackingUnitIds = updatedPackingUnits.Where(pu => pu.Id != 0).Select(pu => pu.Id).ToHashSet();
 
-        // Remove packing units that are no longer present
         var packingUnitsToRemove = existingLineItem.LineItemPackingUnits.Where(pu => !updatedPackingUnitIds.Contains(pu.Id)).ToList();
         foreach (var packingUnit in packingUnitsToRemove)
         {
@@ -241,18 +224,15 @@ public class SqliteService(IDbContextFactory<AppDbContext> dbContext) : ISqliteS
             db.Set<LineItemPackingUnit>().Remove(packingUnit);
         }
 
-        // Process each updated packing unit
         foreach (var updatedPackingUnit in updatedPackingUnits)
         {
             if (updatedPackingUnit.Id == 0)
             {
-                // Add new packing unit
                 updatedPackingUnit.LineItemId = existingLineItem.Id;
                 existingLineItem.LineItemPackingUnits.Add(updatedPackingUnit);
             }
             else
             {
-                // Update existing packing unit
                 var existingPackingUnit = existingLineItem.LineItemPackingUnits.FirstOrDefault(pu => pu.Id == updatedPackingUnit.Id);
                 if (existingPackingUnit != null)
                 {
@@ -262,7 +242,7 @@ public class SqliteService(IDbContextFactory<AppDbContext> dbContext) : ISqliteS
         }
     }
 
-    private void UpdateLineItemPackingUnit(LineItemPackingUnit existing, LineItemPackingUnit updated)
+    private static void UpdateLineItemPackingUnit(LineItemPackingUnit existing, LineItemPackingUnit updated)
     {
         existing.Quantity = updated.Quantity;
         existing.CartonOrSkid = updated.CartonOrSkid;

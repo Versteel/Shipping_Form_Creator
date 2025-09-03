@@ -141,7 +141,8 @@
                                         Text="DATE:" />
                                     <TextBlock
                                         Margin="5"
-                                        FontSize="14"
+                                        FontSize="14"                                        
+                                        FontWeight="Bold"
                                         Text="{Binding TodaysDate, RelativeSource={RelativeSource AncestorType=Page}}" />
                                 </StackPanel>
                             </Border>
