@@ -3,8 +3,6 @@ using Shipping_Form_CreatorV1.ViewModels;
 using Shipping_Form_CreatorV1.Utilities;
 using System.Collections.ObjectModel;
 using System.Windows;
-using System.Windows.Controls;
-
 
 namespace Shipping_Form_CreatorV1.Components
 {
@@ -20,38 +18,42 @@ namespace Shipping_Form_CreatorV1.Components
             _viewModel = viewModel;
             DataContext = _viewModel;
             InitializeComponent();
-            _viewModel.PropertyChanged += (_, e) =>
+            _viewModel.PropertyChanged += (o, e) =>
             {
                 if (e.PropertyName == nameof(MainViewModel.SelectedReport))
-                    BuildPages();
+                    _ = BuildPagesWithBusyAsync();
             };
 
-            Loaded += Page_Loaded;
-
+            Loaded += async (_, _) => await BuildPagesWithBusyAsync();
         }
 
-        private void Page_Loaded(object sender, RoutedEventArgs e)
+       
+        private async Task BuildPagesWithBusyAsync()
         {
             try
             {
+                _viewModel.IsBusy = true;
+
+                await Task.Yield();
+
                 BuildPages();
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error building packing list pages: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show($"Error building packing list pages: {ex.Message}", "Error",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+            finally
+            {
+                _viewModel.IsBusy = false;
             }
         }
-
 
         private void BuildPages()
         {
             PageContainer.Children.Clear();
 
             var selectedReport = _viewModel.SelectedReport;
-            //if (selectedReport.LineItems.Count == 0)
-            //{
-            //    return;
-            //}
             var isDittoUser = _viewModel.IsDittoUser;
 
             var header = selectedReport.Header;
@@ -93,7 +95,7 @@ namespace Shipping_Form_CreatorV1.Components
             else
             {
                 var firstItem = lineItems[0];
-                ObservableCollection<LineItemDetail>? firstDetails = new ObservableCollection<LineItemDetail>(GetDetailsFor(firstItem));
+                var firstDetails = new ObservableCollection<LineItemDetail>(GetDetailsFor(firstItem));
 
                 var pageOne = new PackingListPageOne
                 {

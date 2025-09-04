@@ -234,9 +234,7 @@
                                             <Border
                                                 Grid.Row="2"
                                                 Grid.Column="0"
-                                                Grid.ColumnSpan="6"
-                                                BorderBrush="#cccccc"
-                                                BorderThickness="0,0,0,1">
+                                                Grid.ColumnSpan="6">
                                                 <Grid>
                                                     <Grid.ColumnDefinitions>
                                                         <ColumnDefinition />

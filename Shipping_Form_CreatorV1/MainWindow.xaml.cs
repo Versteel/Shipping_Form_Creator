@@ -59,14 +59,14 @@ public partial class MainWindow : Window
                     }
                     catch (Exception ex)
                     {
-                        _dialogService.ShowErrorDialog($"Error: {ex.Message}");
+                        DialogService.ShowErrorDialog($"Error: {ex.Message}");
                     }
                 }
             }
         }
         catch (Exception ex)
         {
-            _dialogService.ShowErrorDialog($"Error: {ex.Message}");
+            DialogService.ShowErrorDialog($"Error: {ex.Message}");
         }
     }
 
@@ -81,7 +81,7 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
-            _dialogService.ShowErrorDialog($"Error: {ex.Message} Inner: {ex.InnerException?.Message}");
+            DialogService.ShowErrorDialog($"Error: {ex.Message} Inner: {ex.InnerException?.Message}");
         }
     }
 
@@ -107,11 +107,11 @@ public partial class MainWindow : Window
         catch (DbUpdateException ex)
         {
             var root = ex.GetBaseException();
-            _dialogService.ShowErrorDialog($"Database update error:\n{root.Message}");
+            DialogService.ShowErrorDialog($"Database update error:\n{root.Message}");
         }
         catch (Exception ex)
         {
-            _dialogService.ShowErrorDialog($"Unexpected error:\n{ex.Message}");
+            DialogService.ShowErrorDialog($"Unexpected error:\n{ex.Message}");
         }
     }
 
