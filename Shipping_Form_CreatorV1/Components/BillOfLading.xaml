@@ -140,7 +140,7 @@
                                         Text="DATE:" />
                                     <TextBlock
                                         Margin="5"
-                                        FontSize="14"                                        
+                                        FontSize="14"
                                         FontWeight="Bold"
                                         Text="{Binding local:BillOfLading.TodaysDate, RelativeSource={RelativeSource AncestorType=Page}}" />
                                 </StackPanel>

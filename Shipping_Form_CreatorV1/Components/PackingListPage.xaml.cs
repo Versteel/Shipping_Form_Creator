@@ -21,31 +21,23 @@ namespace Shipping_Form_CreatorV1.Components
             _viewModel.PropertyChanged += (o, e) =>
             {
                 if (e.PropertyName == nameof(MainViewModel.SelectedReport))
-                    _ = BuildPagesWithBusyAsync();
+                    BuildPagesWithBusy();
             };
 
-            Loaded += async (_, _) => await BuildPagesWithBusyAsync();
+            Loaded += (_, _) => BuildPagesWithBusy();
         }
 
-       
-        private async Task BuildPagesWithBusyAsync()
+
+        private void BuildPagesWithBusy()
         {
             try
             {
-                _viewModel.IsBusy = true;
-
-                await Task.Yield();
-
                 BuildPages();
             }
             catch (Exception ex)
             {
                 MessageBox.Show($"Error building packing list pages: {ex.Message}", "Error",
                     MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-            finally
-            {
-                _viewModel.IsBusy = false;
             }
         }
 
@@ -71,11 +63,6 @@ namespace Shipping_Form_CreatorV1.Components
                 .Where(li => !IsNoteOnly(li))
                 .OrderBy(li => li.LineItemHeader?.LineItemNumber ?? 0)
                 .ToList();
-
-            lineItems = [.. lineItems.Where(li => li.LineItemDetails.Any(d => d.PackingListFlag?.Trim().Equals("Y", StringComparison.OrdinalIgnoreCase) == true && 
-                !string.IsNullOrWhiteSpace(d.NoteText) &&
-                !d.NoteText.Contains("OPTIONS BEGIN") && 
-                !d.NoteText.Contains("OPTIONS END")))];
 
             var trailerNotes = selectedReport.LineItems
                 .SelectMany(li => li.LineItemDetails)

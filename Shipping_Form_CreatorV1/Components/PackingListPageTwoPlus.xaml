@@ -23,7 +23,7 @@
             MinHeight="1056"
             MaxWidth="816"
             MaxHeight="1056"
-            Padding="48"
+            Padding="24 48"
             HorizontalAlignment="Center"
             Background="White">
             <Grid>
@@ -370,7 +370,18 @@
                                                                 <ItemsControl.ItemTemplate>
                                                                     <DataTemplate>
                                                                         <StackPanel Margin="0,2,0,2" Orientation="Horizontal">
-                                                                            <TextBlock Text="{Binding Quantity}" />
+                                                                            <TextBlock Text="{Binding Quantity}">
+                                                                                <TextBlock.Style>
+                                                                                    <Style TargetType="TextBlock">
+                                                                                        <Setter Property="Visibility" Value="Visible" />
+                                                                                        <Style.Triggers>
+                                                                                            <DataTrigger Binding="{Binding CartonOrSkid}" Value="Packed with line ">
+                                                                                                <Setter Property="Visibility" Value="Collapsed" />
+                                                                                            </DataTrigger>
+                                                                                        </Style.Triggers>
+                                                                                    </Style>
+                                                                                </TextBlock.Style>
+                                                                            </TextBlock>
                                                                             <TextBlock Margin="8,0,0,0" Text="{Binding CartonOrSkid}" />
                                                                             <TextBlock Margin="8,0,0,0" Text="{Binding TypeOfUnit}">
                                                                                 <TextBlock.Style>
