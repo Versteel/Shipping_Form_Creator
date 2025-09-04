@@ -7,7 +7,7 @@ namespace Shipping_Form_CreatorV1.Components.Dialogs
     /// </summary>
     public partial class InvalidSalesOrderDialog : Window
     {
-        public string MessageText { get; set; } = string.Empty;
+        public string MessageText { get; set; }
 
         public InvalidSalesOrderDialog(string messageText)
         {

@@ -2,23 +2,14 @@
 using Shipping_Form_CreatorV1.Data;
 using Shipping_Form_CreatorV1.Models;
 using Shipping_Form_CreatorV1.Services.Interfaces;
-using System.Diagnostics;
 
 namespace Shipping_Form_CreatorV1.Services.Implementations;
 
 public class SqliteService(IDbContextFactory<AppDbContext> dbContext) : ISqliteService
 {
-    private readonly IDbContextFactory<AppDbContext> _dbContext = dbContext;
-
-    public bool ExistsInERP(int orderNumber)
-    {
-        using var db = _dbContext.CreateDbContext();
-        return db.ReportHeaders.Any(h => h.OrderNumber == orderNumber);
-    }
-
     public async Task<ReportModel?> GetReportAsync(int orderNumber, CancellationToken ct = default)
     {
-        await using var db = await _dbContext.CreateDbContextAsync(ct);
+        await using var db = await dbContext.CreateDbContextAsync(ct);
 
         var reportModelId = await db.ReportHeaders
             .Where(h => h.OrderNumber == orderNumber)
@@ -29,24 +20,29 @@ public class SqliteService(IDbContextFactory<AppDbContext> dbContext) : ISqliteS
             return null;
 
         var report = await db.ReportModels
-            .AsNoTracking()
-            .AsSplitQuery()
+            .Where(r => r.Header.OrderNumber == orderNumber)
             .Include(r => r.Header)
-            .Include(r => r.LineItems).ThenInclude(li => li.LineItemHeader)
-            .Include(r => r.LineItems).ThenInclude(li => li.LineItemDetails)
-            .Include(r => r.LineItems).ThenInclude(li => li.LineItemPackingUnits)
-            .FirstOrDefaultAsync(r => r.Id == reportModelId, ct);
+            .Include(r => r.LineItems)
+            .ThenInclude(li => li.LineItemHeader)
+            .Include(r => r.LineItems)
+            .ThenInclude(li => li.LineItemDetails)
+            .Include(r => r.LineItems)
+            .ThenInclude(li => li.LineItemPackingUnits)
+            .AsSplitQuery()
+            .AsNoTracking()
+            .FirstOrDefaultAsync(ct);
+
 
         return report;
     }
 
     public async Task SaveReportAsync(ReportModel report, CancellationToken ct = default)
     {
-        await using var db = await _dbContext.CreateDbContextAsync(ct);
+        await using var db = await dbContext.CreateDbContextAsync(ct);
 
         if (report.Id == 0)
         {
-            AddNewReport(db, report, ct);
+            AddNewReport(db, report);
         }
         else
         {
@@ -56,7 +52,7 @@ public class SqliteService(IDbContextFactory<AppDbContext> dbContext) : ISqliteS
         await db.SaveChangesAsync(ct);
     }
 
-    private static void AddNewReport(DbContext db, ReportModel report, CancellationToken ct)
+    private static void AddNewReport(DbContext db, ReportModel report)
     {
         db.Set<ReportModel>().Add(report);
     }
@@ -74,12 +70,9 @@ public class SqliteService(IDbContextFactory<AppDbContext> dbContext) : ISqliteS
             .FirstOrDefaultAsync(r => r.Id == report.Id, ct) 
             ?? throw new InvalidOperationException($"Report with ID {report.Id} not found.");
 
-        if (report.Header != null)
-        {
-            UpdateReportHeader(existingReport.Header, report.Header);
-        }
+        UpdateReportHeader(existingReport.Header, report.Header);
 
-        UpdateLineItems(db, existingReport, report.LineItems, ct);
+        UpdateLineItems(db, existingReport, report.LineItems);
     }
 
     private static void UpdateReportHeader(ReportHeader existing, ReportHeader updated)
@@ -113,9 +106,8 @@ public class SqliteService(IDbContextFactory<AppDbContext> dbContext) : ISqliteS
         existing.FreightTerms = updated.FreightTerms;
     }
 
-    private void UpdateLineItems(DbContext db, ReportModel existingReport, ICollection<LineItem> updatedLineItems, CancellationToken ct)
+    private void UpdateLineItems(DbContext db, ReportModel existingReport, ICollection<LineItem> updatedLineItems)
     {
-        var existingLineItemIds = existingReport.LineItems.Select(li => li.Id).ToHashSet();
         var updatedLineItemIds = updatedLineItems.Where(li => li.Id != 0).Select(li => li.Id).ToHashSet();
 
         var lineItemsToRemove = existingReport.LineItems.Where(li => !updatedLineItemIds.Contains(li.Id)).ToList();
@@ -137,13 +129,13 @@ public class SqliteService(IDbContextFactory<AppDbContext> dbContext) : ISqliteS
                 var existingLineItem = existingReport.LineItems.FirstOrDefault(li => li.Id == updatedLineItem.Id);
                 if (existingLineItem != null)
                 {
-                    UpdateLineItem(db, existingLineItem, updatedLineItem, ct);
+                    UpdateLineItem(db, existingLineItem, updatedLineItem);
                 }
             }
         }
     }
 
-    private void UpdateLineItem(DbContext db, LineItem existingLineItem, LineItem updatedLineItem, CancellationToken ct)
+    private void UpdateLineItem(DbContext db, LineItem existingLineItem, LineItem updatedLineItem)
     {
         if (updatedLineItem.LineItemHeader != null)
         {
@@ -175,7 +167,6 @@ public class SqliteService(IDbContextFactory<AppDbContext> dbContext) : ISqliteS
 
     private void UpdateLineItemDetails(DbContext db, LineItem existingLineItem, ICollection<LineItemDetail> updatedDetails)
     {
-        var existingDetailIds = existingLineItem.LineItemDetails.Select(d => d.Id).ToHashSet();
         var updatedDetailIds = updatedDetails.Where(d => d.Id != 0).Select(d => d.Id).ToHashSet();
 
         var detailsToRemove = existingLineItem.LineItemDetails.Where(d => !updatedDetailIds.Contains(d.Id)).ToList();
@@ -214,7 +205,6 @@ public class SqliteService(IDbContextFactory<AppDbContext> dbContext) : ISqliteS
 
     private void UpdateLineItemPackingUnits(DbContext db, LineItem existingLineItem, ICollection<LineItemPackingUnit> updatedPackingUnits)
     {
-        var existingPackingUnitIds = existingLineItem.LineItemPackingUnits.Select(pu => pu.Id).ToHashSet();
         var updatedPackingUnitIds = updatedPackingUnits.Where(pu => pu.Id != 0).Select(pu => pu.Id).ToHashSet();
 
         var packingUnitsToRemove = existingLineItem.LineItemPackingUnits.Where(pu => !updatedPackingUnitIds.Contains(pu.Id)).ToList();

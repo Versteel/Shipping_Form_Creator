@@ -9,8 +9,6 @@ using System.Windows.Markup;
 using System.Windows.Media;
 using System.Windows.Shapes;
 using Shipping_Form_CreatorV1.Utilities;
-using System.Linq;
-using System.Collections.Generic;
 
 namespace Shipping_Form_CreatorV1.Services.Implementations;
 
@@ -38,8 +36,7 @@ public class PrintService
                 Header = header,
                 LineItem = report.LineItems.ToList()[0],
                 // Page number text set later in a post-pass
-                Details = new ObservableCollection<LineItemDetail>(
-                    report.LineItems.ToList()[0].LineItemDetails.ToList())
+                Details = new ObservableCollection<LineItemDetail>([.. report.LineItems.ToList()[0].LineItemDetails])
             };
             pages.Add(pageOne);
         }
@@ -47,7 +44,7 @@ public class PrintService
         // Page 2+ (if more line items)
         if (report.LineItems.Count > 1)
         {
-            const int itemsPerPage = 2; // Adjust as needed
+            const int itemsPerPage = 2;
 
             var lineItems = report.LineItems
                 .Where(li => !IsNoteOnly(li))
@@ -66,7 +63,6 @@ public class PrintService
                 {
                     Header = header,
                     Items = items
-                    // Page number text set later in a post-pass
                 };
                 pages.Add(pageTwoPlus);
             }
@@ -79,7 +75,6 @@ public class PrintService
             {
                 Header = header,
                 Details = viewModel.PackingListNotes
-                // Page number text set later in a post-pass
             };
             pages.Add(notesPage);
         }
@@ -89,7 +84,6 @@ public class PrintService
         for (int i = 0; i < total; i++)
         {
             var label = $"Page {i + 1} of {total}";
-            // Try common property names used by your page controls
             SetStringPropIfExists(pages[i], "PageNumberText", label);
             SetStringPropIfExists(pages[i], "PageNumberTwoPlusText", label);
         }
@@ -126,57 +120,47 @@ public class PrintService
 
         var fixedDoc = new FixedDocument();
 
-        try
+        foreach (var page in pages)
         {
-            foreach (var page in pages)
+            (page as dynamic).IsPrinting = true;
+
+            var printArea = page.FindName("PackingListPage1PrintArea") as FrameworkElement ??
+                            page.FindName("PackingListPage2PlusPrintArea") as FrameworkElement ??
+                            page.FindName("PackingListNotesPage1PrintArea") as FrameworkElement;
+            if (printArea == null) continue;
+
+            if (double.IsNaN(printArea.Width)) printArea.Width = pageWidth;
+            if (double.IsNaN(printArea.Height)) printArea.Height = pageHeight;
+            printArea.Measure(new Size(printArea.Width, printArea.Height));
+            printArea.Arrange(new Rect(0, 0, printArea.Width, printArea.Height));
+            printArea.UpdateLayout();
+
+            var brush = new VisualBrush(printArea)
             {
-                (page as dynamic).IsPrinting = true;
+                Stretch = Stretch.Uniform,
+                AlignmentX = AlignmentX.Left,
+                AlignmentY = AlignmentY.Top
+            };
 
-                var printArea = page.FindName("PackingListPage1PrintArea") as FrameworkElement ??
-                                page.FindName("PackingListPage2PlusPrintArea") as FrameworkElement ??
-                                page.FindName("PackingListNotesPage1PrintArea") as FrameworkElement;
-                if (printArea == null) continue;
-
-                if (double.IsNaN(printArea.Width)) printArea.Width = pageWidth;
-                if (double.IsNaN(printArea.Height)) printArea.Height = pageHeight;
-                printArea.Measure(new Size(printArea.Width, printArea.Height));
-                printArea.Arrange(new Rect(0, 0, printArea.Width, printArea.Height));
-                printArea.UpdateLayout();
-
-                var brush = new VisualBrush(printArea)
-                {
-                    Stretch = Stretch.Uniform,
-                    AlignmentX = AlignmentX.Left,
-                    AlignmentY = AlignmentY.Top
-                };
-
-                var rect = new Rectangle
-                {
-                    Width = pageWidth,
-                    Height = pageHeight,
-                    Fill = brush
-                };
-
-                var fixedPage = new FixedPage { Width = pageWidth, Height = pageHeight };
-                FixedPage.SetLeft(rect, 0);
-                FixedPage.SetTop(rect, 0);
-                fixedPage.Children.Add(rect);
-
-                fixedPage.Measure(new Size(pageWidth, pageHeight));
-                fixedPage.Arrange(new Rect(new Size(pageWidth, pageHeight)));
-                fixedPage.UpdateLayout();
-
-                var pageContent = new PageContent();
-                ((IAddChild)pageContent).AddChild(fixedPage);
-                fixedDoc.Pages.Add(pageContent);
-            }
-        }
-        finally
-        {
-            foreach (var page in pages)
+            var rect = new Rectangle
             {
-                //(page as dynamic).IsPrinting = false;
-            }
+                Width = pageWidth,
+                Height = pageHeight,
+                Fill = brush
+            };
+
+            var fixedPage = new FixedPage { Width = pageWidth, Height = pageHeight };
+            FixedPage.SetLeft(rect, 0);
+            FixedPage.SetTop(rect, 0);
+            fixedPage.Children.Add(rect);
+
+            fixedPage.Measure(new Size(pageWidth, pageHeight));
+            fixedPage.Arrange(new Rect(new Size(pageWidth, pageHeight)));
+            fixedPage.UpdateLayout();
+
+            var pageContent = new PageContent();
+            ((IAddChild)pageContent).AddChild(fixedPage);
+            fixedDoc.Pages.Add(pageContent);
         }
 
         printDialog.PrintDocument(fixedDoc.DocumentPaginator, "Packing List");
@@ -197,8 +181,7 @@ public class PrintService
 
         var fixedDoc = new FixedDocument();
 
-        var printArea = bolPage.FindName("BillOfLadingPrintArea") as FrameworkElement;
-        if (printArea == null)
+        if (bolPage.FindName("BillOfLadingPrintArea") is not FrameworkElement printArea)
         {
             MessageBox.Show("BillOfLadingPrintArea not found.");
             return;

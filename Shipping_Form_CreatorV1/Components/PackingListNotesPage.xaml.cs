@@ -1,14 +1,13 @@
 ﻿using System.Collections.ObjectModel;
 using Shipping_Form_CreatorV1.Models;
 using System.Windows;
-using System.Windows.Controls;
 
 namespace Shipping_Form_CreatorV1.Components
 {
     /// <summary>
     /// Interaction logic for PackingListNotesPage.xaml
     /// </summary>
-    public partial class PackingListNotesPage : UserControl
+    public partial class PackingListNotesPage
     {
 
         public static readonly DependencyProperty PageNumberTextProperty =

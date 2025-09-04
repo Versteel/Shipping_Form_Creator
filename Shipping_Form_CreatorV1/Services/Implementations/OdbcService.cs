@@ -65,16 +65,16 @@ public class OdbcService : IOdbcService
             short s => s,
             byte b => b,
             double d2 => (int)d2,
-            _ => System.Convert.ToInt32(v)
+            _ => Convert.ToInt32(v)
         };
     }
 
     private static decimal? GetNullableDecimal(DbDataReader r, string col)
     {
-        int o = r.GetOrdinal(col);
+        var o = r.GetOrdinal(col);
         if (r.IsDBNull(o)) return null;
-        object v = r.GetValue(o);
-        return v is decimal d ? d : System.Convert.ToDecimal(v);
+        var v = r.GetValue(o);
+        return v is decimal d ? d : Convert.ToDecimal(v);
     }
 
     private static decimal GetSafeDecimal(DbDataReader r, string col, decimal @default = 0m)
@@ -82,7 +82,7 @@ public class OdbcService : IOdbcService
 
     private string FormatDate(int? rawDate)
     {
-        if (rawDate is null || rawDate <= 0)
+        if (rawDate is null or <= 0)
         {
             return string.Empty;
         }
@@ -90,7 +90,7 @@ public class OdbcService : IOdbcService
         var dateString = rawDate.Value.ToString();
 
         if (dateString.Length >= 7 && DateTime.TryParseExact(dateString[1..], "yyMMdd", null,
-                System.Globalization.DateTimeStyles.None, out DateTime parsedDate))
+                System.Globalization.DateTimeStyles.None, out var parsedDate))
         {
             return parsedDate.ToString("MM/dd/yyyy");
         }
@@ -202,9 +202,12 @@ public class OdbcService : IOdbcService
                 {
                     LineItemNumber = itemNo,
                     ProductNumber = string.Empty,
-                    ProductDescription = itemNo == 0m
-                        ? "ORDER NOTES"
-                        : (itemNo == 950m ? "SHIPPING / BOL NOTES" : "NOTES"),
+                    ProductDescription = itemNo switch
+                    {
+                        0m => "ORDER NOTES",
+                        950m => "SHIPPING / BOL NOTES",
+                        _ => "NOTES"
+                    },
                     OrderedQuantity = 0m,
                     PickOrShipQuantity = 0m,
                     BackOrderQuantity = 0m,
@@ -213,15 +216,14 @@ public class OdbcService : IOdbcService
 
             var detailsForItem = allDetails
                 .Where(d => d.ModelItem == itemNo)
-                .Where(d => !d.NoteText.Contains("OPTIONS BEGIN"))
-                .Where(d => !d.NoteText.Contains("OPTIONS END"))
+                .Where(d => d.NoteText != null && !d.NoteText.Contains("OPTIONS BEGIN"))
+                .Where(d => d.NoteText != null && !d.NoteText.Contains("OPTIONS END"))
                 .OrderBy(d => d.NoteSequenceNumber)
                 .ToList();
 
             var li = new LineItem
             {
                 LineItemHeader = lih,
-                // LineItemHeaderId stays 0; EF will set when saved to SQLite
                 LineItemDetails = new ObservableCollection<LineItemDetail>(detailsForItem)
             };
 

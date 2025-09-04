@@ -2,6 +2,7 @@
     x:Class="Shipping_Form_CreatorV1.Components.PackingListPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:Notification="clr-namespace:Syncfusion.Windows.Controls.Notification;assembly=Syncfusion.SfBusyIndicator.WPF"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="clr-namespace:Shipping_Form_CreatorV1.Components"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -11,14 +12,21 @@
     Background="#e6e6e6"
     mc:Ignorable="d">
 
-    <Grid>
-        <ScrollViewer
-            Padding="20"
-            Background="#e6e6e6"
-            HorizontalScrollBarVisibility="Disabled"
-            VerticalScrollBarVisibility="Auto">
-            <StackPanel x:Name="PageContainer" />
-        </ScrollViewer>
-    </Grid>
-
+    <Notification:SfBusyIndicator
+        AnimationType="Gear"
+        Background="#cccccc"
+        Foreground="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}"
+        IsBusy="{Binding IsBusy}"
+        ViewboxHeight="200"
+        ViewboxWidth="200">
+        <Grid>
+            <ScrollViewer
+                Padding="20"
+                Background="#e6e6e6"
+                HorizontalScrollBarVisibility="Disabled"
+                VerticalScrollBarVisibility="Auto">
+                <StackPanel x:Name="PageContainer" />
+            </ScrollViewer>
+        </Grid>
+    </Notification:SfBusyIndicator>
 </Page>

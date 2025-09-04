@@ -6,7 +6,6 @@
     xmlns:local="clr-namespace:Shipping_Form_CreatorV1.Components"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:utils="clr-namespace:Shipping_Form_CreatorV1.Utilities"
-    xmlns:viewModels="clr-namespace:Shipping_Form_CreatorV1.ViewModels"
     Title="BillOfLading"
     d:DesignHeight="1200"
     d:DesignWidth="1200"
@@ -143,7 +142,7 @@
                                         Margin="5"
                                         FontSize="14"                                        
                                         FontWeight="Bold"
-                                        Text="{Binding TodaysDate, RelativeSource={RelativeSource AncestorType=Page}}" />
+                                        Text="{Binding local:BillOfLading.TodaysDate, RelativeSource={RelativeSource AncestorType=Page}}" />
                                 </StackPanel>
                             </Border>
                             <Border

@@ -8,7 +8,7 @@ namespace Shipping_Form_CreatorV1.Utilities
     {
         public string FlagValue { get; set; } = "Y";
 
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
         {
             // value will be your LineItems collection
             if (value is IEnumerable<LineItem> lineItems)
@@ -22,7 +22,7 @@ namespace Shipping_Form_CreatorV1.Utilities
             return Array.Empty<LineItemDetail>();
         }
 
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
             => Binding.DoNothing;
     }
 }
