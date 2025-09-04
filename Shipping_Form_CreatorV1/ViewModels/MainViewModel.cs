@@ -112,6 +112,8 @@ public class MainViewModel : INotifyPropertyChanged
             OnPropertyChanged(nameof(IsBusy));
         }
     }
+    public string PrintProgress { get; set; } = "";
+
 
     // -------------------------
     // Core data

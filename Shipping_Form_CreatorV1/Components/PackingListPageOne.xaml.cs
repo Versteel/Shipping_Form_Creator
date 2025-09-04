@@ -118,18 +118,7 @@ namespace Shipping_Form_CreatorV1.Components
         public ObservableCollection<LineItemDetail>? Details
         {
             get => (ObservableCollection<LineItemDetail>?)GetValue(DetailsProperty);
-            set
-            {
-                ObservableCollection<LineItemDetail> list = value != null ? [.. value] : [];
-
-                if (list.Count >= 2)
-                {
-                    list.RemoveAt(list.Count - 1);
-                    list.RemoveAt(0);
-                }
-
-                SetValue(DetailsProperty, list);
-            }
+            set => SetValue(DetailsProperty, value);
         }
     }
 }
