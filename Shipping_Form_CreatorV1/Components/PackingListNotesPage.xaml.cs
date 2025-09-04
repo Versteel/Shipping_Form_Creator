@@ -22,6 +22,18 @@ namespace Shipping_Form_CreatorV1.Components
         public static readonly DependencyProperty DetailsProperty =
            DependencyProperty.Register(nameof(Details), typeof(ObservableCollection<LineItemDetail>),
                typeof(PackingListNotesPage), new PropertyMetadata(null));
+        public bool IsPrinting
+        {
+            get => (bool)GetValue(IsPrintingProperty);
+            set => SetValue(IsPrintingProperty, value);
+        }
+
+        public static readonly DependencyProperty IsPrintingProperty =
+            DependencyProperty.Register(
+                nameof(IsPrinting),
+                typeof(bool),
+                typeof(PackingListNotesPage),
+                new PropertyMetadata(false));
 
         public string PageNumberText
         {

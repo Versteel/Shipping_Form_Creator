@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Shipping_Form_CreatorV1.Models;
+using System.Reflection.Emit;
 
 namespace Shipping_Form_CreatorV1.Data;
 
@@ -20,7 +21,8 @@ public class AppDbContext : DbContext
         b.Entity<ReportModel>()
             .HasOne(r => r.Header)
             .WithOne(h => h.ReportModel)
-            .HasForeignKey<ReportHeader>(h => h.ReportModelId);
+            .HasForeignKey<ReportHeader>(h => h.ReportModelId)
+            .OnDelete(DeleteBehavior.Cascade);
 
         // ReportModel → LineItems (1:many)
         b.Entity<ReportModel>()
@@ -31,7 +33,7 @@ public class AppDbContext : DbContext
         // LineItem ⟷ LineItemHeader (1:1)
         b.Entity<LineItem>()
             .HasOne(li => li.LineItemHeader)
-            .WithOne() // no backref in LineItemHeader
+            .WithOne(h => h.LineItem)
             .HasForeignKey<LineItem>(li => li.LineItemHeaderId);
 
         // LineItem → LineItemDetails (1:many)
@@ -45,6 +47,36 @@ public class AppDbContext : DbContext
             .HasOne(pu => pu.LineItem)
             .WithMany(li => li.LineItemPackingUnits)
             .HasForeignKey(pu => pu.LineItemId);
+
+
+        b.Entity<LineItemPackingUnit>()
+            .Property(p => p.Id)
+            .ValueGeneratedOnAdd();
+        b.Entity<ReportModel>()
+            .Property(r => r.Id)
+            .ValueGeneratedOnAdd();
+
+        b.Entity<ReportHeader>()
+            .Property(r => r.Id)
+            .ValueGeneratedOnAdd();
+
+        b.Entity<LineItem>()
+            .Property(li => li.Id)
+            .ValueGeneratedOnAdd();
+
+        b.Entity<LineItemHeader>()
+            .Property(lih => lih.Id)
+            .ValueGeneratedOnAdd();
+
+        b.Entity<LineItemDetail>()
+            .Property(d => d.Id)
+            .ValueGeneratedOnAdd();
+
+        b.Entity<LineItemPackingUnit>()
+            .Property(pu => pu.Id)
+            .ValueGeneratedOnAdd();
+
+
     }
 
 }

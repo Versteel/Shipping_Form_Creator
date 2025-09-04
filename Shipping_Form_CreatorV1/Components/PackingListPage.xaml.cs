@@ -1,6 +1,6 @@
 ﻿using Shipping_Form_CreatorV1.Models;
 using Shipping_Form_CreatorV1.ViewModels;
-using Shipping_Form_CreatorV1.Utilites;
+using Shipping_Form_CreatorV1.Utilities;
 using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Controls;
@@ -48,10 +48,10 @@ namespace Shipping_Form_CreatorV1.Components
             PageContainer.Children.Clear();
 
             var selectedReport = _viewModel.SelectedReport;
-            if (selectedReport.LineItems.Count == 0)
-            {
-                return;
-            }
+            //if (selectedReport.LineItems.Count == 0)
+            //{
+            //    return;
+            //}
             var isDittoUser = _viewModel.IsDittoUser;
 
             var header = selectedReport.Header;

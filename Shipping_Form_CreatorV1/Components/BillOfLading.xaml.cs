@@ -1,19 +1,20 @@
-﻿using Shipping_Form_CreatorV1.ViewModels;
-using System.Windows.Controls;
+﻿using System.Windows.Controls;
+using Shipping_Form_CreatorV1.ViewModels;
 
 namespace Shipping_Form_CreatorV1.Components
 {
-    /// <summary>
-    /// Interaction logic for BillOfLading.xaml
-    /// </summary>
     public partial class BillOfLading : Page
     {
         private readonly MainViewModel _viewModel;
-
-        public BillOfLading(MainViewModel viewModel)
+        public BillOfLading(MainViewModel vm)
         {
             InitializeComponent();
-            _viewModel = viewModel;
+            _viewModel = vm;
+            DataContext = _viewModel; 
         }
+        
+        public string TodaysDate => System.DateTime.Now.ToShortDateString();
+        public string TotalPieces => _viewModel.AllPiecesTotal.ToString();
+        public string TotalWeight => _viewModel.AllWeightTotal.ToString();
     }
 }

@@ -1,19 +1,15 @@
 ﻿using Shipping_Form_CreatorV1.Models;
 using Shipping_Form_CreatorV1.Services.Interfaces;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Data.Common;
 using System.Data.Odbc;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Shipping_Form_CreatorV1.Services.Implementations;
 
 public class OdbcService : IOdbcService
 {
     private const string CONNECTION_STRING =
-        "Driver={IBM i Access ODBC Driver};System=192.168.1.2;Uid=FRN032;Pwd=FRN032;";
+        "Driver={iSeries Access ODBC Driver};System=192.168.1.2;Uid=FRN032;Pwd=FRN032;";
 
     // Combined query: FRENOT (notes) and FREDTL (detail lines) are LEFT JOINs
     private const string COMBINED_QUERY = """
@@ -141,10 +137,10 @@ public class OdbcService : IOdbcService
                 SoldToSt = GetSafeString(reader, "BTST"),
                 SoldToZipCode = GetSafeString(reader, "BTZIP"),
                 ShipToCustNumber = GetSafeString(reader, "HDSTKY"),
-                ShipToName = GetSafeString(reader, "STNAME"),
-                ShipToCustAddressLine1 = GetSafeString(reader, "STLNE1"),
-                ShipToCustAddressLine2 = GetSafeString(reader, "STLNE2"),
-                ShipToCustAddressLine3 = GetSafeString(reader, "STLNE3"),
+                ShipToName = GetSafeString(reader, "OSNAME"),
+                ShipToCustAddressLine1 = GetSafeString(reader, "OSADR2"),
+                ShipToCustAddressLine2 = GetSafeString(reader, "OSADR3"),
+                ShipToCustAddressLine3 = GetSafeString(reader, "OSADR4"),
                 ShipToCity = GetSafeString(reader, "STCITY"),
                 ShipToSt = GetSafeString(reader, "STST"),
                 ShipToZipCode = GetSafeString(reader, "STZIP"),
