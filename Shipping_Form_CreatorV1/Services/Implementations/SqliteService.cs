@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System.Globalization;
+using Microsoft.EntityFrameworkCore;
 using Shipping_Form_CreatorV1.Data;
 using Shipping_Form_CreatorV1.Models;
 using Shipping_Form_CreatorV1.Services.Interfaces;
@@ -34,6 +35,26 @@ public class SqliteService(IDbContextFactory<AppDbContext> dbContext) : ISqliteS
 
 
         return report;
+    }
+    
+    public async Task<List<ReportModel>> GetAllReportsByDateAsync(DateTime date, CancellationToken ct = default)
+    {
+        await using var db = await dbContext.CreateDbContextAsync(ct);
+
+        var search = date.ToString("MM/dd/yyyy", CultureInfo.InvariantCulture);
+
+        // Start from headers so we only get rows that actually have a header
+        var query = await db.ReportModels
+            .Include(r => r.Header)
+            .Include(r => r.LineItems).ThenInclude(li => li.LineItemHeader)
+            .Include(r => r.LineItems).ThenInclude(li => li.LineItemDetails)
+            .Include(r => r.LineItems).ThenInclude(li => li.LineItemPackingUnits)
+            .Where(r => r.Header != null && r.Header.ShipDate == search)
+            .AsSplitQuery()
+            .AsNoTracking()
+            .ToListAsync(ct);
+
+        return query;
     }
 
     public async Task SaveReportAsync(ReportModel report, CancellationToken ct = default)
@@ -102,7 +123,7 @@ public class SqliteService(IDbContextFactory<AppDbContext> dbContext) : ISqliteS
         existing.DueDate = updated.DueDate;
         existing.SalesPerson = updated.SalesPerson;
         existing.CarrierName = updated.CarrierName;
-        existing.ShippingInstructions = updated.ShippingInstructions;
+        existing.TrackingNumber = updated.TrackingNumber;
         existing.FreightTerms = updated.FreightTerms;
     }
 

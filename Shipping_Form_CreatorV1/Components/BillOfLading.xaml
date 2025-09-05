@@ -12,6 +12,50 @@
     mc:Ignorable="d">
     <Page.Resources>
         <utils:BolFlagFilterConverter x:Key="BolFlagFilter" FlagValue="Y" />
+        <Style x:Key="PrintCheckBoxStyle" TargetType="CheckBox">
+            <Setter Property="Foreground" Value="Black"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="CheckBox">
+                        <Grid SnapsToDevicePixels="True">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="16"/>
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <!-- Box -->
+                            <Border Width="12" Height="12"
+                            VerticalAlignment="Center"
+                            BorderBrush="Black" BorderThickness="1"
+                            Background="White"
+                            Margin="0,0,4,0"/>
+
+                            <!-- Tick -->
+                            <Path Grid.Column="0" x:Name="Tick"
+                                  Data="M 2,6 L 5,9 L 10,3"
+                                  StrokeThickness="2"
+                                  Stroke="Black"
+                                  StrokeStartLineCap="Square"
+                                  StrokeEndLineCap="Square"
+                                  Visibility="Collapsed"
+                                  VerticalAlignment="Center"
+                                  Margin="2,0,0,0"/>
+
+                            <!-- Content -->
+                            <ContentPresenter Grid.Column="1"
+                                      VerticalAlignment="Center"
+                                      Margin="2,0,0,0"/>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="Tick" Property="Visibility" Value="Visible"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
     </Page.Resources>
 
     <Grid>
@@ -142,7 +186,7 @@
                                         Margin="5"
                                         FontSize="14"                                        
                                         FontWeight="Bold"
-                                        Text="{Binding local:BillOfLading.TodaysDate, RelativeSource={RelativeSource AncestorType=Page}}" />
+                                        Text="{x:Static local:BillOfLading.TodaysDate}" />
                                 </StackPanel>
                             </Border>
                             <Border
@@ -547,7 +591,6 @@
                                                             BorderBrush="Black"
                                                             BorderThickness="0,0,1,1">
                                                             <TextBlock
-                                                                Grid.Column="4"
                                                                 HorizontalAlignment="Center"
                                                                 VerticalAlignment="Center"
                                                                 FontSize="12"
@@ -558,7 +601,6 @@
                                                             BorderBrush="Black"
                                                             BorderThickness="0,0,1,1">
                                                             <TextBlock
-                                                                Grid.Column="4"
                                                                 HorizontalAlignment="Center"
                                                                 VerticalAlignment="Center"
                                                                 FontSize="12"
@@ -569,7 +611,6 @@
                                                             BorderBrush="Black"
                                                             BorderThickness="0,0,1,1">
                                                             <TextBlock
-                                                                Grid.Column="4"
                                                                 HorizontalAlignment="Center"
                                                                 VerticalAlignment="Center"
                                                                 FontSize="12"
@@ -601,7 +642,6 @@
                                                 BorderBrush="Black"
                                                 BorderThickness="1,0,1,1">
                                                 <TextBlock
-                                                    Grid.Column="0"
                                                     HorizontalAlignment="Center"
                                                     VerticalAlignment="Center"
                                                     FontSize="12"
@@ -626,7 +666,6 @@
                                                 BorderBrush="Black"
                                                 BorderThickness="1,0,1,1">
                                                 <TextBlock
-                                                    Grid.Column="0"
                                                     HorizontalAlignment="Center"
                                                     VerticalAlignment="Center"
                                                     FontSize="12"

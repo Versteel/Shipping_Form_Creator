@@ -149,6 +149,7 @@ public class OdbcService : IOdbcService
                 SalesPerson = GetSafeString(reader, "SPNAME"),
                 CarrierName = GetSafeString(reader, "HDCARN"),
                 FreightTerms = GetSafeString(reader, "HDFRTT"),
+                TrackingNumber = GetSafeString(reader, "HDINST")
             };
 
             // FREDTL: may be NULL if note doesn't match a line

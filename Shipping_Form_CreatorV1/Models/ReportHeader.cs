@@ -37,7 +37,7 @@ public class ReportHeader
     public string DueDate { get; set; }
     public string SalesPerson { get; set; }
     public string CarrierName { get; set; }
-    public string? ShippingInstructions { get; set; }
+    public string? TrackingNumber { get; set; }
 
     private string _freightTerms;
 

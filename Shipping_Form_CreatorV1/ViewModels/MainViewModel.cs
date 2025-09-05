@@ -22,6 +22,16 @@ public class MainViewModel : INotifyPropertyChanged
         IsDittoUser = userGroupService.IsCurrentUserInDittoGroup();
 
         SelectedReport = new ReportModel { Header = new ReportHeader() };
+
+        // NEW: prevent null refs in bindings
+        SearchByDateResults = [];
+        SelectedReportsGroups = [];
+        SearchByDateResults = Array.Empty<ReportModel>();
+        SelectedReport = new ReportModel
+        {
+            Header = new ReportHeader(),
+            LineItems = []
+        };
     }
 
 
@@ -106,8 +116,9 @@ public class MainViewModel : INotifyPropertyChanged
     public bool IsBusy
     {
         get => _isBusy;
-        set {
-            if(_isBusy == value) return;
+        set
+        {
+            if (_isBusy == value) return;
             _isBusy = value;
             OnPropertyChanged(nameof(IsBusy));
         }
@@ -126,11 +137,34 @@ public class MainViewModel : INotifyPropertyChanged
         set
         {
             if (_selectedReport == value) return;
-            _selectedReport = value;
-            UpdateGroups();
+
+            _selectedReport = value ?? new ReportModel
+            {
+                Header = new ReportHeader(),
+                LineItems = []
+            };
+
             OnPropertyChanged(nameof(SelectedReport));
             OnPropertyChanged(nameof(BolSpecialInstructions));
             OnPropertyChanged(nameof(PackingListNotes));
+            UpdateGroups();                          
+            OnPropertyChanged(nameof(BolTotalPieces));
+            OnPropertyChanged(nameof(BolTotalWeight));
+            OnPropertyChanged(nameof(AllPiecesTotal));
+            OnPropertyChanged(nameof(AllWeightTotal));
+        }
+    }
+
+
+    private ICollection<ReportModel> _searchByDateResults;
+    public ICollection<ReportModel> SearchByDateResults
+    {
+        get => _searchByDateResults;
+        set
+        {
+            if (Equals(_searchByDateResults, value)) return;
+            _searchByDateResults = value;
+            OnPropertyChanged(nameof(SearchByDateResults));
         }
     }
 
@@ -162,7 +196,12 @@ public class MainViewModel : INotifyPropertyChanged
 
     private void UpdateGroups()
     {
-        var units = SelectedReport.LineItems.SelectMany(li => li.LineItemPackingUnits);
+        var items = SelectedReport?.LineItems ?? Enumerable.Empty<LineItem>();
+
+        var units = items
+            .SelectMany(li => li.LineItemPackingUnits ?? Enumerable.Empty<LineItemPackingUnit>())
+            .Where(pu => !string.IsNullOrWhiteSpace(pu.TypeOfUnit))
+            .ToList();
 
         var summary = units
             .GroupBy(u => new
@@ -174,38 +213,38 @@ public class MainViewModel : INotifyPropertyChanged
             {
                 TypeOfUnit = g.Key.TypeOfUnit,
                 CartonOrSkid = g.Key.CartonOrSkid,
-                CartonCount = g.Count(x =>
-                    x.CartonOrSkid != null && x.CartonOrSkid.Equals("Carton", StringComparison.InvariantCultureIgnoreCase)),
-                SkidCount =
-                    g.Count(x => x.CartonOrSkid != null && x.CartonOrSkid.Equals("Skid", StringComparison.InvariantCultureIgnoreCase)),
+                CartonCount = g.Where(x => x.CartonOrSkid?.Equals("Carton", StringComparison.InvariantCultureIgnoreCase) == true)
+                               .Sum(x => x.Quantity),
+                SkidCount = g.Where(x => x.CartonOrSkid?.Equals("Skid", StringComparison.InvariantCultureIgnoreCase) == true)
+                               .Sum(x => x.Quantity),
                 TotalPieces = g.Sum(x => x.Quantity),
                 TotalWeight = g.Sum(x => x.Weight),
                 Class = g.Key.TypeOfUnit switch
                 {
-                    var type when type == Constants.PackingUnitCategories[0] => "70",
-                    var type when type == Constants.PackingUnitCategories[1] => "70",
-                    var type when type == Constants.PackingUnitCategories[2] => "250",
-                    var type when type == Constants.PackingUnitCategories[3] => "125",
-                    var type when type == Constants.PackingUnitCategories[4] => "71",
-                    var type when type == Constants.PackingUnitCategories[5] => "70",
-                    var type when type == Constants.PackingUnitCategories[6] => "70",
-                    var type when type == Constants.PackingUnitCategories[7] => "85",
-                    var type when type == Constants.PackingUnitCategories[8] => "100",
-                    var type when type == Constants.PackingUnitCategories[9] => "125",
+                    var t when t == Constants.PackingUnitCategories[0] => "70",
+                    var t when t == Constants.PackingUnitCategories[1] => "70",
+                    var t when t == Constants.PackingUnitCategories[2] => "250",
+                    var t when t == Constants.PackingUnitCategories[3] => "125",
+                    var t when t == Constants.PackingUnitCategories[4] => "71",
+                    var t when t == Constants.PackingUnitCategories[5] => "70",
+                    var t when t == Constants.PackingUnitCategories[6] => "70",
+                    var t when t == Constants.PackingUnitCategories[7] => "85",
+                    var t when t == Constants.PackingUnitCategories[8] => "100",
+                    var t when t == Constants.PackingUnitCategories[9] => "125",
                     _ => "0",
                 },
                 NMFC = g.Key.TypeOfUnit switch
                 {
-                    var type when type == Constants.PackingUnitCategories[0] => "79300-09",
-                    var type when type == Constants.PackingUnitCategories[1] => "79300-09",
-                    var type when type == Constants.PackingUnitCategories[2] => "79300-03",
-                    var type when type == Constants.PackingUnitCategories[3] => "79300-05",
-                    var type when type == Constants.PackingUnitCategories[4] => "61680-01",
-                    var type when type == Constants.PackingUnitCategories[5] => "189035",
-                    var type when type == Constants.PackingUnitCategories[6] => "95190-09",
-                    var type when type == Constants.PackingUnitCategories[7] => "83060",
-                    var type when type == Constants.PackingUnitCategories[8] => "22260-06",
-                    var type when type == Constants.PackingUnitCategories[9] => "79300-05",
+                    var t when t == Constants.PackingUnitCategories[0] => "79300-09",
+                    var t when t == Constants.PackingUnitCategories[1] => "79300-09",
+                    var t when t == Constants.PackingUnitCategories[2] => "79300-03",
+                    var t when t == Constants.PackingUnitCategories[3] => "79300-05",
+                    var t when t == Constants.PackingUnitCategories[4] => "61680-01",
+                    var t when t == Constants.PackingUnitCategories[5] => "189035",
+                    var t when t == Constants.PackingUnitCategories[6] => "95190-09",
+                    var t when t == Constants.PackingUnitCategories[7] => "83060",
+                    var t when t == Constants.PackingUnitCategories[8] => "22260-06",
+                    var t when t == Constants.PackingUnitCategories[9] => "79300-05",
                     _ => "000000-00",
                 }
             })
@@ -213,6 +252,20 @@ public class MainViewModel : INotifyPropertyChanged
             .ThenBy(r => r.CartonOrSkid);
 
         SelectedReportsGroups = new ObservableCollection<BolSummaryRow>(summary);
+    }
+
+
+    // Simple UI state (add below your other UI props)
+    private DateTime? _searchByDate = DateTime.Today;
+    public DateTime? SearchByDate
+    {
+        get => _searchByDate;
+        set
+        {
+            if (_searchByDate == value) return;
+            _searchByDate = value;
+            OnPropertyChanged(nameof(SearchByDate));
+        }
     }
 
 
@@ -292,6 +345,12 @@ public class MainViewModel : INotifyPropertyChanged
         {
             IsBusy = false;
         }
+    }
+
+    public async Task GetSearchByDateResults(DateTime date)
+    {
+        SelectedReportTitle = "SEARCH RESULTS";
+        SearchByDateResults = await _sqliteService.GetAllReportsByDateAsync(date.Date);
     }
 
     public async Task SaveCurrentReportAsync(CancellationToken ct = default)

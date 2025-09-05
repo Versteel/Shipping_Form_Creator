@@ -1,24 +1,23 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Shipping_Form_CreatorV1.Components;
+using Shipping_Form_CreatorV1.Models;
 using Shipping_Form_CreatorV1.Services.Implementations;
 using Shipping_Form_CreatorV1.ViewModels;
-using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Input;
 
 namespace Shipping_Form_CreatorV1;
 
 /// <summary>
 /// Interaction logic for MainWindow.xaml
 /// </summary>
-public partial class MainWindow : Window
+public partial class MainWindow
 {
     private readonly MainViewModel _viewModel;
-    private readonly DialogService _dialogService;
     private readonly PrintService _printService;
 
-    public MainWindow(MainViewModel viewModel, DialogService dialogService, PrintService printService)
+    public MainWindow(MainViewModel viewModel, PrintService printService)
     {
-        _dialogService = dialogService;
         _printService = printService;
         _viewModel = viewModel;
         DataContext = viewModel;
@@ -45,23 +44,25 @@ public partial class MainWindow : Window
         ContentFrame.Content = new BillOfLading(_viewModel);
     }
 
-    private async void OrderNumberTextBox_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+    private async void OrderNumberTextBox_KeyDown(object sender, KeyEventArgs e)
     {
         try
         {
-            if (e.Key == System.Windows.Input.Key.Enter)
+            if (e.Key != Key.Enter) return;
+            if (!OrderNumberIsValid(OrderNumberTextBox.Text.Trim())) return;
+            try
             {
-                if (OrderNumberIsValid(OrderNumberTextBox.Text.Trim()))
+                if (!OrderNumberIsValid(OrderNumberTextBox.Text.Trim())) return;
+                if (_viewModel.SelectedReportTitle == "SEARCH RESULTS")
                 {
-                    try
-                    {
-                        await _viewModel.LoadDocumentAsync(OrderNumberTextBox.Text.Trim());
-                    }
-                    catch (Exception ex)
-                    {
-                        DialogService.ShowErrorDialog($"Error: {ex.Message}");
-                    }
+                    _viewModel.SelectedReportTitle = "PACKING LIST";
                 }
+                await _viewModel.LoadDocumentAsync(OrderNumberTextBox.Text.Trim());
+                ContentFrame.Content = new PackingListPage(_viewModel);
+            }
+            catch (Exception ex)
+            {
+                DialogService.ShowErrorDialog($"Error: {ex.Message}");
             }
         }
         catch (Exception ex)
@@ -74,10 +75,13 @@ public partial class MainWindow : Window
     {
         try
         {
-            if (OrderNumberIsValid(OrderNumberTextBox.Text.Trim()))
+            if (!OrderNumberIsValid(OrderNumberTextBox.Text.Trim())) return;
+            if (_viewModel.SelectedReportTitle == "SEARCH RESULTS")
             {
-                await _viewModel.LoadDocumentAsync(OrderNumberTextBox.Text.Trim());
+                _viewModel.SelectedReportTitle = "PACKING LIST";
             }
+            await _viewModel.LoadDocumentAsync(OrderNumberTextBox.Text.Trim());
+            ContentFrame.Content = new PackingListPage(_viewModel);
         }
         catch (Exception ex)
         {
@@ -119,20 +123,24 @@ public partial class MainWindow : Window
     {
         try
         {
-            if (_viewModel.SelectedReportTitle == "PACKING LIST")
+            switch (_viewModel.SelectedReportTitle)
             {
-                var pages = await _printService.BuildAllPackingListPages(_viewModel);
-                await _printService.PrintPackingListPages(pages);
-            }
-            else if (_viewModel.SelectedReportTitle == "BILL OF LADING")
-            {
-                var page = _printService.BuildBillOfLadingPage(_viewModel);
-                await _printService.PrintBillOfLadingAsync(page);
-            }
-            else
-            {
-                MessageBox.Show($"Unknown report type: {_viewModel.SelectedReportTitle}",
-                    "Print Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                case "PACKING LIST":
+                {
+                    var pages = await _printService.BuildAllPackingListPages(_viewModel);
+                    await _printService.PrintPackingListPages(pages);
+                    break;
+                }
+                case "BILL OF LADING":
+                {
+                    var page = _printService.BuildBillOfLadingPage(_viewModel);
+                    await _printService.PrintBillOfLadingAsync(page);
+                    break;
+                }
+                default:
+                    MessageBox.Show($"Unknown report type: {_viewModel.SelectedReportTitle}",
+                        "Print Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    break;
             }
         }
         catch (InvalidOperationException ex)
@@ -147,13 +155,13 @@ public partial class MainWindow : Window
             MessageBox.Show($"Access denied: {ex.Message}\n\nPlease check printer permissions.",
                 "Access Error", MessageBoxButton.OK, MessageBoxImage.Error);
         }
-        catch (OutOfMemoryException ex)
+        catch (OutOfMemoryException)
         {
             // Handle memory issues (large documents)
             MessageBox.Show("Insufficient memory to complete the print operation. Try closing other applications.",
                 "Memory Error", MessageBoxButton.OK, MessageBoxImage.Error);
         }
-        catch (TaskCanceledException ex)
+        catch (TaskCanceledException)
         {
             // Handle timeout or cancellation
             MessageBox.Show("Print operation was cancelled or timed out.",
@@ -168,5 +176,37 @@ public partial class MainWindow : Window
             // Log the full exception for debugging
             System.Diagnostics.Debug.WriteLine($"Print error: {ex}");
         }
+    }
+
+    private async void SearchByDateBtn_OnClick(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            if (_viewModel.SearchByDate is null)
+            {
+                DialogService.ShowErrorDialog("Please choose a ship date.");
+                return;
+            }
+
+            await _viewModel.GetSearchByDateResults(_viewModel.SearchByDate.Value);
+            ContentFrame.Content = new SearchByDateResultsPage(_viewModel);
+        }
+        catch (Exception ex)
+        {
+            DialogService.ShowErrorDialog($"Error: {ex.Message}");
+        }
+    }
+
+    public void NavigateToReport(ReportModel report, string target)
+    {
+        if (report == null) return;
+
+        _viewModel.SelectedReport = report;
+        _viewModel.SelectedReportTitle = target;
+
+        if (target == "PACKING LIST")
+            ContentFrame.Content = new PackingListPage(_viewModel);
+        else
+            ContentFrame.Content = new BillOfLading(_viewModel);
     }
 }

@@ -4,6 +4,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="clr-namespace:Shipping_Form_CreatorV1"
+    xmlns:sys="clr-namespace:System;assembly=mscorlib"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:ui="http://schemas.modernwpf.com/2019"
     Title="Shipping Form Creator"
@@ -78,14 +79,34 @@
                     Background="#FFF"
                     FontSize="18"
                     KeyDown="OrderNumberTextBox_KeyDown"
-                    Text="{Binding SelectedOrderNumber}" />
+                    Text="{Binding SelectedOrderNumber,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}" />
+                <Button
+                    x:Name="SearchByDateBtn"
+                    Width="100"
+                    Margin="15,10,0,0"
+                    HorizontalAlignment="Left"
+                    Background="#e31f26"
+                    Click="SearchBtn_Click"
+                    Content="Search"
+                    Cursor="Hand"
+                    Foreground="#FFF" />
+                <TextBlock
+                    Margin="0,40,0,0"
+                    FontSize="18"
+                    Text="1. Search by ship date" />
+                <DatePicker
+                    x:Name="ShipDatePicker"
+                    Margin="15,0,0,0"
+                    SelectedDate="{Binding SearchByDate, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                    SelectedDateFormat="Short"
+                    DisplayDateEnd="{x:Static sys:DateTime.Today}"/>
                 <Button
                     x:Name="SearchBtn"
                     Width="100"
                     Margin="15,10,0,0"
                     HorizontalAlignment="Left"
                     Background="#e31f26"
-                    Click="SearchBtn_Click"
+                    Click="SearchByDateBtn_OnClick"
                     Content="Search"
                     Cursor="Hand"
                     Foreground="#FFF" />
