@@ -174,16 +174,12 @@ public class MainViewModel : INotifyPropertyChanged
             {
                 TypeOfUnit = g.Key.TypeOfUnit,
                 CartonOrSkid = g.Key.CartonOrSkid,
-
-                // FIX: sum quantities, don’t count rows
-                CartonCount = g.Where(x => string.Equals(x.CartonOrSkid, "Carton", StringComparison.InvariantCultureIgnoreCase))
-                               .Sum(x => x.Quantity),
-                SkidCount = g.Where(x => string.Equals(x.CartonOrSkid, "Skid", StringComparison.InvariantCultureIgnoreCase))
-                               .Sum(x => x.Quantity),
-
+                CartonCount = g.Count(x =>
+                    x.CartonOrSkid != null && x.CartonOrSkid.Equals("Carton", StringComparison.InvariantCultureIgnoreCase)),
+                SkidCount =
+                    g.Count(x => x.CartonOrSkid != null && x.CartonOrSkid.Equals("Skid", StringComparison.InvariantCultureIgnoreCase)),
                 TotalPieces = g.Sum(x => x.Quantity),
                 TotalWeight = g.Sum(x => x.Weight),
-
                 Class = g.Key.TypeOfUnit switch
                 {
                     var type when type == Constants.PackingUnitCategories[0] => "70",
@@ -218,7 +214,6 @@ public class MainViewModel : INotifyPropertyChanged
 
         SelectedReportsGroups = new ObservableCollection<BolSummaryRow>(summary);
     }
-
 
 
     public int BolTotalPieces => SelectedReportsGroups.Sum(r => r.TotalPieces);
