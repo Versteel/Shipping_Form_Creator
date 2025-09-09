@@ -10,9 +10,9 @@ namespace Shipping_Form_CreatorV1.Components
     {
         private readonly MainViewModel _vm;
 
-        // Routed commands (avoid Click on MenuItem to dodge XAML column parsing issues)
         public static readonly RoutedUICommand OpenPackingListCommand =
             new("Open Packing List", nameof(OpenPackingListCommand), typeof(SearchByDateResultsPage));
+
         public static readonly RoutedUICommand OpenBolCommand =
             new("Open Bill of Lading", nameof(OpenBolCommand), typeof(SearchByDateResultsPage));
 

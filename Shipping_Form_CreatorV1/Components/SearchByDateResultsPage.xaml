@@ -1,64 +1,105 @@
-<Page x:Class="Shipping_Form_CreatorV1.Components.SearchByDateResultsPage"
-      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-      xmlns:local="clr-namespace:Shipping_Form_CreatorV1.Components"
-      Title="Search Results">
+<Page
+    x:Class="Shipping_Form_CreatorV1.Components.SearchByDateResultsPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:Notification="clr-namespace:Syncfusion.Windows.Controls.Notification;assembly=Syncfusion.SfBusyIndicator.WPF"
+    xmlns:local="clr-namespace:Shipping_Form_CreatorV1.Components"
+    xmlns:syncfusion="http://schemas.syncfusion.com/wpf"
+    xmlns:syncfusionskin="clr-namespace:Syncfusion.SfSkinManager;assembly=Syncfusion.SfSkinManager.WPF"
+    Title="Search Results"
+    syncfusionskin:SfSkinManager.Theme="{syncfusion:SkinManager ThemeName=Windows11Light}">
 
-    <!-- Hook command handlers on the page -->
+
+    <!--  Hook command handlers on the page  -->
     <Page.CommandBindings>
-        <CommandBinding Command="{x:Static local:SearchByDateResultsPage.OpenPackingListCommand}"
-                        Executed="OpenPackingList_Executed"/>
-        <CommandBinding Command="{x:Static local:SearchByDateResultsPage.OpenBolCommand}"
-                        Executed="OpenBol_Executed"/>
+        <CommandBinding Command="{x:Static local:SearchByDateResultsPage.OpenPackingListCommand}" Executed="OpenPackingList_Executed" />
+        <CommandBinding Command="{x:Static local:SearchByDateResultsPage.OpenBolCommand}" Executed="OpenBol_Executed" />
     </Page.CommandBindings>
 
-    <Grid>
-        <DataGrid x:Name="searchResultsDataGrid"
-                  ItemsSource="{Binding SearchByDateResults}"
-                  SelectedItem="{Binding SelectedReport, Mode=TwoWay}"
-                  AutoGenerateColumns="False"
-                  IsReadOnly="True"
-                  CanUserAddRows="False"
-                  MouseDoubleClick="SearchResultsDataGrid_OnMouseDoubleClick"
-                  Margin="10">
+    <Notification:SfBusyIndicator
+        AnimationType="Gear"
+        Foreground="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}"
+        IsBusy="{Binding IsBusy}"
+        ViewboxHeight="200"
+        ViewboxWidth="200">
+        <Grid HorizontalAlignment="Center">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <StackPanel Grid.Row="0" Orientation="Horizontal" HorizontalAlignment="Center">
+                <TextBlock FontSize="25" FontWeight="Bold" Text="ORDERS SHIPPED "/>
+                <TextBlock FontSize="25" FontWeight="Bold" Text="{Binding SearchDateString}" />
+            </StackPanel>
+            <syncfusion:SfDataGrid
+                x:Name="searchResultsDataGrid"
+                Grid.Row="1"
+                Margin="10"
+                AllowResizingColumns="True"
+                AutoGenerateColumns="False"
+                GridLinesVisibility="Both"
+                IsReadOnly="True"
+                ItemsSource="{Binding ElementName=DataPager, Path=PagedSource}"
+                MouseDoubleClick="SearchResultsDataGrid_OnMouseDoubleClick"
+                RowHeight="30"
+                SelectedItem="{Binding SelectedReport, Mode=TwoWay}">
 
-            <!-- Row-level context menu -->
-            <DataGrid.RowStyle>
-                <Style TargetType="DataGridRow">
-                    <EventSetter Event="PreviewMouseRightButtonDown"
-                                 Handler="DataGridRow_PreviewMouseRightButtonDown" />
-                    <Setter Property="ContextMenu">
-                        <Setter.Value>
-                            <ContextMenu>
-                                <MenuItem Header="Open Packing List"
-                                          Command="{x:Static local:SearchByDateResultsPage.OpenPackingListCommand}"
-                                          CommandParameter="{Binding PlacementTarget.DataContext,
-                                            RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
-                                <MenuItem Header="Open Bill of Lading"
-                                          Command="{x:Static local:SearchByDateResultsPage.OpenBolCommand}"
-                                          CommandParameter="{Binding PlacementTarget.DataContext,
-                                            RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
-                            </ContextMenu>
-                        </Setter.Value>
-                    </Setter>
-                </Style>
-            </DataGrid.RowStyle>
+                <!--  Row-level context menu  -->
 
-            <!-- Columns -->
-            <DataGrid.Columns>
-                <DataGridTextColumn Header="Order #"
-                                    Binding="{Binding Header.OrderNumber}" Width="100"/>
-                <DataGridTextColumn Header="Ship Date"
-                                    Binding="{Binding Header.ShipDate}" Width="110"/>
-                <DataGridTextColumn Header="Ship To"
-                                    Binding="{Binding Header.ShipToName}" Width="*"/>
-                <DataGridTextColumn Header="City"
-                                    Binding="{Binding Header.ShipToCity}" Width="150"/>
-                <DataGridTextColumn Header="PO #"
-                                    Binding="{Binding Header.CustomerPONumber}" Width="120"/>
-                <DataGridTextColumn Header="Carrier"
-                                    Binding="{Binding Header.CarrierName}" Width="150"/>
-            </DataGrid.Columns>
-        </DataGrid>
-    </Grid>
+
+                <!--  Columns  -->
+                <syncfusion:SfDataGrid.Columns>
+                    <syncfusion:GridNumericColumn
+                        Width="100"
+                        HeaderText="Order #"
+                        TextAlignment="Right"
+                        ValueBinding="{Binding Header.OrderNumber}" />
+                    <syncfusion:GridDateTimeColumn
+                        Width="100"
+                        HeaderText="Ship Date"
+                        TextAlignment="Right"
+                        ValueBinding="{Binding Header.ShipDate}" />
+                    <syncfusion:GridTextColumn
+                        Width="200"
+                        HeaderText="Ship To"
+                        TextAlignment="Right"
+                        ValueBinding="{Binding Header.ShipToName}" />
+                    <syncfusion:GridTextColumn
+                        Width="150"
+                        HeaderText="City, State Zip"
+                        TextAlignment="Right"
+                        ValueBinding="{Binding Header.ShipToCityStZip}" />
+                    <syncfusion:GridTextColumn
+                        Width="100"
+                        HeaderText="PO #"
+                        TextAlignment="Right"
+                        ValueBinding="{Binding Header.CustomerPONumber}" />
+                    <syncfusion:GridTextColumn
+                        Width="150"
+                        HeaderText="Carrier"
+                        TextAlignment="Right"
+                        ValueBinding="{Binding Header.CarrierName}" />
+                </syncfusion:SfDataGrid.Columns>
+                <syncfusion:SfDataGrid.RecordContextMenu>
+                    <ContextMenu>
+                        <MenuItem
+                            Command="{x:Static local:SearchByDateResultsPage.OpenPackingListCommand}"
+                            CommandParameter="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                            Header="Open Packing List" />
+                        <MenuItem
+                            Command="{x:Static local:SearchByDateResultsPage.OpenBolCommand}"
+                            CommandParameter="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                            Header="Open Bill of Lading" />
+                    </ContextMenu>
+                </syncfusion:SfDataGrid.RecordContextMenu>
+            </syncfusion:SfDataGrid>
+            <syncfusion:SfDataPager
+                x:Name="DataPager"
+                Grid.Row="2"
+                HorizontalAlignment="Center"
+                PageSize="25"
+                Source="{Binding SearchByDateResults}" />
+        </Grid>
+    </Notification:SfBusyIndicator>
 </Page>

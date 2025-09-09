@@ -13,42 +13,48 @@
     <Page.Resources>
         <utils:BolFlagFilterConverter x:Key="BolFlagFilter" FlagValue="Y" />
         <Style x:Key="PrintCheckBoxStyle" TargetType="CheckBox">
-            <Setter Property="Foreground" Value="Black"/>
+            <Setter Property="Foreground" Value="Black" />
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="CheckBox">
                         <Grid SnapsToDevicePixels="True">
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="16"/>
+                                <ColumnDefinition Width="16" />
                                 <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>
 
-                            <!-- Box -->
-                            <Border Width="12" Height="12"
-                            VerticalAlignment="Center"
-                            BorderBrush="Black" BorderThickness="1"
-                            Background="White"
-                            Margin="0,0,4,0"/>
+                            <!--  Box  -->
+                            <Border
+                                Width="12"
+                                Height="12"
+                                Margin="0,0,4,0"
+                                VerticalAlignment="Center"
+                                Background="White"
+                                BorderBrush="Black"
+                                BorderThickness="1" />
 
-                            <!-- Tick -->
-                            <Path Grid.Column="0" x:Name="Tick"
-                                  Data="M 2,6 L 5,9 L 10,3"
-                                  StrokeThickness="2"
-                                  Stroke="Black"
-                                  StrokeStartLineCap="Square"
-                                  StrokeEndLineCap="Square"
-                                  Visibility="Collapsed"
-                                  VerticalAlignment="Center"
-                                  Margin="2,0,0,0"/>
+                            <!--  Tick  -->
+                            <Path
+                                x:Name="Tick"
+                                Grid.Column="0"
+                                Margin="2,0,0,0"
+                                VerticalAlignment="Center"
+                                Data="M 2,6 L 5,9 L 10,3"
+                                Stroke="Black"
+                                StrokeEndLineCap="Square"
+                                StrokeStartLineCap="Square"
+                                StrokeThickness="2"
+                                Visibility="Collapsed" />
 
-                            <!-- Content -->
-                            <ContentPresenter Grid.Column="1"
-                                      VerticalAlignment="Center"
-                                      Margin="2,0,0,0"/>
+                            <!--  Content  -->
+                            <ContentPresenter
+                                Grid.Column="1"
+                                Margin="2,0,0,0"
+                                VerticalAlignment="Center" />
                         </Grid>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsChecked" Value="True">
-                                <Setter TargetName="Tick" Property="Visibility" Value="Visible"/>
+                                <Setter TargetName="Tick" Property="Visibility" Value="Visible" />
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -115,6 +121,7 @@
                                     FontSize="14"
                                     Text="CONSIGNEE (TO) ADDRESS"
                                     TextWrapping="Wrap" />
+                                <Border Grid.Row="0" Grid.Column="1" />
                                 <StackPanel
                                     Grid.Row="0"
                                     Grid.Column="1"
@@ -134,7 +141,7 @@
                                 <Border
                                     Grid.Row="2"
                                     Grid.Column="1"
-                                    Height="100"
+                                    Height="120"
                                     BorderBrush="#000"
                                     BorderThickness="1">
                                     <StackPanel Orientation="Vertical">
@@ -148,16 +155,15 @@
                                                 FontWeight="Bold"
                                                 Text="THIRD PARTY BILLING / SPECIAL INSTRUCTIONS" />
                                         </Border>
-                                        <ItemsControl ItemsSource="{Binding SelectedReport.LineItems, Converter={StaticResource BolFlagFilter}}">
-                                            <ItemsControl.ItemTemplate>
-                                                <DataTemplate>
-                                                    <TextBlock
-                                                        Margin="10,0,0,0"
-                                                        Text="{Binding NoteText}"
-                                                        TextWrapping="Wrap" />
-                                                </DataTemplate>
-                                            </ItemsControl.ItemTemplate>
-                                        </ItemsControl>
+                                        <Border Padding="10,0">
+                                            <ItemsControl ItemsSource="{Binding SelectedReport.LineItems, Converter={StaticResource BolFlagFilter}}">
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <TextBlock Text="{Binding NoteText}" TextWrapping="Wrap" />
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                        </Border>
                                     </StackPanel>
                                 </Border>
                             </Grid>
@@ -184,7 +190,7 @@
                                         Text="DATE:" />
                                     <TextBlock
                                         Margin="5"
-                                        FontSize="14"                                        
+                                        FontSize="14"
                                         FontWeight="Bold"
                                         Text="{x:Static local:BillOfLading.TodaysDate}" />
                                 </StackPanel>

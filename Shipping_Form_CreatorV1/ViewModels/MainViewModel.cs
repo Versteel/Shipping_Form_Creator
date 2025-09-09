@@ -191,8 +191,14 @@ public class MainViewModel : INotifyPropertyChanged
         }
     }
 
+
     public int AllPiecesTotal => SelectedReportsGroups.Sum(r => r.TotalPieces);
     public int AllWeightTotal => SelectedReportsGroups.Sum(r => r.TotalWeight);
+
+    public string SearchResultsPageTitle
+    {
+        get => $"Orders Shipped on {SelectedReport.Header.ShipDate}";
+    }
 
     private void UpdateGroups()
     {
@@ -256,7 +262,7 @@ public class MainViewModel : INotifyPropertyChanged
 
 
     // Simple UI state (add below your other UI props)
-    private DateTime? _searchByDate = DateTime.Today;
+    private DateTime? _searchByDate = DateTime.Today.Date;
     public DateTime? SearchByDate
     {
         get => _searchByDate;
@@ -265,8 +271,13 @@ public class MainViewModel : INotifyPropertyChanged
             if (_searchByDate == value) return;
             _searchByDate = value;
             OnPropertyChanged(nameof(SearchByDate));
+            OnPropertyChanged(nameof(SearchDateString)); // notify UI that string also changed
         }
     }
+
+    public string SearchDateString =>
+        SearchByDate?.ToShortDateString() ?? string.Empty;
+
 
 
     public int BolTotalPieces => SelectedReportsGroups.Sum(r => r.TotalPieces);
@@ -294,37 +305,84 @@ public class MainViewModel : INotifyPropertyChanged
         try
         {
             var erpDocument = await _odbcService.GetReportAsync(orderNumber, ct);
-            if (erpDocument is null)
+            var cachedDocument = await _sqliteService.GetReportAsync(orderNumber, ct);
+
+            // Case: nothing found at all
+            if (erpDocument is null && cachedDocument is null)
             {
-                DialogService.ShowErrorDialog($"Sales Order {orderNumber} does not have a packing list.");
+                DialogService.ShowErrorDialog(
+                    $"Sales Order {orderNumber} does not have a packing list in ERP or cache.");
                 return;
             }
 
-            var cachedDocument = await _sqliteService.GetReportAsync(orderNumber, ct);
+            // Case: ERP is missing → just use cached
+            if (erpDocument is null)
+            {
+                SelectedReport = cachedDocument!;
+                return;
+            }
 
+            // ERP exists → merge from cache when ERP has blanks or local values matter
             if (cachedDocument is not null)
             {
+                // keep DB identity
                 erpDocument.Id = cachedDocument.Id;
                 erpDocument.Header.Id = cachedDocument.Header.Id;
-                erpDocument.Header.LogoImagePath = cachedDocument.Header.LogoImagePath;
 
-                await Task.Run(() =>
+                var erpHeader = erpDocument.Header;
+                var cacheHeader = cachedDocument.Header;
+
+                // Apply ERP props if present, otherwise fall back to cache
+                erpHeader.LogoImagePath =
+                    !string.IsNullOrWhiteSpace(erpHeader.LogoImagePath)
+                        ? erpHeader.LogoImagePath
+                        : cacheHeader.LogoImagePath;
+
+                erpHeader.OrderNumber =
+                    erpHeader.OrderNumber != 0 ? erpHeader.OrderNumber : cacheHeader.OrderNumber;
+
+                erpHeader.ShipDate =
+                    erpHeader.ShipDate != default ? erpHeader.ShipDate : cacheHeader.ShipDate;
+
+                erpHeader.ShipToName =
+                    !string.IsNullOrWhiteSpace(erpHeader.ShipToName)
+                        ? erpHeader.ShipToName
+                        : cacheHeader.ShipToName;
+
+                erpHeader.ShipToCity =
+                    !string.IsNullOrWhiteSpace(erpHeader.ShipToCity)
+                        ? erpHeader.ShipToCity
+                        : cacheHeader.ShipToCity;
+
+                erpHeader.CustomerPONumber =
+                    !string.IsNullOrWhiteSpace(erpHeader.CustomerPONumber)
+                        ? erpHeader.CustomerPONumber
+                        : cacheHeader.CustomerPONumber;
+
+                erpHeader.CarrierName =
+                    !string.IsNullOrWhiteSpace(erpHeader.CarrierName)
+                        ? erpHeader.CarrierName
+                        : cacheHeader.CarrierName;
+
+                // Merge line items
+                foreach (var erpLine in erpDocument.LineItems)
                 {
-                    foreach (var erpLineItem in erpDocument.LineItems)
-                    {
-                        var cachedLineItem = cachedDocument.LineItems
-                            .FirstOrDefault(li =>
-                                li.LineItemHeader?.LineItemNumber == erpLineItem.LineItemHeader?.LineItemNumber);
+                    var cachedLine = cachedDocument.LineItems
+                        .FirstOrDefault(li =>
+                            li.LineItemHeader?.LineItemNumber == erpLine.LineItemHeader?.LineItemNumber);
 
-                        if (cachedLineItem is null) continue;
-                        erpLineItem.Id = cachedLineItem.Id;
-                        erpLineItem.LineItemPackingUnits = cachedLineItem.LineItemPackingUnits;
-                    }
-                }, ct);
+                    if (cachedLine is null) continue;
 
+                    erpLine.Id = cachedLine.Id;
+
+                    // If ERP didn’t provide packing units, reuse cached ones
+                    if (erpLine.LineItemPackingUnits == null || erpLine.LineItemPackingUnits.Count == 0)
+                        erpLine.LineItemPackingUnits = cachedLine.LineItemPackingUnits;
+                }
             }
 
             SelectedReport = erpDocument;
+
         }
         catch (OperationCanceledException)
         {
@@ -350,7 +408,21 @@ public class MainViewModel : INotifyPropertyChanged
     public async Task GetSearchByDateResults(DateTime date)
     {
         SelectedReportTitle = "SEARCH RESULTS";
-        SearchByDateResults = await _sqliteService.GetAllReportsByDateAsync(date.Date);
+        try
+        {
+            IsBusy = true;
+            await Task.Delay(1);
+            SearchByDateResults = await _sqliteService.GetAllReportsByDateAsync(date.Date);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Exception: {ex.Message}. Inner Exception {ex.InnerException}");
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+
     }
 
     public async Task SaveCurrentReportAsync(CancellationToken ct = default)

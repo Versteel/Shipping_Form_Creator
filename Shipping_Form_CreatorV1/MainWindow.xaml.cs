@@ -46,23 +46,20 @@ public partial class MainWindow
 
     private async void OrderNumberTextBox_KeyDown(object sender, KeyEventArgs e)
     {
+        if (!OrderNumberIsValid(OrderNumberTextBox.Text.Trim())) return;
+        if (e.Key != Key.Enter) return;
         try
         {
-            if (e.Key != Key.Enter) return;
-            if (!OrderNumberIsValid(OrderNumberTextBox.Text.Trim())) return;
-            try
+            await _viewModel.LoadDocumentAsync(OrderNumberTextBox.Text.Trim());
+            if (_viewModel.SelectedReportTitle == "SEARCH RESULTS")
             {
-                if (!OrderNumberIsValid(OrderNumberTextBox.Text.Trim())) return;
-                if (_viewModel.SelectedReportTitle == "SEARCH RESULTS")
-                {
-                    _viewModel.SelectedReportTitle = "PACKING LIST";
-                }
-                await _viewModel.LoadDocumentAsync(OrderNumberTextBox.Text.Trim());
+                _viewModel.SelectedReportTitle = "PACKING LIST";
+
                 ContentFrame.Content = new PackingListPage(_viewModel);
             }
-            catch (Exception ex)
+            if (_viewModel.SelectedReportTitle == "BILL OF LADING")
             {
-                DialogService.ShowErrorDialog($"Error: {ex.Message}");
+                ContentFrame.Content = new BillOfLading(_viewModel);
             }
         }
         catch (Exception ex)
@@ -73,15 +70,22 @@ public partial class MainWindow
 
     private async void SearchBtn_Click(object sender, RoutedEventArgs e)
     {
+        if (!OrderNumberIsValid(OrderNumberTextBox.Text.Trim())) return;
         try
         {
-            if (!OrderNumberIsValid(OrderNumberTextBox.Text.Trim())) return;
+
+            await _viewModel.LoadDocumentAsync(OrderNumberTextBox.Text.Trim());
             if (_viewModel.SelectedReportTitle == "SEARCH RESULTS")
             {
                 _viewModel.SelectedReportTitle = "PACKING LIST";
+
+                ContentFrame.Content = new PackingListPage(_viewModel);
             }
-            await _viewModel.LoadDocumentAsync(OrderNumberTextBox.Text.Trim());
-            ContentFrame.Content = new PackingListPage(_viewModel);
+            if (_viewModel.SelectedReportTitle == "BILL OF LADING")
+            {
+                ContentFrame.Content = new BillOfLading(_viewModel);
+            }
+
         }
         catch (Exception ex)
         {
@@ -126,17 +130,17 @@ public partial class MainWindow
             switch (_viewModel.SelectedReportTitle)
             {
                 case "PACKING LIST":
-                {
-                    var pages = await _printService.BuildAllPackingListPages(_viewModel);
-                    await _printService.PrintPackingListPages(pages);
-                    break;
-                }
+                    {
+                        var pages = await _printService.BuildAllPackingListPages(_viewModel);
+                        await _printService.PrintPackingListPages(pages);
+                        break;
+                    }
                 case "BILL OF LADING":
-                {
-                    var page = _printService.BuildBillOfLadingPage(_viewModel);
-                    await _printService.PrintBillOfLadingAsync(page);
-                    break;
-                }
+                    {
+                        var page = _printService.BuildBillOfLadingPage(_viewModel);
+                        await _printService.PrintBillOfLadingAsync(page);
+                        break;
+                    }
                 default:
                     MessageBox.Show($"Unknown report type: {_viewModel.SelectedReportTitle}",
                         "Print Error", MessageBoxButton.OK, MessageBoxImage.Warning);
@@ -148,7 +152,7 @@ public partial class MainWindow
             // Handle specific printing/UI related errors
             MessageBox.Show($"Print operation failed: {ex.Message}",
                 "Print Error", MessageBoxButton.OK, MessageBoxImage.Error);
-        }        
+        }
         catch (UnauthorizedAccessException ex)
         {
             // Handle access/permission errors
