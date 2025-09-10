@@ -1,4 +1,5 @@
-﻿using Shipping_Form_CreatorV1.Utilites;
+﻿using Shipping_Form_CreatorV1.Utilities;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Shipping_Form_CreatorV1.Models;
 
@@ -7,6 +8,8 @@ public class ReportHeader
     public int Id { get; set; }
     public string LogoImagePath { get; set; } = string.Empty;
     public int OrderNumber { get; set; }
+    [NotMapped]
+    public string OrderNumberWithSuffix => $"{OrderNumber}-00";
     public int PageCount { get; set; }
     public string OrdEnterDate { get; set; }
     public string ShipDate { get; set; }

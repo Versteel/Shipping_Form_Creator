@@ -17,5 +17,8 @@ public class LineItemHeader
     public int PickOrShipQuantityInt => (int)PickOrShipQuantity;
     [NotMapped]
     public int BackOrderQuantityInt => (int)BackOrderQuantity;
+
+
+    public LineItem LineItem { get; set; }
 }
 

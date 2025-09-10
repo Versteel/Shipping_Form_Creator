@@ -7,39 +7,59 @@ namespace Shipping_Form_CreatorV1.Services.Implementations;
 
 public class SqliteService(IDbContextFactory<AppDbContext> dbContext) : ISqliteService
 {
-    private readonly IDbContextFactory<AppDbContext> _dbContext = dbContext;
-
-    public bool ExistsInERP(int orderNumber)
-    {
-        using var db = _dbContext.CreateDbContext();
-        return db.ReportHeaders.Any(h => h.OrderNumber == orderNumber);
-    }
-
     public async Task<ReportModel?> GetReportAsync(int orderNumber, CancellationToken ct = default)
     {
-        await using var db = await _dbContext.CreateDbContextAsync(ct);
+        await using var db = await dbContext.CreateDbContextAsync(ct);
+
+        var reportModelId = await db.ReportHeaders
+            .Where(h => h.OrderNumber == orderNumber)
+            .Select(h => h.ReportModelId)
+            .FirstOrDefaultAsync(ct);
+
+        if (reportModelId == 0)
+            return null;
 
         var report = await db.ReportModels
-            .AsNoTracking()
-            .AsSplitQuery()
+            .Where(r => r.Header.OrderNumber == orderNumber)
             .Include(r => r.Header)
             .Include(r => r.LineItems)
-                .ThenInclude(li => li.LineItemHeader)
+            .ThenInclude(li => li.LineItemHeader)
             .Include(r => r.LineItems)
-                .ThenInclude(li => li.LineItemDetails)
+            .ThenInclude(li => li.LineItemDetails)
             .Include(r => r.LineItems)
-                .ThenInclude(li => li.LineItemPackingUnits)
-            .SingleOrDefaultAsync(r => r.Header.OrderNumber == orderNumber, ct);
+            .ThenInclude(li => li.LineItemPackingUnits)
+            .AsSplitQuery()
+            .AsNoTracking()
+            .FirstOrDefaultAsync(ct);
+
 
         return report;
     }
 
-    public async Task SaveReportAsync(ReportModel inputReport, CancellationToken ct = default)
+    public async Task SaveReportAsync(ReportModel report, CancellationToken ct = default)
     {
-        await using var db = await _dbContext.CreateDbContextAsync(ct);
+        await using var db = await dbContext.CreateDbContextAsync(ct);
 
-        // 1. Retrieve the existing report and its entire graph from the database.
-        var existingReport = await db.ReportModels
+        if (report.Id == 0)
+        {
+            AddNewReport(db, report);
+        }
+        else
+        {
+            await UpdateExistingReportAsync(db, report, ct);
+        }
+
+        await db.SaveChangesAsync(ct);
+    }
+
+    private static void AddNewReport(DbContext db, ReportModel report)
+    {
+        db.Set<ReportModel>().Add(report);
+    }
+
+    private async Task UpdateExistingReportAsync(DbContext db, ReportModel report, CancellationToken ct)
+    {
+        var existingReport = await db.Set<ReportModel>()
             .Include(r => r.Header)
             .Include(r => r.LineItems)
                 .ThenInclude(li => li.LineItemHeader)
@@ -47,106 +67,178 @@ public class SqliteService(IDbContextFactory<AppDbContext> dbContext) : ISqliteS
                 .ThenInclude(li => li.LineItemDetails)
             .Include(r => r.LineItems)
                 .ThenInclude(li => li.LineItemPackingUnits)
-            .FirstOrDefaultAsync(r => r.Id == inputReport.Id, ct);
+            .FirstOrDefaultAsync(r => r.Id == report.Id, ct) 
+            ?? throw new InvalidOperationException($"Report with ID {report.Id} not found.");
 
-        if (existingReport == null)
+        UpdateReportHeader(existingReport.Header, report.Header);
+
+        UpdateLineItems(db, existingReport, report.LineItems);
+    }
+
+    private static void UpdateReportHeader(ReportHeader existing, ReportHeader updated)
+    {
+        existing.LogoImagePath = updated.LogoImagePath;
+        existing.OrderNumber = updated.OrderNumber;
+        existing.PageCount = updated.PageCount;
+        existing.OrdEnterDate = updated.OrdEnterDate;
+        existing.ShipDate = updated.ShipDate;
+        existing.SoldToCustNumber = updated.SoldToCustNumber;
+        existing.ShipToCustNumber = updated.ShipToCustNumber;
+        existing.SoldToName = updated.SoldToName;
+        existing.SoldToCustAddressLine1 = updated.SoldToCustAddressLine1;
+        existing.SoldToCustAddressLine2 = updated.SoldToCustAddressLine2;
+        existing.SoldToCustAddressLine3 = updated.SoldToCustAddressLine3;
+        existing.SoldToCity = updated.SoldToCity;
+        existing.SoldToSt = updated.SoldToSt;
+        existing.SoldToZipCode = updated.SoldToZipCode;
+        existing.ShipToName = updated.ShipToName;
+        existing.ShipToCustAddressLine1 = updated.ShipToCustAddressLine1;
+        existing.ShipToCustAddressLine2 = updated.ShipToCustAddressLine2;
+        existing.ShipToCustAddressLine3 = updated.ShipToCustAddressLine3;
+        existing.ShipToCity = updated.ShipToCity;
+        existing.ShipToSt = updated.ShipToSt;
+        existing.ShipToZipCode = updated.ShipToZipCode;
+        existing.CustomerPONumber = updated.CustomerPONumber;
+        existing.DueDate = updated.DueDate;
+        existing.SalesPerson = updated.SalesPerson;
+        existing.CarrierName = updated.CarrierName;
+        existing.ShippingInstructions = updated.ShippingInstructions;
+        existing.FreightTerms = updated.FreightTerms;
+    }
+
+    private void UpdateLineItems(DbContext db, ReportModel existingReport, ICollection<LineItem> updatedLineItems)
+    {
+        var updatedLineItemIds = updatedLineItems.Where(li => li.Id != 0).Select(li => li.Id).ToHashSet();
+
+        var lineItemsToRemove = existingReport.LineItems.Where(li => !updatedLineItemIds.Contains(li.Id)).ToList();
+        foreach (var lineItem in lineItemsToRemove)
         {
-            // If the report doesn't exist, add it as a new entity graph.
-            foreach (var lineItem in inputReport.LineItems)
-            {
-                lineItem.ReportModel = inputReport;
-                if (lineItem.LineItemHeader != null)
-                {
-                    lineItem.LineItemHeaderId = lineItem.LineItemHeader.Id;
-                }
-                foreach (var detail in lineItem.LineItemDetails)
-                {
-                    detail.LineItem = lineItem;
-                }
-                foreach (var pu in lineItem.LineItemPackingUnits)
-                {
-                    pu.LineItem = lineItem;
-                }
-            }
-
-            db.ReportModels.Add(inputReport);
+            existingReport.LineItems.Remove(lineItem);
+            db.Set<LineItem>().Remove(lineItem);
         }
-        else
+
+        foreach (var updatedLineItem in updatedLineItems)
         {
-
-            // 2. Update the properties of the main entity and its one-to-one relationship.
-            db.Entry(existingReport).CurrentValues.SetValues(inputReport);
-            db.Entry(existingReport.Header).CurrentValues.SetValues(inputReport.Header);
-
-            // 3. Synchronize the LineItems collection (one-to-many).
-
-            // Get the IDs of the updated line items to quickly check for deletions.
-            var updatedLineItemIds = inputReport.LineItems.Select(li => li.Id).ToList();
-
-            // Remove LineItems that are no longer in the updated graph.
-            var lineItemsToRemove = existingReport.LineItems
-                .Where(li => !updatedLineItemIds.Contains(li.Id))
-                .ToList();
-            db.LineItems.RemoveRange(lineItemsToRemove);
-
-            // Add or update the remaining line items.
-            foreach (var updatedLineItem in inputReport.LineItems)
+            if (updatedLineItem.Id == 0)
             {
-                var existingLineItem = existingReport.LineItems
-                    .FirstOrDefault(li => li.Id == updatedLineItem.Id);
-
-                if (existingLineItem == null)
+                updatedLineItem.ReportModelId = existingReport.Id;
+                existingReport.LineItems.Add(updatedLineItem);
+            }
+            else
+            {
+                var existingLineItem = existingReport.LineItems.FirstOrDefault(li => li.Id == updatedLineItem.Id);
+                if (existingLineItem != null)
                 {
-                    // It's a new line item, add it to the collection.
-                    existingReport.LineItems.Add(updatedLineItem);
-                }
-                else
-                {
-                    // It's an existing line item, update its properties.
-                    db.Entry(existingLineItem).CurrentValues.SetValues(updatedLineItem);
-                    if (updatedLineItem.LineItemHeader != null)
-                        db.Entry(existingLineItem.LineItemHeader).CurrentValues
-                            .SetValues(updatedLineItem.LineItemHeader);
-
-                    // 4. Synchronize the child collections of LineItem.
-
-                    // Synchronize LineItemDetails
-                    var updatedDetailIds = updatedLineItem.LineItemDetails.Select(d => d.Id).ToList();
-                    var detailsToRemove = existingLineItem.LineItemDetails
-                        .Where(d => !updatedDetailIds.Contains(d.Id))
-                        .ToList();
-                    db.LineItemDetails.RemoveRange(detailsToRemove);
-                    foreach (var updatedDetail in updatedLineItem.LineItemDetails)
-                    {
-                        var existingDetail = existingLineItem.LineItemDetails
-                            .FirstOrDefault(d => d.Id == updatedDetail.Id);
-                        if (existingDetail == null)
-                            existingLineItem.LineItemDetails.Add(updatedDetail);
-                        else
-                            db.Entry(existingDetail).CurrentValues.SetValues(updatedDetail);
-                    }
-
-                    // Synchronize LineItemPackingUnits
-                    var updatedUnitIds = updatedLineItem.LineItemPackingUnits.Select(u => u.Id).ToList();
-                    var unitsToRemove = existingLineItem.LineItemPackingUnits
-                        .Where(u => !updatedUnitIds.Contains(u.Id))
-                        .ToList();
-                    db.LineItemPackingUnits.RemoveRange(unitsToRemove);
-                    foreach (var updatedUnit in updatedLineItem.LineItemPackingUnits)
-                    {
-                        var existingUnit = existingLineItem.LineItemPackingUnits
-                            .FirstOrDefault(u => u.Id == updatedUnit.Id);
-                        if (existingUnit == null)
-                            existingLineItem.LineItemPackingUnits.Add(updatedUnit);
-                        else
-                            db.Entry(existingUnit).CurrentValues.SetValues(updatedUnit);
-                    }
+                    UpdateLineItem(db, existingLineItem, updatedLineItem);
                 }
             }
         }
+    }
 
-        // 5. Save all changes to the database.
-        await db.SaveChangesAsync(ct);
+    private void UpdateLineItem(DbContext db, LineItem existingLineItem, LineItem updatedLineItem)
+    {
+        if (updatedLineItem.LineItemHeader != null)
+        {
+            if (existingLineItem.LineItemHeader == null)
+            {
+                existingLineItem.LineItemHeader = updatedLineItem.LineItemHeader;
+                existingLineItem.LineItemHeaderId = updatedLineItem.LineItemHeader.Id;
+            }
+            else
+            {
+                UpdateLineItemHeader(existingLineItem.LineItemHeader, updatedLineItem.LineItemHeader);
+            }
+        }
+
+        UpdateLineItemDetails(db, existingLineItem, updatedLineItem.LineItemDetails);
+
+        UpdateLineItemPackingUnits(db, existingLineItem, updatedLineItem.LineItemPackingUnits);
+    }
+
+    private static void UpdateLineItemHeader(LineItemHeader existing, LineItemHeader updated)
+    {
+        existing.LineItemNumber = updated.LineItemNumber;
+        existing.ProductNumber = updated.ProductNumber;
+        existing.ProductDescription = updated.ProductDescription;
+        existing.OrderedQuantity = updated.OrderedQuantity;
+        existing.PickOrShipQuantity = updated.PickOrShipQuantity;
+        existing.BackOrderQuantity = updated.BackOrderQuantity;
+    }
+
+    private void UpdateLineItemDetails(DbContext db, LineItem existingLineItem, ICollection<LineItemDetail> updatedDetails)
+    {
+        var updatedDetailIds = updatedDetails.Where(d => d.Id != 0).Select(d => d.Id).ToHashSet();
+
+        var detailsToRemove = existingLineItem.LineItemDetails.Where(d => !updatedDetailIds.Contains(d.Id)).ToList();
+        foreach (var detail in detailsToRemove)
+        {
+            existingLineItem.LineItemDetails.Remove(detail);
+            db.Set<LineItemDetail>().Remove(detail);
+        }
+
+        foreach (var updatedDetail in updatedDetails)
+        {
+            if (updatedDetail.Id == 0)
+            {
+                updatedDetail.LineItemId = existingLineItem.Id;
+                existingLineItem.LineItemDetails.Add(updatedDetail);
+            }
+            else
+            {
+                var existingDetail = existingLineItem.LineItemDetails.FirstOrDefault(d => d.Id == updatedDetail.Id);
+                if (existingDetail != null)
+                {
+                    UpdateLineItemDetail(existingDetail, updatedDetail);
+                }
+            }
+        }
+    }
+
+    private static void UpdateLineItemDetail(LineItemDetail existing, LineItemDetail updated)
+    {
+        existing.ModelItem = updated.ModelItem;
+        existing.NoteSequenceNumber = updated.NoteSequenceNumber;
+        existing.NoteText = updated.NoteText;
+        existing.PackingListFlag = updated.PackingListFlag;
+        existing.BolFlag = updated.BolFlag;
+    }
+
+    private void UpdateLineItemPackingUnits(DbContext db, LineItem existingLineItem, ICollection<LineItemPackingUnit> updatedPackingUnits)
+    {
+        var updatedPackingUnitIds = updatedPackingUnits.Where(pu => pu.Id != 0).Select(pu => pu.Id).ToHashSet();
+
+        var packingUnitsToRemove = existingLineItem.LineItemPackingUnits.Where(pu => !updatedPackingUnitIds.Contains(pu.Id)).ToList();
+        foreach (var packingUnit in packingUnitsToRemove)
+        {
+            existingLineItem.LineItemPackingUnits.Remove(packingUnit);
+            db.Set<LineItemPackingUnit>().Remove(packingUnit);
+        }
+
+        foreach (var updatedPackingUnit in updatedPackingUnits)
+        {
+            if (updatedPackingUnit.Id == 0)
+            {
+                updatedPackingUnit.LineItemId = existingLineItem.Id;
+                existingLineItem.LineItemPackingUnits.Add(updatedPackingUnit);
+            }
+            else
+            {
+                var existingPackingUnit = existingLineItem.LineItemPackingUnits.FirstOrDefault(pu => pu.Id == updatedPackingUnit.Id);
+                if (existingPackingUnit != null)
+                {
+                    UpdateLineItemPackingUnit(existingPackingUnit, updatedPackingUnit);
+                }
+            }
+        }
+    }
+
+    private static void UpdateLineItemPackingUnit(LineItemPackingUnit existing, LineItemPackingUnit updated)
+    {
+        existing.Quantity = updated.Quantity;
+        existing.CartonOrSkid = updated.CartonOrSkid;
+        existing.LineNumber = updated.LineNumber;
+        existing.TypeOfUnit = updated.TypeOfUnit;
+        existing.Weight = updated.Weight;
     }
 
 }

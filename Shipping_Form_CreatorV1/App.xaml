@@ -3,7 +3,9 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="clr-namespace:Shipping_Form_CreatorV1"
-    xmlns:ui="http://schemas.modernwpf.com/2019">
+    xmlns:ui="http://schemas.modernwpf.com/2019"
+    xmlns:utils="clr-namespace:Shipping_Form_CreatorV1.Utilities">
+
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
@@ -11,7 +13,12 @@
                 <ui:XamlControlsResources />
                 <!--  Other merged dictionaries here  -->
             </ResourceDictionary.MergedDictionaries>
-            <!--  Other app resources here  -->
+
+            <!--  Your converters go here 👇  -->
+            <BooleanToVisibilityConverter x:Key="BoolToVisibility" />
+            <utils:InverseBooleanToVisibilityConverter x:Key="InverseBoolToVisibility" />
+
+            <!--  Other app-level resources here  -->
         </ResourceDictionary>
     </Application.Resources>
 </Application>

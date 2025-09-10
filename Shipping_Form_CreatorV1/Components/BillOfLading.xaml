@@ -5,10 +5,795 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="clr-namespace:Shipping_Form_CreatorV1.Components"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:utils="clr-namespace:Shipping_Form_CreatorV1.Utilities"
     Title="BillOfLading"
-    d:DesignHeight="450"
-    d:DesignWidth="800"
+    d:DesignHeight="1200"
+    d:DesignWidth="1200"
     mc:Ignorable="d">
+    <Page.Resources>
+        <utils:BolFlagFilterConverter x:Key="BolFlagFilter" FlagValue="Y" />
+    </Page.Resources>
 
-    <Grid />
+    <Grid>
+        <ScrollViewer
+            Padding="20"
+            Background="#e6e6e6"
+            HorizontalScrollBarVisibility="Disabled"
+            VerticalScrollBarVisibility="Auto">
+
+            <Border Padding="20" Background="#e6e6e6">
+                <Border
+                    x:Name="BillOfLadingPrintArea"
+                    MinWidth="816"
+                    MinHeight="1056"
+                    MaxWidth="816"
+                    MaxHeight="1056"
+                    Padding="48,48,48,96"
+                    HorizontalAlignment="Center"
+                    Background="White">
+
+                    <Grid DataContext="{Binding}">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+
+                        <Grid Grid.Row="0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="1*" />
+                                <ColumnDefinition Width="2*" />
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0" Orientation="Vertical">
+                                <Image
+                                    Width="150"
+                                    Height="Auto"
+                                    HorizontalAlignment="Left"
+                                    Source="{Binding SelectedReport.Header.LogoImagePath}" />
+                                <TextBlock FontSize="14" Text="2332 Cathy Lane" />
+                                <TextBlock FontSize="14" Text="Jasper, Indiana 47546" />
+                                <TextBlock FontSize="14" Text="800.876.2120" />
+                                <TextBlock FontSize="14" Text="versteel.com" />
+                            </StackPanel>
+                            <Grid Grid.Column="1">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="1*" />
+                                    <RowDefinition Height="1*" />
+                                    <RowDefinition Height="*" />
+                                </Grid.RowDefinitions>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="1*" />
+                                    <ColumnDefinition Width="3*" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock
+                                    Grid.Row="0"
+                                    Grid.Column="0"
+                                    FontSize="14"
+                                    Text="CONSIGNEE (TO) ADDRESS"
+                                    TextWrapping="Wrap" />
+                                <StackPanel
+                                    Grid.Row="0"
+                                    Grid.Column="1"
+                                    Orientation="Vertical">
+                                    <TextBlock FontSize="14" Text="{Binding SelectedReport.Header.ShipToName}" />
+                                    <TextBlock FontSize="14" Text="{Binding SelectedReport.Header.ShipToCustAddressLine1}" />
+                                    <TextBlock FontSize="14" Text="{Binding SelectedReport.Header.ShipToCustAddressLine2}" />
+                                    <TextBlock FontSize="14" Text="{Binding SelectedReport.Header.ShipToCustAddressLine3}" />
+                                    <TextBlock FontSize="14" Text="{Binding SelectedReport.Header.ShipToCityStZip}" />
+                                </StackPanel>
+                                <TextBlock
+                                    Grid.Row="1"
+                                    Grid.Column="0"
+                                    FontSize="14"
+                                    Text="PHONE/FAX ATTENTION"
+                                    TextWrapping="Wrap" />
+                                <Border
+                                    Grid.Row="2"
+                                    Grid.Column="1"
+                                    Height="100"
+                                    BorderBrush="#000"
+                                    BorderThickness="1">
+                                    <StackPanel Orientation="Vertical">
+                                        <Border
+                                            Padding="5,0"
+                                            Background="#cccccc"
+                                            BorderBrush="#000"
+                                            BorderThickness="0,0,0,1">
+                                            <TextBlock
+                                                FontSize="14"
+                                                FontWeight="Bold"
+                                                Text="THIRD PARTY BILLING / SPECIAL INSTRUCTIONS" />
+                                        </Border>
+                                        <ItemsControl ItemsSource="{Binding SelectedReport.LineItems, Converter={StaticResource BolFlagFilter}}">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <TextBlock
+                                                        Margin="10,0,0,0"
+                                                        Text="{Binding NoteText}"
+                                                        TextWrapping="Wrap" />
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </StackPanel>
+                                </Border>
+                            </Grid>
+                        </Grid>
+                        <Grid Grid.Row="1" Margin="0,10,0,0">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Border
+                                Grid.Column="0"
+                                Background="#cccccc"
+                                BorderBrush="#000"
+                                BorderThickness="1">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock
+                                        Margin="5"
+                                        FontSize="14"
+                                        FontWeight="Bold"
+                                        Text="DATE:" />
+                                    <TextBlock
+                                        Margin="5"
+                                        FontSize="14"
+                                        FontWeight="Bold"
+                                        Text="{Binding local:BillOfLading.TodaysDate, RelativeSource={RelativeSource AncestorType=Page}}" />
+                                </StackPanel>
+                            </Border>
+                            <Border
+                                Grid.Row="0"
+                                Grid.Column="1"
+                                Background="#cccccc"
+                                BorderBrush="#000"
+                                BorderThickness="0,1,1,1">
+                                <TextBlock
+                                    Padding="5"
+                                    HorizontalAlignment="Right"
+                                    FontSize="14"
+                                    FontWeight="Bold"
+                                    Text="STRAIGHT BILL OF LADING - SHORT FORM - ORIGINAL - NON-NEGOTIABLE" />
+                            </Border>
+                            <Grid
+                                Grid.Row="1"
+                                Grid.Column="0"
+                                Grid.ColumnSpan="2">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="1*" />
+                                    <ColumnDefinition Width="2*" />
+                                </Grid.ColumnDefinitions>
+                                <Grid Grid.Column="0">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="*" />
+                                    </Grid.RowDefinitions>
+                                    <StackPanel Grid.Column="0" Orientation="Vertical">
+                                        <Border BorderBrush="#000" BorderThickness="0,0,0,1">
+                                            <StackPanel Orientation="Vertical">
+                                                <TextBlock
+                                                    Margin="5,0"
+                                                    FontSize="10"
+                                                    Text="CARRIER" />
+                                                <TextBlock
+                                                    Margin="15,0"
+                                                    FontSize="14"
+                                                    FontWeight="Bold"
+                                                    Text="{Binding SelectedReport.Header.CarrierName}" />
+                                            </StackPanel>
+                                        </Border>
+                                        <Border BorderBrush="#000" BorderThickness="0,0,0,1">
+                                            <StackPanel Orientation="Vertical">
+                                                <TextBlock
+                                                    Margin="5,0"
+                                                    FontSize="10"
+                                                    Text="SHIPPER NUMBER" />
+                                                <TextBlock
+                                                    Margin="15,0"
+                                                    FontSize="14"
+                                                    FontWeight="Bold"
+                                                    Text="{Binding SelectedReport.Header.OrderNumberWithSuffix}" />
+                                            </StackPanel>
+                                        </Border>
+                                        <Border BorderBrush="#000" BorderThickness="0,0,0,1">
+                                            <StackPanel Orientation="Vertical">
+                                                <TextBlock
+                                                    Margin="5,0"
+                                                    FontSize="10"
+                                                    Text="PURCHASE ORDER #" />
+                                                <TextBlock
+                                                    Margin="15,0"
+                                                    FontSize="14"
+                                                    FontWeight="Bold"
+                                                    Text="{Binding SelectedReport.Header.CustomerPONumber}" />
+                                            </StackPanel>
+                                        </Border>
+                                        <Border
+                                            Width="240"
+                                            Height="100"
+                                            Margin="0,10"
+                                            BorderBrush="Black"
+                                            BorderThickness="1">
+                                            <TextBlock
+                                                HorizontalAlignment="Center"
+                                                VerticalAlignment="Center"
+                                                FontWeight="Bold"
+                                                Text="PLACE PRO LABEL HERE" />
+                                        </Border>
+                                        <TextBlock
+                                            Padding="0,0,10,0"
+                                            FontSize="8"
+                                            Text="RECEIVED, subject to the individually determined rates or contracts that have been agreed upon in writing between the carrier and shipper; if applicable, otherwise to the rates, classifications, and rules that have been established by the carrier and are available to the shipper on request and in effect on the date of issue of this Bill of Lading, the property described above in apparent good order, except as noted (contents and condition of packages unknown), marked, consigned, and destined as indicated above, which said carrier agrees to carry to the usual place of delivery at said destination. It is mutually agreed, as to each carrier of all or any of said property over all or any portion of said route to destination, and as to each party at any time interested in all or any of said property, that every service to be performed hereunder shall be subject to all of the Bill of Lading terms and conditions in the governing classification on the date of shipment. Shipper hereby certifies that it is familiar with all the Bill of Lading terms and conditions in the governing classifications, and the said terms and conditions are hereby agreed to by the shipper and accepted for itself and its assignees. This is to certify that the materials named herein are properly classified, described, packaged, marked, and labeled, and are in proper condition for transportation according to the applicable regulations of the Department of Transportation."
+                                            TextWrapping="Wrap" />
+                                    </StackPanel>
+                                    <Grid
+                                        Grid.Row="1"
+                                        Height="120"
+                                        Margin="0,0,0,14"
+                                        VerticalAlignment="Bottom">
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition />
+                                            <RowDefinition />
+                                            <RowDefinition />
+                                            <RowDefinition />
+                                        </Grid.RowDefinitions>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition />
+                                            <ColumnDefinition />
+                                            <ColumnDefinition />
+                                        </Grid.ColumnDefinitions>
+                                        <Border
+                                            Grid.Row="0"
+                                            Grid.Column="0"
+                                            Grid.ColumnSpan="3"
+                                            Padding="5,0"
+                                            BorderBrush="#000"
+                                            BorderThickness="1">
+                                            <TextBlock FontSize="8">SHIPPER, PER</TextBlock>
+                                        </Border>
+                                        <Border
+                                            Grid.Row="1"
+                                            Grid.Column="0"
+                                            Grid.ColumnSpan="3"
+                                            Padding="5,0"
+                                            BorderBrush="#000"
+                                            BorderThickness="1,0,1,1" />
+                                        <Border
+                                            Grid.Row="2"
+                                            Grid.Column="0"
+                                            Grid.ColumnSpan="2"
+                                            Padding="5,0"
+                                            BorderBrush="#000"
+                                            BorderThickness="1,0,1,1">
+                                            <TextBlock FontSize="8">DATE</TextBlock>
+                                        </Border>
+                                        <Border
+                                            Grid.Row="2"
+                                            Grid.Column="2"
+                                            Padding="5,0"
+                                            BorderBrush="#000"
+                                            BorderThickness="0,0,1,1">
+                                            <TextBlock FontSize="8">TRAILER #</TextBlock>
+                                        </Border>
+                                        <Border
+                                            Grid.Row="3"
+                                            Grid.Column="0"
+                                            Padding="5,0"
+                                            BorderBrush="#000"
+                                            BorderThickness="1,0,1,1">
+                                            <TextBlock FontSize="8">PIECES</TextBlock>
+                                        </Border>
+                                        <Border
+                                            Grid.Row="3"
+                                            Grid.Column="1"
+                                            Padding="5,0"
+                                            BorderBrush="#000"
+                                            BorderThickness="0,0,1,1">
+                                            <TextBlock FontSize="8">SKID(S)</TextBlock>
+                                        </Border>
+                                        <Border
+                                            Grid.Row="3"
+                                            Grid.Column="2"
+                                            Padding="5,0"
+                                            BorderBrush="#000"
+                                            BorderThickness="0,0,1,1">
+                                            <TextBlock FontSize="8">STC</TextBlock>
+                                        </Border>
+                                    </Grid>
+                                </Grid>
+
+
+                                <Grid Grid.Column="1" Margin="10,10,0,13">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="*" />
+                                    </Grid.RowDefinitions>
+                                    <Grid Grid.Row="0">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="40" />
+                                            <ColumnDefinition Width="60" />
+                                            <ColumnDefinition Width="25" />
+                                            <ColumnDefinition Width="160" />
+                                            <ColumnDefinition Width="50" />
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition />
+                                            <RowDefinition />
+                                            <RowDefinition />
+                                        </Grid.RowDefinitions>
+                                        <Border
+                                            Grid.Row="0"
+                                            Grid.Column="0"
+                                            Background="#cccccc"
+                                            BorderBrush="#000"
+                                            BorderThickness="1">
+                                            <TextBlock FontSize="10" FontWeight="Bold">PIECES</TextBlock>
+                                        </Border>
+                                        <Border
+                                            Grid.Row="0"
+                                            Grid.Column="1"
+                                            Background="#cccccc"
+                                            BorderBrush="#000"
+                                            BorderThickness="0,1,1,1">
+                                            <StackPanel Orientation="Vertical">
+                                                <TextBlock
+                                                    FontSize="10"
+                                                    FontWeight="Bold"
+                                                    TextAlignment="Center">
+                                                    PACKAGES
+                                                </TextBlock>
+                                                <TextBlock
+                                                    FontSize="10"
+                                                    FontWeight="Bold"
+                                                    TextAlignment="Center">
+                                                    NO# TYPE
+                                                </TextBlock>
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition />
+                                                        <ColumnDefinition />
+                                                    </Grid.ColumnDefinitions>
+                                                    <Border
+                                                        Grid.Column="0"
+                                                        BorderBrush="#000"
+                                                        BorderThickness="0,0,1,0">
+                                                        <TextBlock
+                                                            FontSize="8"
+                                                            FontWeight="Bold"
+                                                            TextAlignment="Center"
+                                                            TextWrapping="Wrap">
+                                                            SKID
+                                                        </TextBlock>
+                                                    </Border>
+                                                    <Border Grid.Column="1">
+                                                        <TextBlock
+                                                            FontSize="8"
+                                                            FontWeight="Bold"
+                                                            TextAlignment="Center"
+                                                            TextWrapping="Wrap">
+                                                            CTN
+                                                        </TextBlock>
+                                                    </Border>
+                                                </Grid>
+                                            </StackPanel>
+                                        </Border>
+                                        <Border
+                                            Grid.Row="0"
+                                            Grid.Column="2"
+                                            Background="#cccccc"
+                                            BorderBrush="#000"
+                                            BorderThickness="0,1,1,1">
+                                            <TextBlock
+                                                FontSize="10"
+                                                FontWeight="Bold"
+                                                TextAlignment="Center">
+                                                HM
+                                            </TextBlock>
+                                        </Border>
+                                        <Border
+                                            Grid.Row="0"
+                                            Grid.Column="3"
+                                            Padding="5,0"
+                                            Background="#cccccc"
+                                            BorderBrush="#000"
+                                            BorderThickness="0,1,1,1">
+                                            <TextBlock
+                                                FontSize="10"
+                                                FontWeight="Bold"
+                                                TextWrapping="Wrap">
+                                                DESCRIPTION OF ARTICLES SPECIAL MARKS/EXCEPTIONS SUBJECT TO CHANGE
+                                            </TextBlock>
+                                        </Border>
+                                        <Border
+                                            Grid.Row="0"
+                                            Grid.Column="4"
+                                            Background="#cccccc"
+                                            BorderBrush="#000"
+                                            BorderThickness="0,1,1,1">
+                                            <StackPanel Orientation="Vertical">
+                                                <TextBlock
+                                                    FontSize="10"
+                                                    FontWeight="Bold"
+                                                    TextAlignment="Center">
+                                                    WEIGHT
+                                                </TextBlock>
+                                                <TextBlock
+                                                    FontSize="8"
+                                                    TextAlignment="Center"
+                                                    TextWrapping="Wrap">
+                                                    SUBJECT TO CHANGE
+                                                </TextBlock>
+                                            </StackPanel>
+                                        </Border>
+                                        <Border
+                                            Grid.Row="0"
+                                            Grid.Column="5"
+                                            Background="#cccccc"
+                                            BorderBrush="#000"
+                                            BorderThickness="0,1,1,1">
+                                            <TextBlock
+                                                Padding="4,0"
+                                                FontSize="10"
+                                                FontWeight="Bold"
+                                                TextAlignment="Center">
+                                                CLASS
+                                            </TextBlock>
+                                        </Border>
+                                        <Border
+                                            Grid.Row="0"
+                                            Grid.Column="6"
+                                            Background="#cccccc"
+                                            BorderBrush="#000"
+                                            BorderThickness="0,1,1,1">
+                                            <TextBlock
+                                                FontSize="10"
+                                                FontWeight="Bold"
+                                                TextAlignment="Center">
+                                                NMFC
+                                            </TextBlock>
+                                        </Border>
+                                        <ItemsControl
+                                            Grid.Row="1"
+                                            Grid.Column="0"
+                                            Grid.ColumnSpan="7"
+                                            ItemsSource="{Binding SelectedReportsGroups}">
+                                            <ItemsControl.ItemsPanel>
+                                                <ItemsPanelTemplate>
+                                                    <StackPanel Orientation="Vertical" />
+                                                </ItemsPanelTemplate>
+                                            </ItemsControl.ItemsPanel>
+
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Grid>
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="40" />
+                                                            <ColumnDefinition Width="60" />
+                                                            <ColumnDefinition Width="25" />
+                                                            <ColumnDefinition Width="160" />
+                                                            <ColumnDefinition Width="50" />
+                                                            <ColumnDefinition Width="39" />
+                                                            <ColumnDefinition Width="*" />
+                                                        </Grid.ColumnDefinitions>
+
+                                                        <!--  PIECES  -->
+                                                        <Border
+                                                            Grid.Column="0"
+                                                            Padding="0,5"
+                                                            BorderBrush="Black"
+                                                            BorderThickness="1,0,1,1">
+                                                            <TextBlock
+                                                                HorizontalAlignment="Center"
+                                                                VerticalAlignment="Center"
+                                                                FontSize="12"
+                                                                Text="{Binding TotalPieces}" />
+                                                        </Border>
+
+                                                        <!--  PACKAGES  -->
+                                                        <Grid Grid.Column="1">
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition />
+                                                                <ColumnDefinition />
+                                                            </Grid.ColumnDefinitions>
+
+                                                            <Border
+                                                                Grid.Column="0"
+                                                                BorderBrush="Black"
+                                                                BorderThickness="0,0,1,1">
+                                                                <TextBlock
+                                                                    HorizontalAlignment="Center"
+                                                                    VerticalAlignment="Center"
+                                                                    FontSize="12"
+                                                                    Text="{Binding SkidCount}" />
+                                                            </Border>
+                                                            <Border
+                                                                Grid.Column="1"
+                                                                BorderBrush="Black"
+                                                                BorderThickness="0,0,1,1">
+                                                                <TextBlock
+                                                                    HorizontalAlignment="Center"
+                                                                    VerticalAlignment="Center"
+                                                                    FontSize="12"
+                                                                    Text="{Binding CartonCount}" />
+                                                            </Border>
+                                                        </Grid>
+                                                        <Border
+                                                            Grid.Column="2"
+                                                            BorderBrush="Black"
+                                                            BorderThickness="0,0,1,1" />
+
+                                                        <!--  DESCRIPTION  -->
+                                                        <Border
+                                                            Grid.Column="3"
+                                                            BorderBrush="Black"
+                                                            BorderThickness="0,0,1,1">
+                                                            <TextBlock
+                                                                Padding="5"
+                                                                VerticalAlignment="Center"
+                                                                FontSize="9"
+                                                                Text="{Binding TypeOfUnit}"
+                                                                TextWrapping="Wrap" />
+                                                        </Border>
+
+                                                        <!--  WEIGHT  -->
+                                                        <Border
+                                                            Grid.Column="4"
+                                                            BorderBrush="Black"
+                                                            BorderThickness="0,0,1,1">
+                                                            <TextBlock
+                                                                Grid.Column="4"
+                                                                HorizontalAlignment="Center"
+                                                                VerticalAlignment="Center"
+                                                                FontSize="12"
+                                                                Text="{Binding TotalWeight}" />
+                                                        </Border>
+                                                        <Border
+                                                            Grid.Column="5"
+                                                            BorderBrush="Black"
+                                                            BorderThickness="0,0,1,1">
+                                                            <TextBlock
+                                                                Grid.Column="4"
+                                                                HorizontalAlignment="Center"
+                                                                VerticalAlignment="Center"
+                                                                FontSize="12"
+                                                                Text="{Binding Class}" />
+                                                        </Border>
+                                                        <Border
+                                                            Grid.Column="6"
+                                                            BorderBrush="Black"
+                                                            BorderThickness="0,0,1,1">
+                                                            <TextBlock
+                                                                Grid.Column="4"
+                                                                HorizontalAlignment="Center"
+                                                                VerticalAlignment="Center"
+                                                                FontSize="12"
+                                                                Text="{Binding NMFC}" />
+                                                        </Border>
+                                                    </Grid>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </Grid>
+                                    <Grid Grid.Row="1">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="40" />
+                                            <ColumnDefinition Width="60" />
+                                            <ColumnDefinition Width="25" />
+                                            <ColumnDefinition Width="159" />
+                                            <ColumnDefinition Width="51" />
+                                            <ColumnDefinition Width="39" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <Grid Grid.Column="0" Grid.ColumnSpan="4">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="40" />
+                                                <ColumnDefinition Width="*" />
+                                            </Grid.ColumnDefinitions>
+                                            <Border
+                                                Grid.Column="0"
+                                                Padding="0,5"
+                                                BorderBrush="Black"
+                                                BorderThickness="1,0,1,1">
+                                                <TextBlock
+                                                    Grid.Column="0"
+                                                    HorizontalAlignment="Center"
+                                                    VerticalAlignment="Center"
+                                                    FontSize="12"
+                                                    FontWeight="Bold"
+                                                    Text="{Binding AllPiecesTotal}" />
+                                            </Border>
+                                            <TextBlock
+                                                Grid.Column="1"
+                                                Margin="5"
+                                                FontSize="12"
+                                                FontWeight="Bold"
+                                                Text="TOTAL PIECES" />
+                                        </Grid>
+                                        <Grid Grid.Column="4" Grid.ColumnSpan="3">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="51" />
+                                                <ColumnDefinition Width="*" />
+                                            </Grid.ColumnDefinitions>
+                                            <Border
+                                                Grid.Column="0"
+                                                Padding="0,5"
+                                                BorderBrush="Black"
+                                                BorderThickness="1,0,1,1">
+                                                <TextBlock
+                                                    Grid.Column="0"
+                                                    HorizontalAlignment="Center"
+                                                    VerticalAlignment="Center"
+                                                    FontSize="12"
+                                                    FontWeight="Bold"
+                                                    Text="{Binding AllWeightTotal}" />
+                                            </Border>
+                                            <TextBlock
+                                                Grid.Column="1"
+                                                Margin="5"
+                                                FontSize="12"
+                                                FontWeight="Bold"
+                                                Text="TOTAL WEIGHT" />
+                                        </Grid>
+                                    </Grid>
+
+                                    <Grid
+                                        Grid.Row="2"
+                                        Margin="0,10,0,0"
+                                        VerticalAlignment="Bottom">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition />
+                                            <ColumnDefinition />
+                                        </Grid.ColumnDefinitions>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto" />
+                                            <RowDefinition Height="2*" />
+                                            <RowDefinition Height="1*" />
+                                            <RowDefinition Height="2*" />
+                                        </Grid.RowDefinitions>
+                                        <Border
+                                            Grid.Row="0"
+                                            Grid.Column="0"
+                                            Grid.ColumnSpan="2"
+                                            BorderBrush="#000"
+                                            BorderThickness="1">
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock
+                                                    Padding="10,3"
+                                                    VerticalAlignment="Center"
+                                                    FontSize="11"
+                                                    FontWeight="Bold">
+                                                    CHARGES ARE PREPAID UNLESS MARKED COLLECT, PLEASE CHECK BOX IF COLLECT
+                                                </TextBlock>
+                                                <CheckBox x:Name="MarkCollectCheckBox">
+                                                    <CheckBox.LayoutTransform>
+                                                        <ScaleTransform ScaleX=".7" ScaleY=".7" />
+                                                    </CheckBox.LayoutTransform>
+                                                </CheckBox>
+                                            </StackPanel>
+                                        </Border>
+
+                                        <Border
+                                            Grid.Row="1"
+                                            Grid.Column="0"
+                                            BorderBrush="#000"
+                                            BorderThickness="1,0,1,1">
+                                            <StackPanel Orientation="Vertical">
+                                                <TextBlock
+                                                    Padding="10,3"
+                                                    VerticalAlignment="Center"
+                                                    FontSize="12"
+                                                    FontWeight="Bold">
+                                                    REMIT C.O.D. TO:
+                                                </TextBlock>
+                                                <Border
+                                                    Padding="10,5"
+                                                    BorderBrush="#000"
+                                                    BorderThickness="0,1,0,0">
+                                                    <StackPanel Orientation="Vertical">
+                                                        <TextBlock FontSize="10">NAME:</TextBlock>
+                                                        <TextBlock Margin="0,15" FontSize="10">ADDRESS:</TextBlock>
+                                                    </StackPanel>
+                                                </Border>
+                                            </StackPanel>
+                                        </Border>
+                                        <Border
+                                            Grid.Row="1"
+                                            Grid.Column="1"
+                                            BorderBrush="#000"
+                                            BorderThickness="0,0,1,1">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="2*" />
+                                                    <ColumnDefinition Width="1*" />
+                                                </Grid.ColumnDefinitions>
+                                                <Border
+                                                    Grid.Column="0"
+                                                    Padding="10,3"
+                                                    BorderBrush="#000"
+                                                    BorderThickness="0,0,1,0">
+                                                    <StackPanel Orientation="Vertical">
+                                                        <TextBlock FontSize="12" FontWeight="Bold">FEES:</TextBlock>
+                                                        <CheckBox
+                                                            Content="CO. CHECK OK FOR C.O.D."
+                                                            FontSize="12"
+                                                            FontWeight="SemiBold">
+                                                            <CheckBox.LayoutTransform>
+                                                                <ScaleTransform ScaleX=".7" ScaleY=".7" />
+                                                            </CheckBox.LayoutTransform>
+                                                        </CheckBox>
+                                                        <CheckBox
+                                                            Content="C.O.D. PREPAID"
+                                                            FontSize="12"
+                                                            FontWeight="SemiBold">
+                                                            <CheckBox.LayoutTransform>
+                                                                <ScaleTransform ScaleX=".7" ScaleY=".7" />
+                                                            </CheckBox.LayoutTransform>
+                                                        </CheckBox>
+                                                        <CheckBox
+                                                            Content="C.O.D. COLLECT"
+                                                            FontSize="12"
+                                                            FontWeight="SemiBold">
+                                                            <CheckBox.LayoutTransform>
+                                                                <ScaleTransform ScaleX=".7" ScaleY=".7" />
+                                                            </CheckBox.LayoutTransform>
+                                                        </CheckBox>
+                                                    </StackPanel>
+                                                </Border>
+                                                <TextBlock
+                                                    Grid.Column="1"
+                                                    FontSize="12"
+                                                    FontWeight="Bold"
+                                                    TextAlignment="Center">
+                                                    C.O.D. AMT
+                                                </TextBlock>
+                                            </Grid>
+                                        </Border>
+                                        <Border
+                                            Grid.Row="2"
+                                            Grid.Column="0"
+                                            Grid.ColumnSpan="2"
+                                            Padding="10,3"
+                                            BorderBrush="#000"
+                                            BorderThickness="1,0,1,1">
+                                            <TextBlock FontSize="10" TextWrapping="Wrap">
+                                                NOTE: Where the rate is dependent on value, shippers are required to state specifically in writing the agreed or declared value of the property. The agreed or declared value of the property is hereby specifically stated by the shipper to be not exceeding
+                                                <TextBlock Margin="40,0" FontSize="10">per</TextBlock>
+                                            </TextBlock>
+                                        </Border>
+                                        <Border
+                                            Grid.Row="3"
+                                            Grid.Column="0"
+                                            Grid.ColumnSpan="2"
+                                            Padding="10,3"
+                                            BorderBrush="#000"
+                                            BorderThickness="1,0,1,1">
+                                            <StackPanel Orientation="Vertical">
+                                                <TextBlock FontSize="10" TextWrapping="Wrap">Subject to section (7) of the condition, if this shipment is to be delivered to the consignee recourse on the shipper the shipper shall sign the following statement:</TextBlock>
+                                                <TextBlock FontSize="10" TextWrapping="Wrap">The carrier shall not make delivery of this shipment without payment of freight and all other lawful charges.</TextBlock>
+                                                <TextBlock
+                                                    Margin="0,10"
+                                                    FontSize="10"
+                                                    TextWrapping="Wrap">
+                                                    Signature of Shipper:__________________________________________________________________________________
+                                                </TextBlock>
+                                                <TextBlock FontSize="10" TextWrapping="Wrap">The fibre boxes used for this shipment confrom to th specifications set forth in the box makers certification theron, and all requirements of the Consolidated Freight Classifcation.</TextBlock>
+                                            </StackPanel>
+                                        </Border>
+                                    </Grid>
+                                </Grid>
+                            </Grid>
+
+                        </Grid>
+                    </Grid>
+                </Border>
+            </Border>
+        </ScrollViewer>
+    </Grid>
 </Page>
+

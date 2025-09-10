@@ -59,14 +59,14 @@ public partial class MainWindow : Window
                     }
                     catch (Exception ex)
                     {
-                        _dialogService.ShowErrorDialog($"Error: {ex.Message}");
+                        DialogService.ShowErrorDialog($"Error: {ex.Message}");
                     }
                 }
             }
         }
         catch (Exception ex)
         {
-            _dialogService.ShowErrorDialog($"Error: {ex.Message}");
+            DialogService.ShowErrorDialog($"Error: {ex.Message}");
         }
     }
 
@@ -81,7 +81,7 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
-            _dialogService.ShowErrorDialog($"Error: {ex.Message} Inner: {ex.InnerException?.Message}");
+            DialogService.ShowErrorDialog($"Error: {ex.Message} Inner: {ex.InnerException?.Message}");
         }
     }
 
@@ -107,17 +107,66 @@ public partial class MainWindow : Window
         catch (DbUpdateException ex)
         {
             var root = ex.GetBaseException();
-            _dialogService.ShowErrorDialog($"Database update error:\n{root.Message}");
+            DialogService.ShowErrorDialog($"Database update error:\n{root.Message}");
         }
         catch (Exception ex)
         {
-            _dialogService.ShowErrorDialog($"Unexpected error:\n{ex.Message}");
+            DialogService.ShowErrorDialog($"Unexpected error:\n{ex.Message}");
         }
     }
 
-    private void PrintBtn_OnClick(object sender, RoutedEventArgs e)
+    private async void PrintBtn_OnClick(object sender, RoutedEventArgs e)
     {
-        var pages = _printService.BuildAllPackingListPages(_viewModel);
-        _printService.PrintPackingListPages(pages);
+        try
+        {
+            if (_viewModel.SelectedReportTitle == "PACKING LIST")
+            {
+                var pages = await _printService.BuildAllPackingListPages(_viewModel);
+                await _printService.PrintPackingListPages(pages);
+            }
+            else if (_viewModel.SelectedReportTitle == "BILL OF LADING")
+            {
+                var page = _printService.BuildBillOfLadingPage(_viewModel);
+                await _printService.PrintBillOfLadingAsync(page);
+            }
+            else
+            {
+                MessageBox.Show($"Unknown report type: {_viewModel.SelectedReportTitle}",
+                    "Print Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+        }
+        catch (InvalidOperationException ex)
+        {
+            // Handle specific printing/UI related errors
+            MessageBox.Show($"Print operation failed: {ex.Message}",
+                "Print Error", MessageBoxButton.OK, MessageBoxImage.Error);
+        }        
+        catch (UnauthorizedAccessException ex)
+        {
+            // Handle access/permission errors
+            MessageBox.Show($"Access denied: {ex.Message}\n\nPlease check printer permissions.",
+                "Access Error", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+        catch (OutOfMemoryException ex)
+        {
+            // Handle memory issues (large documents)
+            MessageBox.Show("Insufficient memory to complete the print operation. Try closing other applications.",
+                "Memory Error", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+        catch (TaskCanceledException ex)
+        {
+            // Handle timeout or cancellation
+            MessageBox.Show("Print operation was cancelled or timed out.",
+                "Operation Cancelled", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+        catch (Exception ex)
+        {
+            // Handle any other unexpected errors
+            MessageBox.Show($"An unexpected error occurred while printing:\n\n{ex.Message}\n\nDetails: {ex.GetType().Name}",
+                "Unexpected Error", MessageBoxButton.OK, MessageBoxImage.Error);
+
+            // Log the full exception for debugging
+            System.Diagnostics.Debug.WriteLine($"Print error: {ex}");
+        }
     }
 }

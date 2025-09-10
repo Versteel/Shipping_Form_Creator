@@ -1,19 +1,18 @@
-﻿using Shipping_Form_CreatorV1.ViewModels;
-using System.Windows.Controls;
+﻿using System.Windows.Controls;
+using Shipping_Form_CreatorV1.Utilities;
+using Shipping_Form_CreatorV1.ViewModels;
 
 namespace Shipping_Form_CreatorV1.Components
 {
-    /// <summary>
-    /// Interaction logic for BillOfLading.xaml
-    /// </summary>
     public partial class BillOfLading : Page
     {
-        private readonly MainViewModel _viewModel;
-
-        public BillOfLading(MainViewModel viewModel)
+        public BillOfLading(MainViewModel vm)
         {
             InitializeComponent();
-            _viewModel = viewModel;
+            DataContext = vm;
+            vm.SelectedReport.Header.LogoImagePath = vm.IsDittoUser ? Constants.DITTO_LOGO : Constants.VERSTEEL_LOGO;
         }
+        
+        public static string TodaysDate => DateTime.Now.ToShortDateString();
     }
 }

@@ -1,10 +1,8 @@
 ﻿using Shipping_Form_CreatorV1.Models;
 using Shipping_Form_CreatorV1.ViewModels;
-using Shipping_Form_CreatorV1.Utilites;
+using Shipping_Form_CreatorV1.Utilities;
 using System.Collections.ObjectModel;
 using System.Windows;
-using System.Windows.Controls;
-
 
 namespace Shipping_Form_CreatorV1.Components
 {
@@ -20,17 +18,17 @@ namespace Shipping_Form_CreatorV1.Components
             _viewModel = viewModel;
             DataContext = _viewModel;
             InitializeComponent();
-            _viewModel.PropertyChanged += (_, e) =>
+            _viewModel.PropertyChanged += (o, e) =>
             {
                 if (e.PropertyName == nameof(MainViewModel.SelectedReport))
-                    BuildPages();
+                    BuildPagesWithBusy();
             };
 
-            Loaded += Page_Loaded;
-
+            Loaded += (_, _) => BuildPagesWithBusy();
         }
 
-        private void Page_Loaded(object sender, RoutedEventArgs e)
+
+        private void BuildPagesWithBusy()
         {
             try
             {
@@ -38,20 +36,16 @@ namespace Shipping_Form_CreatorV1.Components
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error building packing list pages: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show($"Error building packing list pages: {ex.Message}", "Error",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
-
 
         private void BuildPages()
         {
             PageContainer.Children.Clear();
 
             var selectedReport = _viewModel.SelectedReport;
-            if (selectedReport.LineItems.Count == 0)
-            {
-                return;
-            }
             var isDittoUser = _viewModel.IsDittoUser;
 
             var header = selectedReport.Header;
@@ -69,11 +63,6 @@ namespace Shipping_Form_CreatorV1.Components
                 .Where(li => !IsNoteOnly(li))
                 .OrderBy(li => li.LineItemHeader?.LineItemNumber ?? 0)
                 .ToList();
-
-            lineItems = [.. lineItems.Where(li => li.LineItemDetails.Any(d => d.PackingListFlag?.Trim().Equals("Y", StringComparison.OrdinalIgnoreCase) == true && 
-                !string.IsNullOrWhiteSpace(d.NoteText) &&
-                !d.NoteText.Contains("OPTIONS BEGIN") && 
-                !d.NoteText.Contains("OPTIONS END")))];
 
             var trailerNotes = selectedReport.LineItems
                 .SelectMany(li => li.LineItemDetails)
@@ -93,7 +82,7 @@ namespace Shipping_Form_CreatorV1.Components
             else
             {
                 var firstItem = lineItems[0];
-                ObservableCollection<LineItemDetail>? firstDetails = new ObservableCollection<LineItemDetail>(GetDetailsFor(firstItem));
+                var firstDetails = new ObservableCollection<LineItemDetail>(GetDetailsFor(firstItem));
 
                 var pageOne = new PackingListPageOne
                 {

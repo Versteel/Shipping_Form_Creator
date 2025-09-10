@@ -1,4 +1,4 @@
-namespace Shipping_Form_CreatorV1.Utilites;
+namespace Shipping_Form_CreatorV1.Utilities;
 
 public class Constants
 {
@@ -15,6 +15,20 @@ public class Constants
         "Carton",
         "Skid",
         "Packed with line "
+    ];
+
+    public static readonly string[] PackingUnitCategories = 
+    [
+        "TABLE TOPS",
+        "TABLE LEGS, TUBULAR STL EXC 1 QTR DIAMETER, N-G-T 2 INCH DIAMETER",
+        "CHAIRS, CURVARE, IMMIX, OLLIE",
+        "ROVERS, TABLES ALUMINUM STEEL",
+        "ELECTRICAL WIRING PLUG",
+        "TRANSPORTS",
+        "HARDWARE/STRETCHERS",
+        "KEYBOARDS/CPU HOLDERS",
+        "WIRE BASKETS/WIRE RUNNERS",
+        "STORAGE CABINET/LIGHT BAR",
     ];
 
     public static readonly string DITTO_LOGO = "pack://application:,,,/ditto_logo.jpg";
