@@ -8,7 +8,7 @@
     xmlns:ui="http://schemas.modernwpf.com/2019"
     Title="MainWindow"
     Width="800"
-    Height="450"
+    Height="900"
     ui:WindowHelper.UseModernWindowStyle="True"
     WindowState="Maximized"
     mc:Ignorable="d">
