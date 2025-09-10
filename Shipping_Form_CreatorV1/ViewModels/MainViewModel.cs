@@ -18,10 +18,7 @@ public class MainViewModel : INotifyPropertyChanged
     {
         _sqliteService = sqliteService;
         _odbcService = odbcService;
-
         IsDittoUser = userGroupService.IsCurrentUserInDittoGroup();
-
-        SelectedReport = new ReportModel { Header = new ReportHeader() };
 
         // NEW: prevent null refs in bindings
         SearchByDateResults = [];
@@ -34,6 +31,16 @@ public class MainViewModel : INotifyPropertyChanged
         };
     }
 
+
+    //public async Task SeedDataFromODBC()
+    //{
+    //    var results = await _odbcService.GetAllReportsForSeedingAsync();
+
+    //    foreach (var report in results)
+    //    {
+    //        await _sqliteService.SaveReportAsync(report);
+    //    }
+    //}
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -147,7 +154,7 @@ public class MainViewModel : INotifyPropertyChanged
             OnPropertyChanged(nameof(SelectedReport));
             OnPropertyChanged(nameof(BolSpecialInstructions));
             OnPropertyChanged(nameof(PackingListNotes));
-            UpdateGroups();                          
+            UpdateGroups();
             OnPropertyChanged(nameof(BolTotalPieces));
             OnPropertyChanged(nameof(BolTotalWeight));
             OnPropertyChanged(nameof(AllPiecesTotal));
@@ -289,10 +296,16 @@ public class MainViewModel : INotifyPropertyChanged
     private static bool TryGetOrderNumber(string input, out int orderNumber)
         => int.TryParse(input, out orderNumber);
 
-    public async Task LoadDocumentAsync(string orderNumberInput, CancellationToken ct = default)
+    public async Task LoadDocumentAsync(string orderNumberInput, string suffix, CancellationToken ct = default)
     {
+        SelectedReport = new ReportModel
+        {
+            Header = new ReportHeader(),
+            LineItems = []
+        };
         await Task.Yield();
         if (string.IsNullOrWhiteSpace(orderNumberInput)) return;
+        if (string.IsNullOrWhiteSpace(suffix)) suffix = "00";
 
 
         if (!TryGetOrderNumber(orderNumberInput, out var orderNumber))
@@ -300,71 +313,68 @@ public class MainViewModel : INotifyPropertyChanged
             DialogService.ShowErrorDialog("Invalid Sales Order Number. Please enter a valid number.");
             return;
         }
+        if (!int.TryParse(suffix, out var suffixNumber) || suffixNumber < 0 || suffixNumber > 99)
+        {
+            DialogService.ShowErrorDialog("Invalid Suffix. Please enter a number between 00 and 99.");
+            return;
+        }
         IsBusy = true;
         await Task.Delay(1, ct);
         try
         {
-            var erpDocument = await _odbcService.GetReportAsync(orderNumber, ct);
+            var erpDocument = await _odbcService.GetReportAsync(orderNumber, suffixNumber, ct);
             var cachedDocument = await _sqliteService.GetReportAsync(orderNumber, ct);
 
-            // Case: nothing found at all
             if (erpDocument is null && cachedDocument is null)
             {
                 DialogService.ShowErrorDialog(
-                    $"Sales Order {orderNumber} does not have a packing list in ERP or cache.");
+                    $"Frontier has not created a packing list for Sales Order {orderNumber}.");
                 return;
             }
 
-            // Case: ERP is missing → just use cached
             if (erpDocument is null)
             {
                 SelectedReport = cachedDocument!;
                 return;
             }
 
-            // ERP exists → merge from cache when ERP has blanks or local values matter
             if (cachedDocument is not null)
             {
-                // keep DB identity
                 erpDocument.Id = cachedDocument.Id;
                 erpDocument.Header.Id = cachedDocument.Header.Id;
 
                 var erpHeader = erpDocument.Header;
                 var cacheHeader = cachedDocument.Header;
 
-                // Apply ERP props if present, otherwise fall back to cache
-                erpHeader.LogoImagePath =
-                    !string.IsNullOrWhiteSpace(erpHeader.LogoImagePath)
-                        ? erpHeader.LogoImagePath
-                        : cacheHeader.LogoImagePath;
+                erpHeader.LogoImagePath = !string.IsNullOrWhiteSpace(erpHeader.LogoImagePath) ? erpHeader.LogoImagePath : cacheHeader.LogoImagePath;
+                erpHeader.OrderNumber = erpHeader.OrderNumber != 0 ? erpHeader.OrderNumber : cacheHeader.OrderNumber;
+                erpHeader.Suffix = erpHeader.Suffix != 0 ? erpHeader.Suffix : cacheHeader.Suffix;
+                erpHeader.PageCount = erpHeader.PageCount != 0 ? erpHeader.PageCount : cacheHeader.PageCount;
+                erpHeader.OrdEnterDate = !string.IsNullOrWhiteSpace(erpHeader.OrdEnterDate) ? erpHeader.OrdEnterDate : cacheHeader.OrdEnterDate;
+                erpHeader.ShipDate = !string.IsNullOrWhiteSpace(erpHeader.ShipDate) ? erpHeader.ShipDate : cacheHeader.ShipDate;
+                erpHeader.SoldToCustNumber = !string.IsNullOrWhiteSpace(erpHeader.SoldToCustNumber) ? erpHeader.SoldToCustNumber : cacheHeader.SoldToCustNumber;
+                erpHeader.ShipToCustNumber = !string.IsNullOrWhiteSpace(erpHeader.ShipToCustNumber) ? erpHeader.ShipToCustNumber : cacheHeader.ShipToCustNumber;
+                erpHeader.SoldToName = !string.IsNullOrWhiteSpace(erpHeader.SoldToName) ? erpHeader.SoldToName : cacheHeader.SoldToName;
+                erpHeader.SoldToCustAddressLine1 = !string.IsNullOrWhiteSpace(erpHeader.SoldToCustAddressLine1) ? erpHeader.SoldToCustAddressLine1 : cacheHeader.SoldToCustAddressLine1;
+                erpHeader.SoldToCustAddressLine2 = !string.IsNullOrWhiteSpace(erpHeader.SoldToCustAddressLine2) ? erpHeader.SoldToCustAddressLine2 : cacheHeader.SoldToCustAddressLine2;
+                erpHeader.SoldToCustAddressLine3 = !string.IsNullOrWhiteSpace(erpHeader.SoldToCustAddressLine3) ? erpHeader.SoldToCustAddressLine3 : cacheHeader.SoldToCustAddressLine3;
+                erpHeader.SoldToCity = !string.IsNullOrWhiteSpace(erpHeader.SoldToCity) ? erpHeader.SoldToCity : cacheHeader.SoldToCity;
+                erpHeader.SoldToSt = !string.IsNullOrWhiteSpace(erpHeader.SoldToSt) ? erpHeader.SoldToSt : cacheHeader.SoldToSt;
+                erpHeader.SoldToZipCode = !string.IsNullOrWhiteSpace(erpHeader.SoldToZipCode) ? erpHeader.SoldToZipCode : cacheHeader.SoldToZipCode;
+                erpHeader.ShipToName = !string.IsNullOrWhiteSpace(erpHeader.ShipToName) ? erpHeader.ShipToName : cacheHeader.ShipToName;
+                erpHeader.ShipToCustAddressLine1 = !string.IsNullOrWhiteSpace(erpHeader.ShipToCustAddressLine1) ? erpHeader.ShipToCustAddressLine1 : cacheHeader.ShipToCustAddressLine1;
+                erpHeader.ShipToCustAddressLine2 = !string.IsNullOrWhiteSpace(erpHeader.ShipToCustAddressLine2) ? erpHeader.ShipToCustAddressLine2 : cacheHeader.ShipToCustAddressLine2;
+                erpHeader.ShipToCustAddressLine3 = !string.IsNullOrWhiteSpace(erpHeader.ShipToCustAddressLine3) ? erpHeader.ShipToCustAddressLine3 : cacheHeader.ShipToCustAddressLine3;
+                erpHeader.ShipToCity = !string.IsNullOrWhiteSpace(erpHeader.ShipToCity) ? erpHeader.ShipToCity : cacheHeader.ShipToCity;
+                erpHeader.ShipToSt = !string.IsNullOrWhiteSpace(erpHeader.ShipToSt) ? erpHeader.ShipToSt : cacheHeader.ShipToSt;
+                erpHeader.ShipToZipCode = !string.IsNullOrWhiteSpace(erpHeader.ShipToZipCode) ? erpHeader.ShipToZipCode : cacheHeader.ShipToZipCode;
+                erpHeader.CustomerPONumber = !string.IsNullOrWhiteSpace(erpHeader.CustomerPONumber) ? erpHeader.CustomerPONumber : cacheHeader.CustomerPONumber;
+                erpHeader.DueDate = !string.IsNullOrWhiteSpace(erpHeader.DueDate) ? erpHeader.DueDate : cacheHeader.DueDate;
+                erpHeader.SalesPerson = !string.IsNullOrWhiteSpace(erpHeader.SalesPerson) ? erpHeader.SalesPerson : cacheHeader.SalesPerson;
+                erpHeader.CarrierName = !string.IsNullOrWhiteSpace(erpHeader.CarrierName) ? erpHeader.CarrierName : cacheHeader.CarrierName;
+                erpHeader.TrackingNumber = !string.IsNullOrWhiteSpace(erpHeader.TrackingNumber) ? erpHeader.TrackingNumber : cacheHeader.TrackingNumber;
+                erpHeader.FreightTerms = !string.IsNullOrWhiteSpace(erpHeader.FreightTerms) ? erpHeader.FreightTerms : cacheHeader.FreightTerms;
 
-                erpHeader.OrderNumber =
-                    erpHeader.OrderNumber != 0 ? erpHeader.OrderNumber : cacheHeader.OrderNumber;
-
-                erpHeader.ShipDate =
-                    erpHeader.ShipDate != default ? erpHeader.ShipDate : cacheHeader.ShipDate;
-
-                erpHeader.ShipToName =
-                    !string.IsNullOrWhiteSpace(erpHeader.ShipToName)
-                        ? erpHeader.ShipToName
-                        : cacheHeader.ShipToName;
-
-                erpHeader.ShipToCity =
-                    !string.IsNullOrWhiteSpace(erpHeader.ShipToCity)
-                        ? erpHeader.ShipToCity
-                        : cacheHeader.ShipToCity;
-
-                erpHeader.CustomerPONumber =
-                    !string.IsNullOrWhiteSpace(erpHeader.CustomerPONumber)
-                        ? erpHeader.CustomerPONumber
-                        : cacheHeader.CustomerPONumber;
-
-                erpHeader.CarrierName =
-                    !string.IsNullOrWhiteSpace(erpHeader.CarrierName)
-                        ? erpHeader.CarrierName
-                        : cacheHeader.CarrierName;
-
-                // Merge line items
                 foreach (var erpLine in erpDocument.LineItems)
                 {
                     var cachedLine = cachedDocument.LineItems
@@ -375,7 +385,6 @@ public class MainViewModel : INotifyPropertyChanged
 
                     erpLine.Id = cachedLine.Id;
 
-                    // If ERP didn’t provide packing units, reuse cached ones
                     if (erpLine.LineItemPackingUnits == null || erpLine.LineItemPackingUnits.Count == 0)
                         erpLine.LineItemPackingUnits = cachedLine.LineItemPackingUnits;
                 }
@@ -405,14 +414,43 @@ public class MainViewModel : INotifyPropertyChanged
         }
     }
 
-    public async Task GetSearchByDateResults(DateTime date)
+    public async Task GetSearchByDateResults(DateTime date, CancellationToken ct = default)
     {
         SelectedReportTitle = "SEARCH RESULTS";
         try
         {
             IsBusy = true;
-            await Task.Delay(1);
-            SearchByDateResults = await _sqliteService.GetAllReportsByDateAsync(date.Date);
+            await Task.Delay(1, ct);
+
+            // Get the list of order headers/numbers for that date
+            var orders = await _odbcService.GetShippedOrdersByDate(date.Date);
+
+            var fullReports = new List<ReportModel>();
+
+            foreach (var order in orders)
+            {
+                // Assume each ReportModel from the search has OrderNumber + Suffix in Header
+                var orderNumber = order.Header.OrderNumber;
+                var suffix = order.Header.Suffix;
+
+                // Reuse your "load" logic to get the complete report
+                var report = await _odbcService.GetReportAsync(orderNumber, suffix, ct);
+                if (report != null)
+                {
+                    // optionally merge with cached sqlite version, similar to LoadDocumentAsync
+                    var cached = await _sqliteService.GetReportAsync(orderNumber, ct);
+                    if (cached != null)
+                    {
+                        // apply the same merging logic as LoadDocumentAsync
+                        report.Id = cached.Id;
+                        // ...merge header/line items as you already do...
+                    }
+
+                    fullReports.Add(report);
+                }
+            }
+
+            SearchByDateResults = fullReports;
         }
         catch (Exception ex)
         {
@@ -422,8 +460,8 @@ public class MainViewModel : INotifyPropertyChanged
         {
             IsBusy = false;
         }
-
     }
+
 
     public async Task SaveCurrentReportAsync(CancellationToken ct = default)
     {

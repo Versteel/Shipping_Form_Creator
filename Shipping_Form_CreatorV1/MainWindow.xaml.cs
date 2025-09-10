@@ -29,6 +29,7 @@ public partial class MainWindow
     private void GoToPackingListBtn_Click(object sender, RoutedEventArgs e)
     {
         OrderNumberTextBox.Clear();
+        SuffixIntegerBox.Value = 0;
         _viewModel.SalesOrderNumber = string.Empty;
         _viewModel.SelectedReportTitle = "PACKING LIST";
         _viewModel.SelectedReport = new Models.ReportModel { Header = new Models.ReportHeader() };
@@ -38,6 +39,7 @@ public partial class MainWindow
     private void GoToBillOfLadingBtn_Click(object sender, RoutedEventArgs e)
     {
         OrderNumberTextBox.Clear();
+        SuffixIntegerBox.Value = 0;
         _viewModel.SalesOrderNumber = string.Empty;
         _viewModel.SelectedReportTitle = "BILL OF LADING";
         _viewModel.SelectedReport = new Models.ReportModel { Header = new Models.ReportHeader() };
@@ -50,7 +52,7 @@ public partial class MainWindow
         if (e.Key != Key.Enter) return;
         try
         {
-            await _viewModel.LoadDocumentAsync(OrderNumberTextBox.Text.Trim());
+            await _viewModel.LoadDocumentAsync(OrderNumberTextBox.Text.Trim(), SuffixIntegerBox.Text.Trim());
             if (_viewModel.SelectedReportTitle == "SEARCH RESULTS")
             {
                 _viewModel.SelectedReportTitle = "PACKING LIST";
@@ -74,7 +76,7 @@ public partial class MainWindow
         try
         {
 
-            await _viewModel.LoadDocumentAsync(OrderNumberTextBox.Text.Trim());
+            await _viewModel.LoadDocumentAsync(OrderNumberTextBox.Text.Trim(), SuffixIntegerBox.Text.Trim());
             if (_viewModel.SelectedReportTitle == "SEARCH RESULTS")
             {
                 _viewModel.SelectedReportTitle = "PACKING LIST";

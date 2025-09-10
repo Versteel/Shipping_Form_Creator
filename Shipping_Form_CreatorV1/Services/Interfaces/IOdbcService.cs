@@ -4,5 +4,6 @@ namespace Shipping_Form_CreatorV1.Services.Interfaces;
 
 public interface IOdbcService
 {
-    Task<ReportModel?> GetReportAsync(int orderNumberInput, CancellationToken ct = default);
+    Task<ReportModel?> GetReportAsync(int orderNumberInput, int suffixInput, CancellationToken ct = default);
+    Task<List<ReportModel>> GetShippedOrdersByDate(DateTime shipDate, CancellationToken ct = default);
 }

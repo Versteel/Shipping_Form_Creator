@@ -8,6 +8,7 @@ public class ReportHeader
     public int Id { get; set; }
     public string LogoImagePath { get; set; } = string.Empty;
     public int OrderNumber { get; set; }
+    public int Suffix { get; set; }
     [NotMapped]
     public string OrderNumberWithSuffix => $"{OrderNumber}-00";
     public int PageCount { get; set; }

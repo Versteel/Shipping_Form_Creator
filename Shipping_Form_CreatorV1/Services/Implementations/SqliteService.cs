@@ -46,12 +46,7 @@ public class SqliteService(IDbContextFactory<AppDbContext> dbContext) : ISqliteS
         // Start from headers so we only get rows that actually have a header
         var query = await db.ReportModels
             .Include(r => r.Header)
-            .Include(r => r.LineItems).ThenInclude(li => li.LineItemHeader)
-            .Include(r => r.LineItems).ThenInclude(li => li.LineItemDetails)
-            .Include(r => r.LineItems).ThenInclude(li => li.LineItemPackingUnits)
-            .Where(r => r.Header != null && r.Header.ShipDate == search)
-            .AsSplitQuery()
-            .AsNoTracking()
+            .Where(r => r.Header.ShipDate != null && r.Header.ShipDate == search)
             .ToListAsync(ct);
 
         return query;

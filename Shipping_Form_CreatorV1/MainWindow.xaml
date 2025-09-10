@@ -4,15 +4,18 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="clr-namespace:Shipping_Form_CreatorV1"
-    xmlns:sys="clr-namespace:System;assembly=mscorlib"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:syncfusion="http://schemas.syncfusion.com/wpf"
+    xmlns:sys="clr-namespace:System;assembly=mscorlib"
     xmlns:ui="http://schemas.modernwpf.com/2019"
     Title="Shipping Form Creator"
-    Width="800"
-    Height="450"
+    Width="1024"
+    Height="768"
     ui:WindowHelper.UseModernWindowStyle="True"
+    Icon="/delivery.png"
+    ResizeMode="CanMinimize"
     WindowState="Maximized"
-    mc:Ignorable="d" Icon="/delivery.png" ResizeMode="CanMinimize">
+    mc:Ignorable="d">
 
     <Grid>
         <Grid.RowDefinitions>
@@ -73,13 +76,27 @@
                     Margin="0,40,0,0"
                     FontSize="18"
                     Text="1. Search for order number" />
-                <TextBox
-                    x:Name="OrderNumberTextBox"
-                    Margin="15,0,0,0"
-                    Background="#FFF"
-                    FontSize="18"
-                    KeyDown="OrderNumberTextBox_KeyDown"
-                    Text="{Binding SelectedOrderNumber,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}" />
+                <StackPanel Orientation="Horizontal">
+                    <syncfusion:SfTextBoxExt
+                        x:Name="OrderNumberTextBox"
+                        Width="68"
+                        Padding="0 5 0 0"
+                        Margin="15,0,0,0"
+                        Background="#FFF"
+                        FontSize="18"
+                        KeyDown="OrderNumberTextBox_KeyDown"
+                        Text="{Binding SelectedOrderNumber, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                    <TextBlock FontSize="18" Margin="0 0 0 1" Text=".00" VerticalAlignment="Bottom"/>
+                    <syncfusion:IntegerTextBox
+                        x:Name="SuffixIntegerBox"
+                        Width="35"
+                        Padding="0 5 0 0"
+                        Background="#FFF"
+                        FontSize="18"
+                        MaxValue="99"
+                        MinValue="00"
+                        Value="{Binding SuffixNumber, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                </StackPanel>
                 <Button
                     x:Name="SearchByDateBtn"
                     Width="100"
@@ -93,13 +110,13 @@
                 <TextBlock
                     Margin="0,40,0,0"
                     FontSize="18"
-                    Text="1. Search by ship date" />
+                    Text="2. Search by ship date" />
                 <DatePicker
                     x:Name="ShipDatePicker"
                     Margin="15,0,0,0"
+                    DisplayDateEnd="{x:Static sys:DateTime.Today}"
                     SelectedDate="{Binding SearchByDate, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                    SelectedDateFormat="Short"
-                    DisplayDateEnd="{x:Static sys:DateTime.Today}"/>
+                    SelectedDateFormat="Short" />
                 <Button
                     x:Name="SearchBtn"
                     Width="100"
@@ -113,21 +130,21 @@
                 <TextBlock
                     Margin="0,40,0,0"
                     FontSize="18"
-                    Text="2. Save Changes" />
+                    Text="3. Save Changes" />
                 <Button
                     x:Name="SaveChangesBtn"
                     Width="100"
                     Margin="15,10,0,0"
                     Background="#e31f26"
                     Click="SaveChangesBtn_Click"
-                    IsEnabled="{Binding IsSaveEnabled}"
                     Content="Save"
                     Cursor="Hand"
-                    Foreground="#FFF" />
+                    Foreground="#FFF"
+                    IsEnabled="{Binding IsSaveEnabled}" />
                 <TextBlock
                     Margin="0,40,0,0"
                     FontSize="18"
-                    Text="3. Print Document" />
+                    Text="4. Print Document" />
                 <Button
                     x:Name="PrintBtn"
                     Width="100"

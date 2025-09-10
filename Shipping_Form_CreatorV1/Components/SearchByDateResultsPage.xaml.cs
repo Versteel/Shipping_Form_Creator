@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -34,16 +35,22 @@ namespace Shipping_Form_CreatorV1.Components
                 (Window.GetWindow(this) as MainWindow)?.NavigateToReport(report, "BILL OF LADING");
         }
 
-        private void OpenPackingList_Executed(object sender, ExecutedRoutedEventArgs e)
+        private async void OpenPackingList_Executed(object sender, ExecutedRoutedEventArgs e)
         {
             if (e.Parameter is ReportModel report)
-                (Window.GetWindow(this) as MainWindow)?.NavigateToReport(report, "PACKING LIST");
+            {
+                await _vm.LoadDocumentAsync(report.Header.OrderNumber.ToString(), report.Header.Suffix.ToString());
+                (Window.GetWindow(this) as MainWindow)?.NavigateToReport(_vm.SelectedReport, "PACKING LIST");
+            }
         }
 
-        private void OpenBol_Executed(object sender, ExecutedRoutedEventArgs e)
+        private async void OpenBol_Executed(object sender, ExecutedRoutedEventArgs e)
         {
             if (e.Parameter is ReportModel report)
-                (Window.GetWindow(this) as MainWindow)?.NavigateToReport(report, "BILL OF LADING");
+            {
+                await _vm.LoadDocumentAsync(report.Header.OrderNumber.ToString(), report.Header.Suffix.ToString());
+                (Window.GetWindow(this) as MainWindow)?.NavigateToReport(_vm.SelectedReport, "BILL OF LADING");
+            }
         }
     }
 }

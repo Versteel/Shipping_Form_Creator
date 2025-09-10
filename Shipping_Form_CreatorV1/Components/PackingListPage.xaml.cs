@@ -60,7 +60,7 @@ namespace Shipping_Form_CreatorV1.Components
                     ];
 
             var lineItems = selectedReport.LineItems
-                .Where(li => !IsNoteOnly(li))
+                .Where(li => li.LineItemHeader?.LineItemNumber < 950)
                 .OrderBy(li => li.LineItemHeader?.LineItemNumber ?? 0)
                 .ToList();
 

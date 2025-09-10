@@ -28,9 +28,18 @@
                 <RowDefinition Height="*" />
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
-            <StackPanel Grid.Row="0" Orientation="Horizontal" HorizontalAlignment="Center">
-                <TextBlock FontSize="25" FontWeight="Bold" Text="ORDERS SHIPPED "/>
-                <TextBlock FontSize="25" FontWeight="Bold" Text="{Binding SearchDateString}" />
+            <StackPanel
+                Grid.Row="0"
+                HorizontalAlignment="Center"
+                Orientation="Horizontal">
+                <TextBlock
+                    FontSize="25"
+                    FontWeight="Bold"
+                    Text="ORDERS SHIPPED " />
+                <TextBlock
+                    FontSize="25"
+                    FontWeight="Bold"
+                    Text="{Binding SearchDateString}" />
             </StackPanel>
             <syncfusion:SfDataGrid
                 x:Name="searchResultsDataGrid"
@@ -55,11 +64,11 @@
                         HeaderText="Order #"
                         TextAlignment="Right"
                         ValueBinding="{Binding Header.OrderNumber}" />
-                    <syncfusion:GridDateTimeColumn
-                        Width="100"
-                        HeaderText="Ship Date"
+                    <syncfusion:GridTextColumn
+                        Width="200"
+                        HeaderText="Customer #"
                         TextAlignment="Right"
-                        ValueBinding="{Binding Header.ShipDate}" />
+                        ValueBinding="{Binding Header.ShipToCustNumber}" />
                     <syncfusion:GridTextColumn
                         Width="200"
                         HeaderText="Ship To"
@@ -67,14 +76,9 @@
                         ValueBinding="{Binding Header.ShipToName}" />
                     <syncfusion:GridTextColumn
                         Width="150"
-                        HeaderText="City, State Zip"
+                        HeaderText="City, State"
                         TextAlignment="Right"
                         ValueBinding="{Binding Header.ShipToCityStZip}" />
-                    <syncfusion:GridTextColumn
-                        Width="100"
-                        HeaderText="PO #"
-                        TextAlignment="Right"
-                        ValueBinding="{Binding Header.CustomerPONumber}" />
                     <syncfusion:GridTextColumn
                         Width="150"
                         HeaderText="Carrier"

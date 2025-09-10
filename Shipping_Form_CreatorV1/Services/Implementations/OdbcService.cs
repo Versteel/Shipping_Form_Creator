@@ -3,6 +3,7 @@ using Shipping_Form_CreatorV1.Services.Interfaces;
 using System.Collections.ObjectModel;
 using System.Data.Common;
 using System.Data.Odbc;
+using System.Diagnostics;
 
 namespace Shipping_Form_CreatorV1.Services.Implementations;
 
@@ -35,12 +36,40 @@ public class OdbcService : IOdbcService
                                                   ON FREHDR.HDORD# = FRENOT.NTORD#
                                               LEFT JOIN S107CE82.FRNDTA032.FREDTL FREDTL
                                                   ON FREDTL.DTORD# = FREHDR.HDORD#
-                                                 AND FREDTL.DTLSUF = 0
+                                                 AND FREDTL.DTLSUF = FREHDR.HDLSUF
                                                  AND FREDTL.DTITEM = FRENOT.NTMITM
                                               WHERE FREHDR.HDORD# = ?
-                                                AND FREHDR.HDLSUF = 0
+                                                AND FREHDR.HDLSUF = ?
                                               ORDER BY FRENOT.NTMITM, FRENOT.NTSEQ#
                                               FOR FETCH ONLY
+                                          """;
+
+    private const string GET_ALL_HEADERS_QUERY = """
+                                              SELECT 
+                                              OHP.OHORD#,
+                                              O4P.O4SUFX,                                              
+
+                                              -- Formatted Ship Date: MM/dd/yyyy
+                                              LPAD(SUBSTRING(LPAD(O4P.ODSHPM, 4, '0'), 1, 2), 2, '0') || '/' ||
+                                              LPAD(SUBSTRING(LPAD(O4P.ODSHPM, 4, '0'), 3, 2), 2, '0') || '/' ||
+                                              '20' || LPAD(O4P.ODSHPY, 2, '0') AS FormattedShipDate
+
+                                          FROM 
+                                              FRNDTA032.CM1P AS CM1P
+                                              INNER JOIN FRNDTA032.OHP AS OHP 
+                                                  ON CM1P.C1STKY = OHP.OHSTKY
+                                              INNER JOIN FRNDTA032.O4P AS O4P 
+                                                  ON OHP.OHORD# = O4P.O4ORD#
+                                              INNER JOIN FRNDTA032.NFP AS NFP1
+                                                  ON TRIM(O4P.ODCARR) = TRIM(NFP1.NFNUMB)
+                                                  AND NFP1.NFTYP = 'CC'
+                                              INNER JOIN FRNDTA032.NFP AS NFP2
+                                                  ON TRIM(O4P.ODFRTT) = TRIM(NFP2.NFNUMB)
+                                                  AND NFP2.NFTYP = 'FT'
+                                              WHERE 1=1
+                                              AND LPAD(SUBSTRING(LPAD(O4P.ODSHPM, 4, '0'), 1, 2), 2, '0') || '/' ||
+                                              LPAD(SUBSTRING(LPAD(O4P.ODSHPM, 4, '0'), 3, 2), 2, '0') || '/' ||
+                                              '20' || LPAD(O4P.ODSHPY, 2, '0') = ?                                          
                                           """;
 
     // ===== Safe readers =====
@@ -100,7 +129,30 @@ public class OdbcService : IOdbcService
 
     // ===== Public API =====
 
-    public async Task<ReportModel?> GetReportAsync(int orderNumber, CancellationToken ct = default)
+    public async Task<List<ReportModel>> GetShippedOrdersByDate(DateTime shipDate, CancellationToken ct = default)
+    {
+        var results = new List<ReportModel>();
+        var formattedDate = shipDate.ToString("MM/dd/yyyy");
+        await using var connection = new OdbcConnection(CONNECTION_STRING);
+        await connection.OpenAsync(ct);
+        await using var command = new OdbcCommand(GET_ALL_HEADERS_QUERY, connection);
+        command.Parameters.Add("", OdbcType.VarChar, 10).Value = formattedDate;
+
+        await using var reader = await command.ExecuteReaderAsync(ct);
+        while (await reader.ReadAsync(ct))
+        {
+            var orderNumber = GetSafeInt(reader, "OHORD#");
+            var suffix = GetSafeInt(reader, "O4SUFX");
+
+            var rpt = await GetReportAsync(orderNumber, suffix, ct);
+
+            if(rpt != null)
+                results.Add(rpt);
+        }
+        return results;
+    }
+
+    public async Task<ReportModel?> GetReportAsync(int orderNumber, int suffix, CancellationToken ct = default)
     {
         var rpt = new ReportModel();
 
@@ -114,6 +166,7 @@ public class OdbcService : IOdbcService
 
         // Bind as INT (not Decimal)
         command.Parameters.Add("@HDORD#", OdbcType.Int).Value = orderNumber;
+        command.Parameters.Add("@HDLSUF", OdbcType.Int).Value = suffix;
 
         await using var reader = await command.ExecuteReaderAsync(ct);
 
@@ -126,6 +179,7 @@ public class OdbcService : IOdbcService
             rpt.Header = new ReportHeader
             {
                 OrderNumber = GetSafeInt(reader, "HDORD#"),
+                Suffix = GetSafeInt(reader, "HDLSUF"),
                 OrdEnterDate = FormatDate(GetSafeInt(reader, "HDORDD")),
                 ShipDate = FormatDate(GetSafeInt(reader, "HDRDTE")),
                 SoldToCustNumber = GetSafeString(reader, "HDBTKY"),
