@@ -102,7 +102,6 @@ public class SqliteService(IDbContextFactory<AppDbContext> dbContext) : ISqliteS
         existing.DueDate = updated.DueDate;
         existing.SalesPerson = updated.SalesPerson;
         existing.CarrierName = updated.CarrierName;
-        existing.ShippingInstructions = updated.ShippingInstructions;
         existing.FreightTerms = updated.FreightTerms;
     }
 

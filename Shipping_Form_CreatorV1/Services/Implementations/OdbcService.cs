@@ -100,6 +100,29 @@ public class OdbcService : IOdbcService
 
     // ===== Public API =====
 
+    public async Task<List<ReportModel>> GetAllReportsAsync(CancellationToken ct = default)
+    {
+        var reports = new List<ReportModel>();
+        await using var connection = new OdbcConnection(CONNECTION_STRING);
+        await connection.OpenAsync(ct);
+        await using var command = new OdbcCommand("SELECT HDORD# FROM S107CE82.FRNDTA032.FREHDR", connection);
+        await using var reader = await command.ExecuteReaderAsync(ct);
+        var orderNumbers = new List<int>();
+        while (await reader.ReadAsync(ct))
+        {
+            orderNumbers.Add(GetSafeInt(reader, "HDORD#"));
+        }
+        foreach (var orderNumber in orderNumbers)
+        {
+            var report = await GetReportAsync(orderNumber, ct);
+            if (report != null)
+            {
+                reports.Add(report);
+            }
+        }
+        return reports;
+    }
+
     public async Task<ReportModel?> GetReportAsync(int orderNumber, CancellationToken ct = default)
     {
         var rpt = new ReportModel();
@@ -149,6 +172,7 @@ public class OdbcService : IOdbcService
                 SalesPerson = GetSafeString(reader, "SPNAME"),
                 CarrierName = GetSafeString(reader, "HDCARN"),
                 FreightTerms = GetSafeString(reader, "HDFRTT"),
+                TrackingNumber = GetSafeString(reader, "HDINST"),
             };
 
             // FREDTL: may be NULL if note doesn't match a line

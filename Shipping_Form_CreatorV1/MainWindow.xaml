@@ -10,8 +10,10 @@
     Width="800"
     Height="900"
     ui:WindowHelper.UseModernWindowStyle="True"
+    Icon="/delivery.png"
+    ResizeMode="CanMinimize"
     WindowState="Maximized"
-    mc:Ignorable="d" Icon="/delivery.png" ResizeMode="CanMinimize">
+    mc:Ignorable="d">
 
     <Grid>
         <Grid.RowDefinitions>
@@ -99,10 +101,10 @@
                     Margin="15,10,0,0"
                     Background="#e31f26"
                     Click="SaveChangesBtn_Click"
-                    IsEnabled="{Binding IsSaveEnabled}"
                     Content="Save"
                     Cursor="Hand"
-                    Foreground="#FFF" />
+                    Foreground="#FFF"
+                    IsEnabled="{Binding IsSaveEnabled}" />
                 <TextBlock
                     Margin="0,40,0,0"
                     FontSize="18"

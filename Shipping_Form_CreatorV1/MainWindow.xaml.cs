@@ -13,12 +13,10 @@ namespace Shipping_Form_CreatorV1;
 public partial class MainWindow : Window
 {
     private readonly MainViewModel _viewModel;
-    private readonly DialogService _dialogService;
     private readonly PrintService _printService;
 
-    public MainWindow(MainViewModel viewModel, DialogService dialogService, PrintService printService)
+    public MainWindow(MainViewModel viewModel, PrintService printService)
     {
-        _dialogService = dialogService;
         _printService = printService;
         _viewModel = viewModel;
         DataContext = viewModel;
@@ -74,6 +72,7 @@ public partial class MainWindow : Window
     {
         try
         {
+            //await _viewModel.SeedData();
             if (OrderNumberIsValid(OrderNumberTextBox.Text.Trim()))
             {
                 await _viewModel.LoadDocumentAsync(OrderNumberTextBox.Text.Trim());

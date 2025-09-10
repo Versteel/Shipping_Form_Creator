@@ -6,6 +6,7 @@ using Shipping_Form_CreatorV1.Services.Interfaces;
 using Shipping_Form_CreatorV1.Utilities;
 using System.ComponentModel;
 using System.Data.Odbc;
+using System.Runtime.InteropServices;
 
 namespace Shipping_Form_CreatorV1.ViewModels;
 
@@ -229,6 +230,26 @@ public class MainViewModel : INotifyPropertyChanged
     // -------------------------
     private static bool TryGetOrderNumber(string input, out int orderNumber)
         => int.TryParse(input, out orderNumber);
+
+    public async Task SeedData()
+    {
+        var reports = await _odbcService.GetAllReportsAsync();
+        foreach (var report in reports)
+        {
+            // check if this report already exists in sqlite
+            var existing = await _sqliteService.GetReportAsync(report.Header.OrderNumber);
+
+            if (existing == null) 
+            {
+                SelectedReport = report;
+                await SaveCurrentReportAsync();
+            }
+            else
+            {
+                continue;
+            }
+        }
+    }
 
     public async Task LoadDocumentAsync(string orderNumberInput, CancellationToken ct = default)
     {
