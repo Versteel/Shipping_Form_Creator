@@ -373,7 +373,10 @@ public class MainViewModel : INotifyPropertyChanged
                 erpHeader.SalesPerson = !string.IsNullOrWhiteSpace(erpHeader.SalesPerson) ? erpHeader.SalesPerson : cacheHeader.SalesPerson;
                 erpHeader.CarrierName = !string.IsNullOrWhiteSpace(erpHeader.CarrierName) ? erpHeader.CarrierName : cacheHeader.CarrierName;
                 erpHeader.TrackingNumber = !string.IsNullOrWhiteSpace(erpHeader.TrackingNumber) ? erpHeader.TrackingNumber : cacheHeader.TrackingNumber;
-                erpHeader.FreightTerms = !string.IsNullOrWhiteSpace(erpHeader.FreightTerms) ? erpHeader.FreightTerms : cacheHeader.FreightTerms;
+                if (string.IsNullOrWhiteSpace(erpHeader.FreightTerms))
+                {
+                    erpHeader.FreightTerms = cacheHeader.FreightTerms;
+                }
 
                 foreach (var erpLine in erpDocument.LineItems)
                 {
