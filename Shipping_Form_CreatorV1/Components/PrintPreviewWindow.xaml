@@ -1,0 +1,22 @@
+﻿<Window x:Class="Shipping_Form_CreatorV1.Components.PrintPreviewWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Shipping_Form_CreatorV1.Components"
+        mc:Ignorable="d"
+        ResizeMode="CanMinimize"
+        WindowState="Maximized"
+        Title="PrintPreviewWindow" Height="450" Width="800">
+    <DocumentViewer  Name="_viewer" >
+        <DocumentViewer.Resources>
+            <Style TargetType="ContentControl">
+                <Style.Triggers>
+                    <Trigger Property="Name" Value="PART_FindToolBarHost">
+                        <Setter Property="Visibility" Value="Collapsed" />
+                    </Trigger>
+                </Style.Triggers>
+            </Style>
+        </DocumentViewer.Resources>
+    </DocumentViewer>
+</Window>

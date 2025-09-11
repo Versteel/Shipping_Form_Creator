@@ -23,7 +23,7 @@
             MinHeight="1056"
             MaxWidth="816"
             MaxHeight="1056"
-            Padding="24 48"
+            Padding="48"
             HorizontalAlignment="Center"
             Background="White">
             <Grid>
@@ -244,7 +244,7 @@
                                                     <!--  Notes  -->
                                                     <ItemsControl
                                                         Grid.Column="0"
-                                                        Margin="38,10,0,0"
+                                                        Margin="38,0,0,0"
                                                         ItemsSource="{Binding LineItemDetails}">
                                                         <ItemsControl.ItemTemplate>
                                                             <DataTemplate>
@@ -382,7 +382,19 @@
                                                                                     </Style>
                                                                                 </TextBlock.Style>
                                                                             </TextBlock>
-                                                                            <TextBlock Margin="8,0,0,0" Text="{Binding CartonOrSkid}" />
+                                                                            <TextBlock Margin="8,0,0,0" Text="{Binding CartonOrSkid}">
+                                                                                <TextBlock.Style>
+                                                                                    <Style TargetType="TextBlock">
+                                                                                        <Setter Property="Visibility" Value="Visible" />
+                                                                                        <Style.Triggers>
+                                                                                            <DataTrigger Binding="{Binding CartonOrSkid}" Value="Packed with line ">
+                                                                                                <Setter Property="Visibility" Value="Collapsed" />
+                                                                                            </DataTrigger>
+                                                                                        </Style.Triggers>
+                                                                                    </Style>
+                                                                                </TextBlock.Style>
+                                                                            </TextBlock>
+
                                                                             <TextBlock Margin="8,0,0,0" Text="{Binding TypeOfUnit}">
                                                                                 <TextBlock.Style>
                                                                                     <Style TargetType="TextBlock">
@@ -395,6 +407,8 @@
                                                                                     </Style>
                                                                                 </TextBlock.Style>
                                                                             </TextBlock>
+
+                                                                            <!--  Packed with line display  -->
                                                                             <StackPanel
                                                                                 Width="250"
                                                                                 Margin="8,0,0,0"
@@ -412,6 +426,8 @@
                                                                                 <TextBlock Text="Packed with line " />
                                                                                 <TextBlock Text="{Binding LineNumber}" />
                                                                             </StackPanel>
+
+                                                                            <!--  Weight  -->
                                                                             <TextBlock Margin="8,0,0,0" TextAlignment="Right">
                                                                                 <TextBlock.Style>
                                                                                     <Style TargetType="TextBlock">

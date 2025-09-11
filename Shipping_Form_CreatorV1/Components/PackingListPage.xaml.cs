@@ -60,7 +60,7 @@ namespace Shipping_Form_CreatorV1.Components
                     ];
 
             var lineItems = selectedReport.LineItems
-                .Where(li => !IsNoteOnly(li))
+                .Where(li => li.LineItemHeader?.LineItemNumber < 950)
                 .OrderBy(li => li.LineItemHeader?.LineItemNumber ?? 0)
                 .ToList();
 
@@ -83,13 +83,14 @@ namespace Shipping_Form_CreatorV1.Components
             {
                 var firstItem = lineItems[0];
                 var firstDetails = new ObservableCollection<LineItemDetail>(GetDetailsFor(firstItem));
+                var filteredDetails = new ObservableCollection<LineItemDetail>(firstDetails.Where(d => d.PackingListFlag?.Trim().Equals("Y", StringComparison.OrdinalIgnoreCase) == true));
 
                 var pageOne = new PackingListPageOne
                 {
                     PageNumberText = "Page 1 of 1",
                     Header = header,
                     LineItem = firstItem,
-                    Details = firstDetails,
+                    Details = filteredDetails,
                     PackingUnits = new ObservableCollection<LineItemPackingUnit>(firstItem.LineItemPackingUnits)
                 };
                 PageContainer.Children.Add(pageOne);
@@ -121,11 +122,12 @@ namespace Shipping_Form_CreatorV1.Components
 
                 for (var i = 0; i < pages.Count; i++)
                 {
+                    var filteredItems = new ObservableCollection<LineItem>(pages[i].Where(li => li.LineItemDetails.Any(d => d.PackingListFlag?.Trim().Equals("Y", StringComparison.OrdinalIgnoreCase) == true)));
                     var multiPage = new PackingListPageTwoPlus
                     {
                         Header = header,
                         PageNumberTwoPlusText = $"Page {i + 2} of {pages.Count + 1}",
-                        Items = new ObservableCollection<LineItem>(pages[i]),
+                        Items = filteredItems,
                     };
                     PageContainer.Children.Add(multiPage);
                 }
