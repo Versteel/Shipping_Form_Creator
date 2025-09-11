@@ -1,4 +1,4 @@
-﻿<UserControl
+<UserControl
     x:Class="Shipping_Form_CreatorV1.Components.PackingListPageOne"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"

@@ -1,4 +1,4 @@
-﻿using System.Collections.ObjectModel;
+using System.Collections.ObjectModel;
 using Microsoft.Data.Sqlite;
 using Shipping_Form_CreatorV1.Models;
 using Shipping_Form_CreatorV1.Services.Implementations;
