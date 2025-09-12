@@ -1,13 +1,11 @@
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Input;
 using Shipping_Form_CreatorV1.Models;
 using Shipping_Form_CreatorV1.ViewModels;
 
 namespace Shipping_Form_CreatorV1.Components
 {
-    public partial class SearchByDateResultsPage : Page
+    public partial class SearchByDateResultsPage
     {
         private readonly MainViewModel _vm;
 
@@ -24,11 +22,6 @@ namespace Shipping_Form_CreatorV1.Components
             InitializeComponent();
         }
 
-        private void DataGridRow_PreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
-        {
-            if (sender is DataGridRow row) row.IsSelected = true;
-        }
-
         private void SearchResultsDataGrid_OnMouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
             if (searchResultsDataGrid.SelectedItem is ReportModel report)
@@ -37,19 +30,29 @@ namespace Shipping_Form_CreatorV1.Components
 
         private async void OpenPackingList_Executed(object sender, ExecutedRoutedEventArgs e)
         {
-            if (e.Parameter is ReportModel report)
+            try
             {
+                if (e.Parameter is not ReportModel report) return;
                 await _vm.LoadDocumentAsync(report.Header.OrderNumber.ToString(), report.Header.Suffix.ToString());
                 (Window.GetWindow(this) as MainWindow)?.NavigateToReport(_vm.SelectedReport, "PACKING LIST");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error loading document: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
         private async void OpenBol_Executed(object sender, ExecutedRoutedEventArgs e)
         {
-            if (e.Parameter is ReportModel report)
+            try
             {
+                if (e.Parameter is not ReportModel report) return;
                 await _vm.LoadDocumentAsync(report.Header.OrderNumber.ToString(), report.Header.Suffix.ToString());
                 (Window.GetWindow(this) as MainWindow)?.NavigateToReport(_vm.SelectedReport, "BILL OF LADING");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error loading document: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
     }

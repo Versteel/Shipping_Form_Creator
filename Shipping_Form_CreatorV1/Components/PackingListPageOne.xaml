@@ -308,7 +308,6 @@
                         BorderThickness="1,0,1,1">
                         <TextBlock Margin="5" Text="{Binding Header.CarrierName, RelativeSource={RelativeSource AncestorType=UserControl}}" />
                     </Border>
-                    <!--  TODO: Shipping Instructions  -->
                     <Border
                         Grid.Row="5"
                         Grid.Column="1"
@@ -520,7 +519,7 @@
                                                                 <StackPanel x:Name="spTypeOfUnit" Orientation="Vertical">
                                                                     <TextBlock FontSize="10" Text="Contents" />
                                                                     <syncfusion:ComboBoxAdv
-                                                                        Width="110"
+                                                                        Width="100"
                                                                         Height="20"
                                                                         ItemsSource="{x:Static local:PackingListPageOne.PackingUnitCategories}"
                                                                         SelectedItem="{Binding TypeOfUnit, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
@@ -528,15 +527,15 @@
 
                                                                 <StackPanel
                                                                     x:Name="spLineNumber"
-                                                                    HorizontalAlignment="Left"
                                                                     Orientation="Vertical"
                                                                     Visibility="Collapsed">
                                                                     <TextBlock FontSize="10" Text="Line number" />
-                                                                    <syncfusion:IntegerTextBox
-                                                                        Width="30"
+                                                                    <syncfusion:ComboBoxAdv
+                                                                        Width="100"
                                                                         Height="20"
-                                                                        HorizontalAlignment="Left"
-                                                                        Value="{Binding LineNumber, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                                                        ItemsSource="{Binding DataContext.LineNumbersForDropdown, 
+                                                                        RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                                        SelectedItem="{Binding LineNumber, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                                                 </StackPanel>
 
                                                                 <StackPanel
