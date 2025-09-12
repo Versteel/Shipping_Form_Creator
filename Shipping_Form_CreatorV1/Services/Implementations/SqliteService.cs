@@ -1,4 +1,4 @@
-﻿using System.Globalization;
+using System.Globalization;
 using Microsoft.EntityFrameworkCore;
 using Shipping_Form_CreatorV1.Data;
 using Shipping_Form_CreatorV1.Models;
