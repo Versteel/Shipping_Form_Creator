@@ -322,7 +322,7 @@ public class MainViewModel : INotifyPropertyChanged
         try
         {
             var erpDocument = await _odbcService.GetReportAsync(orderNumber, suffixNumber, ct);
-            var cachedDocument = await _sqliteService.GetReportAsync(orderNumber, ct);
+            var cachedDocument = await _sqliteService.GetReportAsync(orderNumber, suffixNumber, ct);
 
             if (erpDocument is null && cachedDocument is null)
             {
@@ -440,7 +440,7 @@ public class MainViewModel : INotifyPropertyChanged
                 if (report != null)
                 {
                     // optionally merge with cached sqlite version, similar to LoadDocumentAsync
-                    var cached = await _sqliteService.GetReportAsync(orderNumber, ct);
+                    var cached = await _sqliteService.GetReportAsync(orderNumber,suffix, ct);
                     if (cached != null)
                     {
                         // apply the same merging logic as LoadDocumentAsync

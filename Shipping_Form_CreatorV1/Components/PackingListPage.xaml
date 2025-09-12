@@ -15,7 +15,7 @@
     <Notification:SfBusyIndicator
         AnimationType="Gear"
         Background="#cccccc"
-        Foreground="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}"
+        Foreground="#e41f28"
         IsBusy="{Binding IsBusy}"
         ViewboxHeight="200"
         ViewboxWidth="200">
@@ -23,7 +23,7 @@
             <ScrollViewer
                 Padding="20"
                 Background="#e6e6e6"
-                HorizontalScrollBarVisibility="Disabled"
+                HorizontalScrollBarVisibility="Auto"
                 VerticalScrollBarVisibility="Auto">
                 <StackPanel x:Name="PageContainer" />
             </ScrollViewer>

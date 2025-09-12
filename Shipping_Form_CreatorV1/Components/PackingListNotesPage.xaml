@@ -9,6 +9,11 @@
     d:DesignWidth="900"
     Background="#e6e6e6"
     mc:Ignorable="d">
+    <UserControl.Resources>
+        <Style TargetType="TextBlock">
+            <Setter Property="Foreground" Value="Black" />
+        </Style>
+    </UserControl.Resources>
     <Border Padding="20" Background="#e6e6e6">
         <Border
             x:Name="PackingListNotesPage1PrintArea"
@@ -121,11 +126,11 @@
                 <TextBlock
                     Grid.Row="1"
                     Width="768"
-                    TextAlignment="Center"
                     Background="#cccccc"
                     FontSize="25"
                     FontWeight="Bold"
-                    Text="Notes" />
+                    Text="Notes"
+                    TextAlignment="Center" />
                 <ItemsControl
                     Grid.Row="2"
                     Margin="0,10"
@@ -133,10 +138,11 @@
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
                             <TextBlock
-                                TextWrapping="Wrap"
-                                FontSize="16"
                                 Margin="0,0,0,10"
-                                Text="{Binding NoteText}" />
+                                FontSize="16"
+                                Foreground="#000"
+                                Text="{Binding NoteText}"
+                                TextWrapping="Wrap" />
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>

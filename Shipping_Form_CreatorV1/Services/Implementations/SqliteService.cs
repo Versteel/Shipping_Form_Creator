@@ -8,12 +8,13 @@ namespace Shipping_Form_CreatorV1.Services.Implementations;
 
 public class SqliteService(IDbContextFactory<AppDbContext> dbContext) : ISqliteService
 {
-    public async Task<ReportModel?> GetReportAsync(int orderNumber, CancellationToken ct = default)
+    public async Task<ReportModel?> GetReportAsync(int orderNumber, int suffixNumber, CancellationToken ct = default)
     {
         await using var db = await dbContext.CreateDbContextAsync(ct);
 
         var reportModelId = await db.ReportHeaders
             .Where(h => h.OrderNumber == orderNumber)
+            .Where(h => h.Suffix == suffixNumber)
             .Select(h => h.ReportModelId)
             .FirstOrDefaultAsync(ct);
 
