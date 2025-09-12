@@ -39,14 +39,7 @@ public class ReportHeader
     public string SalesPerson { get; set; }
     public string CarrierName { get; set; }
     public string? TrackingNumber { get; set; }
-
-    private string _freightTerms;
-
-    public string FreightTerms
-    {
-        get => _freightTerms;
-        set => _freightTerms = Constants.FreightTermCodes.TryGetValue(value, out var value1) ? value1 : string.Empty;
-    }
+    public string FreightTerms { get; set; }
 
     // Navigation properties
     public int ReportModelId { get; set; }

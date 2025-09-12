@@ -31,17 +31,6 @@ public class MainViewModel : INotifyPropertyChanged
         };
     }
 
-
-    //public async Task SeedDataFromODBC()
-    //{
-    //    var results = await _odbcService.GetAllReportsForSeedingAsync();
-
-    //    foreach (var report in results)
-    //    {
-    //        await _sqliteService.SaveReportAsync(report);
-    //    }
-    //}
-
     public event PropertyChangedEventHandler? PropertyChanged;
 
     private void OnPropertyChanged(string name) =>
@@ -92,17 +81,16 @@ public class MainViewModel : INotifyPropertyChanged
             OnPropertyChanged(nameof(PageCount));
         }
     }
-
-    private bool _isLoading;
-
-    public bool IsLoading
+    
+    private ObservableCollection<int> _lineNumbersForDropdown;
+    public ObservableCollection<int> LineNumbersForDropdown
     {
-        get => _isLoading;
+        get => _lineNumbersForDropdown;
         set
         {
-            if (_isLoading == value) return;
-            _isLoading = value;
-            OnPropertyChanged(nameof(IsLoading));
+            if (_lineNumbersForDropdown == value) return;
+            _lineNumbersForDropdown = value;
+            OnPropertyChanged(nameof(LineNumbersForDropdown));
         }
     }
 
@@ -131,7 +119,21 @@ public class MainViewModel : INotifyPropertyChanged
         }
     }
     public string PrintProgress { get; set; } = "";
+    private void UpdateLineNumbers()
+    {
+        {
+            var numbers = SelectedReport.LineItems
+                .Where(li => li.LineItemHeader?.LineItemNumber is < 900 && !string.IsNullOrWhiteSpace(li.LineItemHeader.ProductDescription))
+                .Select(li =>
+                {
+                    if (li.LineItemHeader != null) return (int)li.LineItemHeader.LineItemNumber;
+                    return 0;
+                })
+                .ToList();
 
+            LineNumbersForDropdown = new ObservableCollection<int>(numbers);
+        }
+    }
 
     // -------------------------
     // Core data
@@ -145,11 +147,7 @@ public class MainViewModel : INotifyPropertyChanged
         {
             if (_selectedReport == value) return;
 
-            _selectedReport = value ?? new ReportModel
-            {
-                Header = new ReportHeader(),
-                LineItems = []
-            };
+            _selectedReport = value;
 
             OnPropertyChanged(nameof(SelectedReport));
             OnPropertyChanged(nameof(BolSpecialInstructions));
@@ -159,6 +157,7 @@ public class MainViewModel : INotifyPropertyChanged
             OnPropertyChanged(nameof(BolTotalWeight));
             OnPropertyChanged(nameof(AllPiecesTotal));
             OnPropertyChanged(nameof(AllWeightTotal));
+
         }
     }
 
@@ -394,7 +393,7 @@ public class MainViewModel : INotifyPropertyChanged
             }
 
             SelectedReport = erpDocument;
-
+            UpdateLineNumbers();
         }
         catch (OperationCanceledException)
         {

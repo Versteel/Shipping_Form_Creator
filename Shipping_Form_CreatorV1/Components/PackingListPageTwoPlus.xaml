@@ -308,7 +308,7 @@
                                                                                     <StackPanel Orientation="Vertical">
                                                                                         <TextBlock FontSize="10" Text="Unit Type" />
                                                                                         <syncfusion:ComboBoxAdv
-                                                                                            Width="110"
+                                                                                            Width="100"
                                                                                             Height="20"
                                                                                             ItemsSource="{x:Static local:PackingListPageTwoPlus.CartonOrSkidOptions}"
                                                                                             SelectedItem="{Binding CartonOrSkid, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
@@ -318,7 +318,7 @@
                                                                                     <StackPanel x:Name="spTypeOfUnit" Orientation="Vertical">
                                                                                         <TextBlock FontSize="10" Text="Contents" />
                                                                                         <syncfusion:ComboBoxAdv
-                                                                                            Width="110"
+                                                                                            Width="100"
                                                                                             Height="20"
                                                                                             ItemsSource="{x:Static local:PackingListPageOne.PackingUnitCategories}"
                                                                                             SelectedItem="{Binding TypeOfUnit, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
@@ -329,10 +329,12 @@
                                                                                         Orientation="Vertical"
                                                                                         Visibility="Collapsed">
                                                                                         <TextBlock FontSize="10" Text="Line number" />
-                                                                                        <syncfusion:IntegerTextBox
+                                                                                        <syncfusion:ComboBoxAdv
                                                                                             Width="80"
                                                                                             Height="20"
-                                                                                            Value="{Binding LineNumber, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                                                                            ItemsSource="{Binding DataContext.LineNumbersForDropdown, 
+                                                                                            RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                                                            SelectedItem="{Binding LineNumber, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                                                                     </StackPanel>
 
                                                                                     <StackPanel x:Name="spWeight" Orientation="Vertical">
@@ -348,7 +350,7 @@
                                                                                 </StackPanel>
 
                                                                                 <DataTemplate.Triggers>
-                                                                                    <DataTrigger Binding="{Binding CartonOrSkid}" Value="Packed with line ">
+                                                                                    <DataTrigger Binding="{Binding CartonOrSkid}" Value="PACKED WITH LINE ">
                                                                                         <Setter TargetName="spTypeOfUnit" Property="UIElement.Visibility" Value="Collapsed" />
                                                                                         <Setter TargetName="spLineNumber" Property="UIElement.Visibility" Value="Visible" />
                                                                                         <Setter TargetName="spWeight" Property="UIElement.Visibility" Value="Collapsed" />
@@ -375,7 +377,7 @@
                                                                                     <Style TargetType="TextBlock">
                                                                                         <Setter Property="Visibility" Value="Visible" />
                                                                                         <Style.Triggers>
-                                                                                            <DataTrigger Binding="{Binding CartonOrSkid}" Value="Packed with line ">
+                                                                                            <DataTrigger Binding="{Binding CartonOrSkid}" Value="PACKED WITH LINE ">
                                                                                                 <Setter Property="Visibility" Value="Collapsed" />
                                                                                             </DataTrigger>
                                                                                         </Style.Triggers>
@@ -387,7 +389,7 @@
                                                                                     <Style TargetType="TextBlock">
                                                                                         <Setter Property="Visibility" Value="Visible" />
                                                                                         <Style.Triggers>
-                                                                                            <DataTrigger Binding="{Binding CartonOrSkid}" Value="Packed with line ">
+                                                                                            <DataTrigger Binding="{Binding CartonOrSkid}" Value="PACKED WITH LINE ">
                                                                                                 <Setter Property="Visibility" Value="Collapsed" />
                                                                                             </DataTrigger>
                                                                                         </Style.Triggers>
@@ -400,7 +402,7 @@
                                                                                     <Style TargetType="TextBlock">
                                                                                         <Setter Property="Visibility" Value="Visible" />
                                                                                         <Style.Triggers>
-                                                                                            <DataTrigger Binding="{Binding CartonOrSkid}" Value="Packed with line ">
+                                                                                            <DataTrigger Binding="{Binding CartonOrSkid}" Value="PACKED WITH LINE ">
                                                                                                 <Setter Property="Visibility" Value="Collapsed" />
                                                                                             </DataTrigger>
                                                                                         </Style.Triggers>
@@ -417,7 +419,7 @@
                                                                                     <Style TargetType="StackPanel">
                                                                                         <Setter Property="Visibility" Value="Collapsed" />
                                                                                         <Style.Triggers>
-                                                                                            <DataTrigger Binding="{Binding CartonOrSkid}" Value="Packed with line ">
+                                                                                            <DataTrigger Binding="{Binding CartonOrSkid}" Value="PACKED WITH LINE ">
                                                                                                 <Setter Property="Visibility" Value="Visible" />
                                                                                             </DataTrigger>
                                                                                         </Style.Triggers>
@@ -439,7 +441,7 @@
                                                                                             </Setter.Value>
                                                                                         </Setter>
                                                                                         <Style.Triggers>
-                                                                                            <DataTrigger Binding="{Binding CartonOrSkid}" Value="Packed with line ">
+                                                                                            <DataTrigger Binding="{Binding CartonOrSkid}" Value="PACKED WITH LINE ">
                                                                                                 <Setter Property="Visibility" Value="Collapsed" />
                                                                                             </DataTrigger>
                                                                                         </Style.Triggers>

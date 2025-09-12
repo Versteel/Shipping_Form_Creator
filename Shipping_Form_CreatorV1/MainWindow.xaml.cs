@@ -32,7 +32,7 @@ public partial class MainWindow
         SuffixIntegerBox.Value = 0;
         _viewModel.SalesOrderNumber = string.Empty;
         _viewModel.SelectedReportTitle = "PACKING LIST";
-        _viewModel.SelectedReport = new Models.ReportModel { Header = new Models.ReportHeader() };
+        _viewModel.SelectedReport = new ReportModel { Header = new ReportHeader() };
         ContentFrame.Content = new PackingListPage(_viewModel);
     }
 
@@ -42,16 +42,16 @@ public partial class MainWindow
         SuffixIntegerBox.Value = 0;
         _viewModel.SalesOrderNumber = string.Empty;
         _viewModel.SelectedReportTitle = "BILL OF LADING";
-        _viewModel.SelectedReport = new Models.ReportModel { Header = new Models.ReportHeader() };
+        _viewModel.SelectedReport = new ReportModel { Header = new ReportHeader() };
         ContentFrame.Content = new BillOfLading(_viewModel);
     }
 
     private async void OrderNumberTextBox_KeyDown(object sender, KeyEventArgs e)
     {
-        if (!OrderNumberIsValid(OrderNumberTextBox.Text.Trim())) return;
-        if (e.Key != Key.Enter) return;
         try
         {
+            if (!OrderNumberIsValid(OrderNumberTextBox.Text.Trim())) return;
+            if (e.Key != Key.Enter) return;
             await _viewModel.LoadDocumentAsync(OrderNumberTextBox.Text.Trim(), SuffixIntegerBox.Text.Trim());
             if (_viewModel.SelectedReportTitle == "SEARCH RESULTS")
             {
@@ -59,6 +59,7 @@ public partial class MainWindow
 
                 ContentFrame.Content = new PackingListPage(_viewModel);
             }
+
             if (_viewModel.SelectedReportTitle == "BILL OF LADING")
             {
                 ContentFrame.Content = new BillOfLading(_viewModel);
@@ -72,10 +73,9 @@ public partial class MainWindow
 
     private async void SearchBtn_Click(object sender, RoutedEventArgs e)
     {
-        if (!OrderNumberIsValid(OrderNumberTextBox.Text.Trim())) return;
         try
         {
-
+            if (!OrderNumberIsValid(OrderNumberTextBox.Text.Trim())) return;
             await _viewModel.LoadDocumentAsync(OrderNumberTextBox.Text.Trim(), SuffixIntegerBox.Text.Trim());
             if (_viewModel.SelectedReportTitle == "SEARCH RESULTS")
             {
@@ -83,11 +83,11 @@ public partial class MainWindow
 
                 ContentFrame.Content = new PackingListPage(_viewModel);
             }
+
             if (_viewModel.SelectedReportTitle == "BILL OF LADING")
             {
                 ContentFrame.Content = new BillOfLading(_viewModel);
             }
-
         }
         catch (Exception ex)
         {
@@ -176,7 +176,8 @@ public partial class MainWindow
         catch (Exception ex)
         {
             // Handle any other unexpected errors
-            MessageBox.Show($"An unexpected error occurred while printing:\n\n{ex.Message}\n\nDetails: {ex.GetType().Name}",
+            MessageBox.Show(
+                $"An unexpected error occurred while printing:\n\n{ex.Message}\n\nDetails: {ex.GetType().Name}",
                 "Unexpected Error", MessageBoxButton.OK, MessageBoxImage.Error);
 
             // Log the full exception for debugging
@@ -205,14 +206,32 @@ public partial class MainWindow
 
     public void NavigateToReport(ReportModel report, string target)
     {
-        if (report == null) return;
-
         _viewModel.SelectedReport = report;
         _viewModel.SelectedReportTitle = target;
-
         if (target == "PACKING LIST")
             ContentFrame.Content = new PackingListPage(_viewModel);
         else
             ContentFrame.Content = new BillOfLading(_viewModel);
+    }
+
+    private async void ShipDatePicker_OnKeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key != Key.Enter) return;
+        try
+        {
+
+            if (_viewModel.SearchByDate is null)
+            {
+                DialogService.ShowErrorDialog("Please choose a ship date.");
+                return;
+            }
+
+            await _viewModel.GetSearchByDateResults(_viewModel.SearchByDate.Value);
+            ContentFrame.Content = new SearchByDateResultsPage(_viewModel);
+        }
+        catch (Exception ex)
+        {
+            DialogService.ShowErrorDialog($"Error: {ex.Message}");
+        }
     }
 }

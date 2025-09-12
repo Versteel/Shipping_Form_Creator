@@ -95,6 +95,7 @@
                         FontSize="18"
                         MaxValue="99"
                         MinValue="00"
+                        KeyDown="OrderNumberTextBox_KeyDown"
                         Value="{Binding SuffixNumber, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                 </StackPanel>
                 <Button

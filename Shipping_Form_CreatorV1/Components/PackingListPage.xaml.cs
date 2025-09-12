@@ -4,180 +4,179 @@ using Shipping_Form_CreatorV1.Utilities;
 using System.Collections.ObjectModel;
 using System.Windows;
 
-namespace Shipping_Form_CreatorV1.Components
+namespace Shipping_Form_CreatorV1.Components;
+
+/// <summary>
+/// Interaction logic for PackingListPage.xaml
+/// </summary>
+public partial class PackingListPage
 {
-    /// <summary>
-    /// Interaction logic for PackingListPage.xaml
-    /// </summary>
-    public partial class PackingListPage
+    private readonly MainViewModel _viewModel;
+
+    public PackingListPage(MainViewModel viewModel)
     {
-        private readonly MainViewModel _viewModel;
-
-        public PackingListPage(MainViewModel viewModel)
+        _viewModel = viewModel;
+        DataContext = _viewModel;
+        InitializeComponent();
+        _viewModel.PropertyChanged += (o, e) =>
         {
-            _viewModel = viewModel;
-            DataContext = _viewModel;
-            InitializeComponent();
-            _viewModel.PropertyChanged += (o, e) =>
-            {
-                if (e.PropertyName == nameof(MainViewModel.SelectedReport))
-                    BuildPagesWithBusy();
-            };
+            if (e.PropertyName == nameof(MainViewModel.SelectedReport))
+                BuildPagesWithBusy();
+        };
 
-            Loaded += (_, _) => BuildPagesWithBusy();
+        Loaded += (_, _) => BuildPagesWithBusy();
+    }
+
+
+    private void BuildPagesWithBusy()
+    {
+        try
+        {
+            BuildPages();
         }
-
-
-        private void BuildPagesWithBusy()
+        catch (Exception ex)
         {
-            try
-            {
-                BuildPages();
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Error building packing list pages: {ex.Message}", "Error",
-                    MessageBoxButton.OK, MessageBoxImage.Error);
-            }
+            MessageBox.Show($"Error building packing list pages: {ex.Message}", "Error",
+                MessageBoxButton.OK, MessageBoxImage.Error);
         }
+    }
 
-        private void BuildPages()
-        {
-            PageContainer.Children.Clear();
+    private void BuildPages()
+    {
+        PageContainer.Children.Clear();
 
-            var selectedReport = _viewModel.SelectedReport;
-            var isDittoUser = _viewModel.IsDittoUser;
+        var selectedReport = _viewModel.SelectedReport is null ? new ReportModel { Header = new(), LineItems = [] } : _viewModel.SelectedReport;
+        var isDittoUser = _viewModel.IsDittoUser;
 
-            var header = selectedReport.Header;
-            header.LogoImagePath = isDittoUser ? Constants.DITTO_LOGO : Constants.VERSTEEL_LOGO;
-            static List<LineItemDetail> GetDetailsFor(LineItem li) => [.. li.LineItemDetails
-                    .Where(d => !string.IsNullOrWhiteSpace(d.NoteText))
-                    .Where(d => d.PackingListFlag?.Trim().Equals("Y", StringComparison.OrdinalIgnoreCase) == true)
-                    .Where(d => d.NoteText is not null && 
-                        !d.NoteText.Contains("OPTIONS BEGIN") && 
-                        !d.NoteText.Contains("OPTIONS END"))
-                    .OrderBy(d => d.NoteSequenceNumber)
-                    ];
+        var header = selectedReport != null ? selectedReport.Header: new ReportHeader { };
+        header.LogoImagePath = isDittoUser ? Constants.DITTO_LOGO : Constants.VERSTEEL_LOGO;
 
-            var lineItems = selectedReport.LineItems
-                .Where(li => li.LineItemHeader?.LineItemNumber < 950)
-                .OrderBy(li => li.LineItemHeader?.LineItemNumber ?? 0)
-                .ToList();
-
-            var trailerNotes = selectedReport.LineItems
-                .SelectMany(li => li.LineItemDetails)
-                .Where(d => d.ModelItem == 950m) // Shipping / BOL Notes
-                .Where(d => string.Equals(d.PackingListFlag, "Y", StringComparison.OrdinalIgnoreCase))
+        static List<LineItemDetail> GetDetailsFor(LineItem li) =>
+        [
+            .. li.LineItemDetails
                 .Where(d => !string.IsNullOrWhiteSpace(d.NoteText))
-                .OrderBy(d => d.ModelItem)
-                .ThenBy(d => d.NoteSequenceNumber)
+                .Where(d => d.PackingListFlag?.Trim().Equals("Y", StringComparison.OrdinalIgnoreCase) == true)
+                .Where(d => d.NoteText is not null &&
+                            !d.NoteText.Contains("OPTIONS BEGIN") &&
+                            !d.NoteText.Contains("OPTIONS END"))
+                .OrderBy(d => d.NoteSequenceNumber)
+        ];
+
+        var lineItems = selectedReport.LineItems
+            .Where(li => li.LineItemHeader?.LineItemNumber < 950)
+            .OrderBy(li => li.LineItemHeader?.LineItemNumber ?? 0)
+            .ToList();
+
+        var trailerNotes = selectedReport.LineItems
+            .SelectMany(li => li.LineItemDetails)
+            .Where(d => d.ModelItem == 950m) // Shipping / BOL Notes
+            .Where(d => string.Equals(d.PackingListFlag, "Y", StringComparison.OrdinalIgnoreCase))
+            .Where(d => !string.IsNullOrWhiteSpace(d.NoteText))
+            .OrderBy(d => d.ModelItem)
+            .ThenBy(d => d.NoteSequenceNumber)
+            .ToList();
+        _viewModel.PackingListNotes = new ObservableCollection<LineItemDetail>(trailerNotes);
+
+        if (lineItems.Count == 0)
+        {
+            var emptyPage = new PackingListPageOne { PageNumberText = "Page 1 of 1" };
+            PageContainer.Children.Add(emptyPage);
+        }
+        else
+        {
+            var firstItem = lineItems[0];
+            var firstDetails = new ObservableCollection<LineItemDetail>(GetDetailsFor(firstItem));
+            var filteredDetails = new ObservableCollection<LineItemDetail>(firstDetails.Where(d =>
+                d.PackingListFlag?.Trim().Equals("Y", StringComparison.OrdinalIgnoreCase) == true));
+
+            var pageOne = new PackingListPageOne
+            {
+                PageNumberText = "Page 1 of 1",
+                Header = header,
+                LineItem = firstItem,
+                Details = filteredDetails,
+                PackingUnits = new ObservableCollection<LineItemPackingUnit>(firstItem.LineItemPackingUnits)
+            };
+            PageContainer.Children.Add(pageOne);
+
+            var remainingItems = lineItems
+                .Skip(1)
+                .Where(li => GetDetailsFor(li).Count > 0)
                 .ToList();
-            _viewModel.PackingListNotes = new ObservableCollection<LineItemDetail>(trailerNotes);
 
-            if (lineItems.Count == 0)
+            const int maxDetailsPerPage = 45;
+            var currentPageItems = new List<LineItem>();
+            var currentDetailsCount = 0;
+            var pageCounter = 2;
+
+            foreach (var item in remainingItems)
             {
-                var emptyPage = new PackingListPageOne { PageNumberText = "Page 1 of 1" };
-                PageContainer.Children.Add(emptyPage);
-            }
-            else
-            {
-                var firstItem = lineItems[0];
-                var firstDetails = new ObservableCollection<LineItemDetail>(GetDetailsFor(firstItem));
-                var filteredDetails = new ObservableCollection<LineItemDetail>(firstDetails.Where(d => d.PackingListFlag?.Trim().Equals("Y", StringComparison.OrdinalIgnoreCase) == true));
-
-                var pageOne = new PackingListPageOne
+                var detailsCount = GetDetailsFor(item).Count;
+                if (currentDetailsCount + detailsCount > maxDetailsPerPage && currentPageItems.Count > 0)
                 {
-                    PageNumberText = "Page 1 of 1",
-                    Header = header,
-                    LineItem = firstItem,
-                    Details = filteredDetails,
-                    PackingUnits = new ObservableCollection<LineItemPackingUnit>(firstItem.LineItemPackingUnits)
-                };
-                PageContainer.Children.Add(pageOne);
-
-                var blocks = lineItems
-                    .Skip(1)
-                    .Where(li => GetDetailsFor(li).Count > 0)
-                    .ToList();
-
-                const int perPage = 2;
-
-                static IEnumerable<List<T>> Chunk<T>(IEnumerable<T> source, int size)
-                {
-                    var list = new List<T>(size);
-                    foreach (var x in source)
-                    {
-                        list.Add(x);
-                        if (list.Count != size) continue;
-                        yield return list;
-                        list = new List<T>(size);
-                    }
-                    if (list.Count > 0)
-                    {
-                        yield return list;
-                    }
-                }
-
-                var pages = Chunk(blocks, perPage).ToList();
-
-                for (var i = 0; i < pages.Count; i++)
-                {
-                    var filteredItems = new ObservableCollection<LineItem>(pages[i].Where(li => li.LineItemDetails.Any(d => d.PackingListFlag?.Trim().Equals("Y", StringComparison.OrdinalIgnoreCase) == true)));
                     var multiPage = new PackingListPageTwoPlus
                     {
                         Header = header,
-                        PageNumberTwoPlusText = $"Page {i + 2} of {pages.Count + 1}",
-                        Items = filteredItems,
+                        PageNumberTwoPlusText = $"Page {pageCounter} of X",
+                        Items = new ObservableCollection<LineItem>(currentPageItems)
                     };
                     PageContainer.Children.Add(multiPage);
+
+                    currentPageItems = [];
+                    currentDetailsCount = 0;
+                    pageCounter++;
                 }
 
-                var hasTrailerNotes = trailerNotes.Count > 0;
-                if (hasTrailerNotes)
-                {
-                    var trailerNotesPage = new PackingListNotesPage
-                    {
-                        PageNumberText = $"Page {pages.Count + 2} of {pages.Count + 2}",
-                        Header = header,
-                        Details = new ObservableCollection<LineItemDetail>(trailerNotes)
-                    };
-                    PageContainer.Children.Add(trailerNotesPage);
-                }
-
-                var totalPages =
-                    1 + Math.Max(0, (lineItems.Count - 1 + 1) / 2) +
-                    (hasTrailerNotes ? 1 : 0);
-
-                if (lineItems.Count == 0)
-                {
-                    totalPages = hasTrailerNotes ? 2 : 1;
-                }
-
-                if (PageContainer.Children.Count > 0 && PageContainer.Children[0] is PackingListPageOne firstPage)
-                {
-                    firstPage.PageNumberText = $"Page 1 of {totalPages}";
-                }
-
-                for (var i = 1; i < PageContainer.Children.Count; i++)
-                {
-                    if (PageContainer.Children[i] is PackingListPageTwoPlus page)
-                    {
-                        page.PageNumberTwoPlusText = $"Page {i + 1} of {totalPages}";
-                    }
-                }
-
-                _viewModel.PageCount = totalPages;
+                currentPageItems.Add(item);
+                currentDetailsCount += detailsCount;
             }
 
-            return;
-
-            static bool IsNoteOnly(LineItem li)
+            if (currentPageItems.Count > 0)
             {
-                var h = li.LineItemHeader;
-                var noProduct = string.IsNullOrWhiteSpace(h?.ProductNumber);
-                var qtyZero = h is { OrderedQuantity: 0m, PickOrShipQuantity: 0m, BackOrderQuantity: 0m };
-                return noProduct && qtyZero;
+                var multiPage = new PackingListPageTwoPlus
+                {
+                    Header = header,
+                    PageNumberTwoPlusText = $"Page {pageCounter} of X",
+                    Items = new ObservableCollection<LineItem>(currentPageItems)
+                };
+                PageContainer.Children.Add(multiPage);
+                pageCounter++;
             }
+
+            var hasTrailerNotes = trailerNotes.Count > 0;
+            if (hasTrailerNotes)
+            {
+                var trailerNotesPage = new PackingListNotesPage
+                {
+                    PageNumberText = $"Page {pageCounter} of {pageCounter}",
+                    Header = header,
+                    Details = new ObservableCollection<LineItemDetail>(trailerNotes)
+                };
+                PageContainer.Children.Add(trailerNotesPage);
+                pageCounter++;
+            }
+
+            var totalPages = pageCounter - 1;
+
+            if (lineItems.Count == 0)
+            {
+                totalPages = hasTrailerNotes ? 2 : 1;
+            }
+
+            if (PageContainer.Children.Count > 0 && PageContainer.Children[0] is PackingListPageOne firstPage)
+            {
+                firstPage.PageNumberText = $"Page 1 of {totalPages}";
+            }
+
+            for (var i = 1; i < PageContainer.Children.Count; i++)
+            {
+                if (PageContainer.Children[i] is PackingListPageTwoPlus page)
+                {
+                    page.PageNumberTwoPlusText = $"Page {i + 1} of {totalPages}";
+                }
+            }
+
+            _viewModel.PageCount = totalPages;
         }
     }
 }
