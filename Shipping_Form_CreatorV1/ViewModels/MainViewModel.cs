@@ -20,7 +20,6 @@ public class MainViewModel : INotifyPropertyChanged
         _odbcService = odbcService;
         IsDittoUser = userGroupService.IsCurrentUserInDittoGroup();
 
-        // NEW: prevent null refs in bindings
         SearchByDateResults = [];
         SelectedReportsGroups = [];
         SearchByDateResults = Array.Empty<ReportModel>();
@@ -267,7 +266,6 @@ public class MainViewModel : INotifyPropertyChanged
     }
 
 
-    // Simple UI state (add below your other UI props)
     private DateTime? _searchByDate = DateTime.Today.Date;
     public DateTime? SearchByDate
     {
@@ -424,28 +422,22 @@ public class MainViewModel : INotifyPropertyChanged
             IsBusy = true;
             await Task.Delay(1, ct);
 
-            // Get the list of order headers/numbers for that date
             var orders = await _odbcService.GetShippedOrdersByDate(date.Date);
 
             var fullReports = new List<ReportModel>();
 
             foreach (var order in orders)
             {
-                // Assume each ReportModel from the search has OrderNumber + Suffix in Header
                 var orderNumber = order.Header.OrderNumber;
                 var suffix = order.Header.Suffix;
 
-                // Reuse your "load" logic to get the complete report
                 var report = await _odbcService.GetReportAsync(orderNumber, suffix, ct);
                 if (report != null)
                 {
-                    // optionally merge with cached sqlite version, similar to LoadDocumentAsync
                     var cached = await _sqliteService.GetReportAsync(orderNumber,suffix, ct);
                     if (cached != null)
                     {
-                        // apply the same merging logic as LoadDocumentAsync
                         report.Id = cached.Id;
-                        // ...merge header/line items as you already do...
                     }
 
                     fullReports.Add(report);
