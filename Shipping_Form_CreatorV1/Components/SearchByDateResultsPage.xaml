@@ -52,7 +52,7 @@
                                         HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
                                         VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
                                         Focusable="False" />
-                                    <Border x:Name="PART_FilterPopUpPresenter" />
+                                    <Border Grid.Column="0" x:Name="PART_FilterPopUpPresenter" />
                                     <Grid
                                         x:Name="PART_SortButtonPresenter"
                                         Grid.Column="1"
@@ -79,7 +79,7 @@
                                             </Path.RenderTransform>
                                         </Path>
                                         <Path
-                                            Width="8.938"
+                                            Grid.Column="0" Width="8.938"
                                             Height="8.138"
                                             HorizontalAlignment="Center"
                                             VerticalAlignment="Center"

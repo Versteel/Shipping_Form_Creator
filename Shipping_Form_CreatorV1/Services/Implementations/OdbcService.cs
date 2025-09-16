@@ -288,7 +288,6 @@ public class OdbcService : IOdbcService
         while (await notesReader.ReadAsync(ct))
         {
             var modelItem = GetSafeInt(notesReader, "ModelItem");
-            var subItem = GetSafeDecimal(notesReader, "O5ITEM");
 
             var detail = new LineItemDetail
             {
@@ -324,7 +323,7 @@ public class OdbcService : IOdbcService
                     var liNew = new LineItem
                     {
                         LineItemHeader = lih,
-                        LineItemDetails = new ObservableCollection<LineItemDetail>()
+                        LineItemDetails = []
                     };
                     floatingNotesMap[modelItem] = liNew;
                     rpt.LineItems.Add(liNew);
@@ -333,7 +332,7 @@ public class OdbcService : IOdbcService
             }
         }
 
-        rpt.LineItems = new ObservableCollection<LineItem>(rpt.LineItems.OrderBy(li => li.LineItemHeader.LineItemNumber));
+        rpt.LineItems = new ObservableCollection<LineItem>(rpt.LineItems.OrderBy(li => li.LineItemHeader?.LineItemNumber ?? 0));
 
         return rpt;
     }

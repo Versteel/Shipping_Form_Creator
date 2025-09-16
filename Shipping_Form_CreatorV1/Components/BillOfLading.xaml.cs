@@ -1,10 +1,9 @@
-﻿using System.Windows.Controls;
-using Shipping_Form_CreatorV1.Utilities;
+﻿using Shipping_Form_CreatorV1.Utilities;
 using Shipping_Form_CreatorV1.ViewModels;
 
 namespace Shipping_Form_CreatorV1.Components
 {
-    public partial class BillOfLading : Page
+    public partial class BillOfLading
     {
         public BillOfLading(MainViewModel vm)
         {

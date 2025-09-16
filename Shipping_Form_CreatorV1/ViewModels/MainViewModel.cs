@@ -196,14 +196,8 @@ public class MainViewModel : INotifyPropertyChanged
         }
     }
 
-
     public int AllPiecesTotal => SelectedReportsGroups.Sum(r => r.TotalPieces);
     public int AllWeightTotal => SelectedReportsGroups.Sum(r => r.TotalWeight);
-
-    public string SearchResultsPageTitle
-    {
-        get => $"Orders Shipped on {SelectedReport.Header.ShipDate}";
-    }
 
     private void UpdateGroups()
     {
@@ -322,17 +316,15 @@ public class MainViewModel : INotifyPropertyChanged
             var erpDocument = await _odbcService.GetReportAsync(orderNumber, suffixNumber, ct);
             var cachedDocument = await _sqliteService.GetReportAsync(orderNumber, suffixNumber, ct);
 
-            if (erpDocument is null && cachedDocument is null)
+            switch (erpDocument)
             {
-                DialogService.ShowErrorDialog(
-                    $"Frontier has not created a packing list for Sales Order {orderNumber}.");
-                return;
-            }
-
-            if (erpDocument is null)
-            {
-                SelectedReport = cachedDocument!;
-                return;
+                case null when cachedDocument is null:
+                    DialogService.ShowErrorDialog(
+                        $"Frontier has not created a packing list for Sales Order {orderNumber}.");
+                    return;
+                case null:
+                    SelectedReport = cachedDocument!;
+                    return;
             }
 
             if (cachedDocument is not null)
@@ -385,7 +377,7 @@ public class MainViewModel : INotifyPropertyChanged
 
                     erpLine.Id = cachedLine.Id;
 
-                    if (erpLine.LineItemPackingUnits == null || erpLine.LineItemPackingUnits.Count == 0)
+                    if (erpLine.LineItemPackingUnits.Count == 0)
                         erpLine.LineItemPackingUnits = cachedLine.LineItemPackingUnits;
                 }
             }
@@ -422,7 +414,7 @@ public class MainViewModel : INotifyPropertyChanged
             IsBusy = true;
             await Task.Delay(1, ct);
 
-            var orders = await _odbcService.GetShippedOrdersByDate(date.Date);
+            var orders = await _odbcService.GetShippedOrdersByDate(date.Date, ct);
 
             var fullReports = new List<ReportModel>();
 
@@ -432,16 +424,14 @@ public class MainViewModel : INotifyPropertyChanged
                 var suffix = order.Header.Suffix;
 
                 var report = await _odbcService.GetReportAsync(orderNumber, suffix, ct);
-                if (report != null)
+                if (report == null) continue;
+                var cached = await _sqliteService.GetReportAsync(orderNumber,suffix, ct);
+                if (cached != null)
                 {
-                    var cached = await _sqliteService.GetReportAsync(orderNumber,suffix, ct);
-                    if (cached != null)
-                    {
-                        report.Id = cached.Id;
-                    }
-
-                    fullReports.Add(report);
+                    report.Id = cached.Id;
                 }
+
+                fullReports.Add(report);
             }
 
             SearchByDateResults = fullReports;
