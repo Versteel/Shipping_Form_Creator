@@ -10,11 +10,10 @@ namespace Shipping_Form_CreatorV1.Utilities
 
         public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
         {
-            // value will be your LineItems collection
             if (value is IEnumerable<LineItem> lineItems)
             {
                 return lineItems
-                    .SelectMany(li => li.LineItemDetails ?? Enumerable.Empty<LineItemDetail>())
+                    .SelectMany(li => li.LineItemDetails)
                     .Where(d => string.Equals(d.BolFlag, FlagValue, StringComparison.OrdinalIgnoreCase))
                     .ToList();
             }

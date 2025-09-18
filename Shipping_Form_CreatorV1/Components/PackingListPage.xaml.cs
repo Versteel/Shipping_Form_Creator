@@ -20,7 +20,7 @@ public partial class PackingListPage
         InitializeComponent();
         _viewModel.PropertyChanged += (_, e) =>
         {
-            if (e.PropertyName == nameof(MainViewModel.SelectedReport))
+            if (e.PropertyName == nameof(MainViewModel.SelectedReport) && _viewModel.SelectedReportTitle == "PACKING LIST")
                 BuildPagesWithBusy();
         };
 

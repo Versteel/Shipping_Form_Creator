@@ -58,7 +58,8 @@
                                         Grid.Column="1"
                                         SnapsToDevicePixels="True">
                                         <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="0" MinWidth="{Binding SortDirection, Converter={StaticResource sortDirectionToWidthConverter}, Mode=OneWay, RelativeSource={RelativeSource Mode=TemplatedParent}}" />
+                                            <ColumnDefinition Width="0"
+                                                              MinWidth="{Binding SortDirection, Converter={StaticResource sortDirectionToWidthConverter}, Mode=OneWay, RelativeSource={RelativeSource Mode=TemplatedParent}}" />
                                             <ColumnDefinition Width="*" />
                                         </Grid.ColumnDefinitions>
                                         <Path
@@ -152,7 +153,8 @@
                                 StrokeDashArray="2,2"
                                 StrokeThickness="1"
                                 Visibility="{TemplateBinding CurrentFocusRowVisibility}" />
-                            <Border BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
+                            <Border BorderBrush="{TemplateBinding BorderBrush}"
+                                    BorderThickness="{TemplateBinding BorderThickness}">
                                 <ContentPresenter />
                             </Border>
                             <Border
@@ -168,7 +170,10 @@
         <Style x:Key="alternatingRowStyle" TargetType="syncfusion:VirtualizingCellsControl">
             <Setter Property="Background" Value="#fff" />
         </Style>
-
+        <Style x:Key="tableSummaryRowStyle" TargetType="syncfusion:TableSummaryRowControl">
+            <Setter Property="Background" Value="Black" />
+            <Setter Property="Foreground" Value="White" />
+        </Style>
         <Style x:Key="RowStyle" TargetType="syncfusion:VirtualizingCellsControl">
             <Setter Property="Background" Value="#e8e9ea" />
         </Style>
@@ -212,7 +217,8 @@
 
     <!--  Hook command handlers on the page  -->
     <Page.CommandBindings>
-        <CommandBinding Command="{x:Static local:SearchByDateResultsPage.OpenPackingListCommand}" Executed="OpenPackingList_Executed" />
+        <CommandBinding Command="{x:Static local:SearchByDateResultsPage.OpenPackingListCommand}"
+                        Executed="OpenPackingList_Executed" />
         <CommandBinding Command="{x:Static local:SearchByDateResultsPage.OpenBolCommand}" Executed="OpenBol_Executed" />
     </Page.CommandBindings>
 
@@ -247,6 +253,7 @@
                 Grid.Row="1"
                 Margin="10"
                 AllowResizingColumns="True"
+                TableSummaryRowStyle="{StaticResource tableSummaryRowStyle}"
                 AlternatingRowStyle="{StaticResource alternatingRowStyle}"
                 AlternationCount="2"
                 AutoGenerateColumns="False"
@@ -319,6 +326,16 @@
                         </syncfusion:GridTemplateColumn.CellTemplate>
                     </syncfusion:GridTemplateColumn>
                 </syncfusion:SfDataGrid.Columns>
+                <syncfusion:SfDataGrid.TableSummaryRows>
+                    <syncfusion:GridTableSummaryRow ShowSummaryInRow="True" Title="Total Orders Shipped: {ShippedCount}">
+                        <syncfusion:GridSummaryRow.SummaryColumns>
+                            <syncfusion:GridSummaryColumn Name="ShippedCount"
+                                                          Format="'{Count:d}'"
+                                                          MappingName="Header.OrderNumber"
+                                                          SummaryType="CountAggregate"/>
+                        </syncfusion:GridSummaryRow.SummaryColumns>
+                    </syncfusion:GridTableSummaryRow>
+                </syncfusion:SfDataGrid.TableSummaryRows>
                 <syncfusion:SfDataGrid.RecordContextMenu>
                     <ContextMenu>
                         <MenuItem

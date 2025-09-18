@@ -2,17 +2,13 @@ using Shipping_Form_CreatorV1.Components;
 using Shipping_Form_CreatorV1.Models;
 using Shipping_Form_CreatorV1.Utilities;
 using Shipping_Form_CreatorV1.ViewModels;
-using Syncfusion.UI.Xaml.ProgressBar;
 using Syncfusion.Windows.Controls.Notification;
 using System.Collections.ObjectModel;
-using System.Printing;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Markup;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using System.Windows.Threading;
 

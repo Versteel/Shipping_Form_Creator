@@ -14,11 +14,11 @@ public class MainViewModel : INotifyPropertyChanged
     private readonly ISqliteService _sqliteService;
     private readonly IOdbcService _odbcService;
 
-    public MainViewModel(ISqliteService sqliteService, IOdbcService odbcService, UserGroupService userGroupService)
+    public MainViewModel(ISqliteService sqliteService, IOdbcService odbcService)
     {
         _sqliteService = sqliteService;
         _odbcService = odbcService;
-        IsDittoUser = userGroupService.IsCurrentUserInDittoGroup();
+        IsDittoUser = UserGroupService.IsCurrentUserInDittoGroup();
 
         SearchByDateResults = [];
         SelectedReportsGroups = [];
@@ -65,7 +65,7 @@ public class MainViewModel : INotifyPropertyChanged
         }
     }
 
-    public bool IsSaveEnabled => SelectedReportTitle != "BILL OF LADING";
+    public bool IsSaveEnabled => SelectedReportTitle == "PACKING LIST";
 
 
     private int _pageCount;

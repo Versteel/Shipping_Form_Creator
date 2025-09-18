@@ -254,26 +254,24 @@ public class OdbcService : IOdbcService
         {
             var itemNumber = GetSafeDecimal(lineItemReader, "O6ITEM");
 
-            if (!lineItemMap.ContainsKey(itemNumber))
+            if (lineItemMap.ContainsKey(itemNumber)) continue;
+            var lih = new LineItemHeader
             {
-                var lih = new LineItemHeader
-                {
-                    LineItemNumber = itemNumber,
-                    ProductNumber = GetSafeString(lineItemReader, "ODPN"),
-                    ProductDescription = GetSafeString(lineItemReader, "PartDescription"),
-                    OrderedQuantity = GetSafeDecimal(lineItemReader, "ODORGQ"),
-                    PickOrShipQuantity = GetSafeDecimal(lineItemReader, "ODSHPQ"),
-                    // BackOrderQuantity = GetSafeDecimal(lineItemReader, "ODBALQ"),
-                };
-                lih.BackOrderQuantity = lih.OrderedQuantity > lih.PickOrShipQuantity ? lih.OrderedQuantity - lih.PickOrShipQuantity : 0;
-                var li = new LineItem
-                {
-                    LineItemHeader = lih,
-                    LineItemDetails = new ObservableCollection<LineItemDetail>()
-                };
-                lineItemMap[itemNumber] = li;
-                rpt.LineItems.Add(li);
-            }
+                LineItemNumber = itemNumber,
+                ProductNumber = GetSafeString(lineItemReader, "ODPN"),
+                ProductDescription = GetSafeString(lineItemReader, "PartDescription"),
+                OrderedQuantity = GetSafeDecimal(lineItemReader, "ODORGQ"),
+                PickOrShipQuantity = GetSafeDecimal(lineItemReader, "ODSHPQ"),
+                // BackOrderQuantity = GetSafeDecimal(lineItemReader, "ODBALQ"),
+            };
+            lih.BackOrderQuantity = lih.OrderedQuantity > lih.PickOrShipQuantity ? lih.OrderedQuantity - lih.PickOrShipQuantity : 0;
+            var li = new LineItem
+            {
+                LineItemHeader = lih,
+                LineItemDetails = new ObservableCollection<LineItemDetail>()
+            };
+            lineItemMap[itemNumber] = li;
+            rpt.LineItems.Add(li);
         }
 
         // Step 3: Get "floating" notes
