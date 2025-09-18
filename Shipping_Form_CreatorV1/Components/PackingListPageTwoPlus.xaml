@@ -15,6 +15,9 @@
     <UserControl.Resources>
         <utils:InverseBooleanToVisibilityConverter x:Key="InverseBoolToVis" />
         <BooleanToVisibilityConverter x:Key="BoolToVis" />
+        <Style TargetType="TextBlock">
+            <Setter Property="Foreground" Value="Black" />
+        </Style>
     </UserControl.Resources>
     <Border Padding="20" Background="#e6e6e6">
         <Border
@@ -89,7 +92,7 @@
                             <Border
                                 Grid.Row="0"
                                 Grid.Column="0"
-                                Background="#cccccc"
+                                Background="#e6e6e6"
                                 BorderBrush="#000"
                                 BorderThickness="1">
                                 <TextBlock
@@ -108,7 +111,7 @@
                             <Border
                                 Grid.Row="1"
                                 Grid.Column="0"
-                                Background="#cccccc"
+                                Background="#e6e6e6"
                                 BorderBrush="#000"
                                 BorderThickness="1,0,1,1">
                                 <TextBlock
@@ -157,7 +160,7 @@
                                             <Grid
                                                 Grid.Row="0"
                                                 Grid.ColumnSpan="6"
-                                                Background="#cccccc">
+                                                Background="#e6e6e6">
                                                 <Grid.ColumnDefinitions>
                                                     <ColumnDefinition Width="Auto" />
                                                     <ColumnDefinition Width="1*" />
@@ -170,31 +173,37 @@
                                                     Grid.Column="0"
                                                     Margin="5"
                                                     FontWeight="Bold"
+                                                    Foreground="#000"
                                                     Text="Line" />
                                                 <TextBlock
                                                     Grid.Column="1"
                                                     Margin="5"
                                                     FontWeight="Bold"
+                                                    Foreground="#000"
                                                     Text="Product" />
                                                 <TextBlock
                                                     Grid.Column="2"
                                                     Margin="5"
                                                     FontWeight="Bold"
+                                                    Foreground="#000"
                                                     Text="Description" />
                                                 <TextBlock
                                                     Grid.Column="3"
                                                     Margin="5"
                                                     FontWeight="Bold"
+                                                    Foreground="#000"
                                                     Text="Ordered" />
                                                 <TextBlock
                                                     Grid.Column="4"
                                                     Margin="5"
                                                     FontWeight="Bold"
+                                                    Foreground="#000"
                                                     Text="Shipped" />
                                                 <TextBlock
                                                     Grid.Column="5"
                                                     Margin="5"
                                                     FontWeight="Bold"
+                                                    Foreground="#000"
                                                     Text="Backorder" />
                                             </Grid>
 
@@ -203,31 +212,37 @@
                                                 Grid.Row="1"
                                                 Grid.Column="0"
                                                 Margin="5"
+                                                Foreground="#000"
                                                 Text="{Binding LineItemHeader.LineItemNumber}" />
                                             <TextBlock
                                                 Grid.Row="1"
                                                 Grid.Column="1"
                                                 Margin="5"
+                                                Foreground="#000"
                                                 Text="{Binding LineItemHeader.ProductNumber}" />
                                             <TextBlock
                                                 Grid.Row="1"
                                                 Grid.Column="2"
                                                 Margin="5"
+                                                Foreground="#000"
                                                 Text="{Binding LineItemHeader.ProductDescription}" />
                                             <TextBlock
                                                 Grid.Row="1"
                                                 Grid.Column="3"
                                                 Margin="5"
+                                                Foreground="#000"
                                                 Text="{Binding LineItemHeader.OrderedQuantityInt}" />
                                             <TextBlock
                                                 Grid.Row="1"
                                                 Grid.Column="4"
                                                 Margin="5"
+                                                Foreground="#000"
                                                 Text="{Binding LineItemHeader.PickOrShipQuantityInt}" />
                                             <TextBlock
                                                 Grid.Row="1"
                                                 Grid.Column="5"
                                                 Margin="5"
+                                                Foreground="#000"
                                                 Text="{Binding LineItemHeader.BackOrderQuantityInt}" />
 
                                             <!--  Details + Packing Units  -->
@@ -248,7 +263,10 @@
                                                         ItemsSource="{Binding LineItemDetails}">
                                                         <ItemsControl.ItemTemplate>
                                                             <DataTemplate>
-                                                                <TextBlock Text="{Binding NoteText}" TextWrapping="Wrap" />
+                                                                <TextBlock
+                                                                    Foreground="#000"
+                                                                    Text="{Binding NoteText}"
+                                                                    TextWrapping="Wrap" />
                                                             </DataTemplate>
                                                         </ItemsControl.ItemTemplate>
                                                     </ItemsControl>
@@ -301,12 +319,18 @@
                                                                                         SmallIcon="/delete.png" />
 
                                                                                     <StackPanel x:Name="sfQty" Orientation="Vertical">
-                                                                                        <TextBlock FontSize="10" Text="Qty" />
+                                                                                        <TextBlock
+                                                                                            FontSize="10"
+                                                                                            Foreground="#000"
+                                                                                            Text="Qty" />
                                                                                         <syncfusion:IntegerTextBox Width="50" Value="{Binding Quantity, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                                                                     </StackPanel>
 
                                                                                     <StackPanel Orientation="Vertical">
-                                                                                        <TextBlock FontSize="10" Text="Unit Type" />
+                                                                                        <TextBlock
+                                                                                            FontSize="10"
+                                                                                            Foreground="#000"
+                                                                                            Text="Unit Type" />
                                                                                         <syncfusion:ComboBoxAdv
                                                                                             Width="100"
                                                                                             Height="20"
@@ -316,7 +340,10 @@
 
 
                                                                                     <StackPanel x:Name="spTypeOfUnit" Orientation="Vertical">
-                                                                                        <TextBlock FontSize="10" Text="Contents" />
+                                                                                        <TextBlock
+                                                                                            FontSize="10"
+                                                                                            Foreground="#000"
+                                                                                            Text="Contents" />
                                                                                         <syncfusion:ComboBoxAdv
                                                                                             Width="100"
                                                                                             Height="20"
@@ -328,17 +355,22 @@
                                                                                         x:Name="spLineNumber"
                                                                                         Orientation="Vertical"
                                                                                         Visibility="Collapsed">
-                                                                                        <TextBlock FontSize="10" Text="Line number" />
+                                                                                        <TextBlock
+                                                                                            FontSize="10"
+                                                                                            Foreground="#000"
+                                                                                            Text="Line number" />
                                                                                         <syncfusion:ComboBoxAdv
                                                                                             Width="80"
                                                                                             Height="20"
-                                                                                            ItemsSource="{Binding DataContext.LineNumbersForDropdown, 
-                                                                                            RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                                                            ItemsSource="{Binding DataContext.LineNumbersForDropdown, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                                                                             SelectedItem="{Binding LineNumber, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                                                                     </StackPanel>
 
                                                                                     <StackPanel x:Name="spWeight" Orientation="Vertical">
-                                                                                        <TextBlock FontSize="10" Text="Weight" />
+                                                                                        <TextBlock
+                                                                                            FontSize="10"
+                                                                                            Foreground="#000"
+                                                                                            Text="Weight" />
                                                                                         <syncfusion:IntegerTextBox Width="50" Value="{Binding Weight, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                                                                     </StackPanel>
 
@@ -346,6 +378,7 @@
                                                                                         x:Name="lbsDisplay"
                                                                                         VerticalAlignment="Bottom"
                                                                                         FontSize="14"
+                                                                                        Foreground="#000"
                                                                                         Text="Lbs." />
                                                                                 </StackPanel>
 

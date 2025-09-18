@@ -7,7 +7,7 @@
     xmlns:syncfusion="http://schemas.syncfusion.com/wpf"
     xmlns:syncfusionskin="clr-namespace:Syncfusion.SfSkinManager;assembly=Syncfusion.SfSkinManager.WPF"
     Title="Search Results"
-    syncfusionskin:SfSkinManager.Theme="{syncfusion:SkinManager ThemeName=Windows11Light}">
+    syncfusionskin:SfSkinManager.Theme="{syncfusion:SkinManager ThemeName=Office2019ColorfulOffice2019Colorful}">
     <Page.Resources>
         <syncfusion:SortDirectionToVisibilityConverter x:Key="sortDirectionToVisibilityConverter" />
         <syncfusion:SortDirectionToWidthConverter x:Key="sortDirectionToWidthConverter" />
@@ -52,13 +52,14 @@
                                         HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
                                         VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
                                         Focusable="False" />
-                                    <Border x:Name="PART_FilterPopUpPresenter" />
+                                    <Border Grid.Column="0" x:Name="PART_FilterPopUpPresenter" />
                                     <Grid
                                         x:Name="PART_SortButtonPresenter"
                                         Grid.Column="1"
                                         SnapsToDevicePixels="True">
                                         <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="0" MinWidth="{Binding SortDirection, Converter={StaticResource sortDirectionToWidthConverter}, Mode=OneWay, RelativeSource={RelativeSource Mode=TemplatedParent}}" />
+                                            <ColumnDefinition Width="0"
+                                                              MinWidth="{Binding SortDirection, Converter={StaticResource sortDirectionToWidthConverter}, Mode=OneWay, RelativeSource={RelativeSource Mode=TemplatedParent}}" />
                                             <ColumnDefinition Width="*" />
                                         </Grid.ColumnDefinitions>
                                         <Path
@@ -79,7 +80,7 @@
                                             </Path.RenderTransform>
                                         </Path>
                                         <Path
-                                            Width="8.938"
+                                            Grid.Column="0" Width="8.938"
                                             Height="8.138"
                                             HorizontalAlignment="Center"
                                             VerticalAlignment="Center"
@@ -152,7 +153,8 @@
                                 StrokeDashArray="2,2"
                                 StrokeThickness="1"
                                 Visibility="{TemplateBinding CurrentFocusRowVisibility}" />
-                            <Border BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
+                            <Border BorderBrush="{TemplateBinding BorderBrush}"
+                                    BorderThickness="{TemplateBinding BorderThickness}">
                                 <ContentPresenter />
                             </Border>
                             <Border
@@ -168,24 +170,42 @@
         <Style x:Key="alternatingRowStyle" TargetType="syncfusion:VirtualizingCellsControl">
             <Setter Property="Background" Value="#fff" />
         </Style>
-
+        <Style x:Key="tableSummaryRowStyle" TargetType="syncfusion:TableSummaryRowControl">
+            <Setter Property="Background" Value="Black" />
+            <Setter Property="Foreground" Value="White" />
+        </Style>
         <Style x:Key="RowStyle" TargetType="syncfusion:VirtualizingCellsControl">
             <Setter Property="Background" Value="#e8e9ea" />
         </Style>
         <Style x:Key="SfDataPagerNumericButtonStyle1" TargetType="{x:Type syncfusion:NumericButton}">
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="Foreground" Value="red"/>
-            <Setter Property="FontSize" Value="13"/>
-            <Setter Property="Height" Value="40"/>
-            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
-            <Setter Property="Focusable" Value="True"/>
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="#e41f28" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="Height" Value="40" />
+            <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+            <Setter Property="Focusable" Value="True" />
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="{x:Type syncfusion:NumericButton}">
                         <Grid>
-                            <Rectangle x:Name="PART_CurrentPageIndicator" Fill="{TemplateBinding HighlightingThemeBrush}" HorizontalAlignment="Center" Height="25" RadiusX="12.5" RadiusY="12.5" VerticalAlignment="Center" Width="25"/>
-                            <Border x:Name="PART_RootBorder" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
-                                <ContentPresenter x:Name="PART_ContentPresenter" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            <Rectangle
+                                x:Name="PART_CurrentPageIndicator"
+                                Width="25"
+                                Height="25"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                Fill="{TemplateBinding HighlightingThemeBrush}"
+                                RadiusX="12.5"
+                                RadiusY="12.5" />
+                            <Border
+                                x:Name="PART_RootBorder"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}">
+                                <ContentPresenter
+                                    x:Name="PART_ContentPresenter"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center" />
                             </Border>
                         </Grid>
                     </ControlTemplate>
@@ -197,13 +217,14 @@
 
     <!--  Hook command handlers on the page  -->
     <Page.CommandBindings>
-        <CommandBinding Command="{x:Static local:SearchByDateResultsPage.OpenPackingListCommand}" Executed="OpenPackingList_Executed" />
+        <CommandBinding Command="{x:Static local:SearchByDateResultsPage.OpenPackingListCommand}"
+                        Executed="OpenPackingList_Executed" />
         <CommandBinding Command="{x:Static local:SearchByDateResultsPage.OpenBolCommand}" Executed="OpenBol_Executed" />
     </Page.CommandBindings>
 
     <Notification:SfBusyIndicator
         AnimationType="Gear"
-        Foreground="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}"
+        Foreground="#e41f28"
         IsBusy="{Binding IsBusy}"
         ViewboxHeight="200"
         ViewboxWidth="200">
@@ -220,6 +241,7 @@
                 <TextBlock
                     FontSize="25"
                     FontWeight="Bold"
+                    Foreground="#000"
                     Text="ORDERS SHIPPED " />
                 <TextBlock
                     FontSize="25"
@@ -231,9 +253,12 @@
                 Grid.Row="1"
                 Margin="10"
                 AllowResizingColumns="True"
+                TableSummaryRowStyle="{StaticResource tableSummaryRowStyle}"
                 AlternatingRowStyle="{StaticResource alternatingRowStyle}"
                 AlternationCount="2"
                 AutoGenerateColumns="False"
+                Background="#fff"
+                Foreground="#000"
                 GridLinesVisibility="Both"
                 HeaderStyle="{DynamicResource SfDataGridHeaderStyle1}"
                 IsReadOnly="True"
@@ -254,7 +279,7 @@
                         TextAlignment="Right"
                         ValueBinding="{Binding Header.ShipToCustNumber}" />
                     <syncfusion:GridTextColumn
-                        Width="200"
+                        Width="300"
                         HeaderText="Ship To"
                         TextAlignment="Right"
                         ValueBinding="{Binding Header.ShipToName}" />
@@ -269,7 +294,7 @@
                         TextAlignment="Right"
                         ValueBinding="{Binding Header.CarrierName}" />
                     <syncfusion:GridTemplateColumn
-                        Width="180"
+                        Width="220"
                         AllowFocus="False"
                         HeaderText="Actions">
                         <syncfusion:GridTemplateColumn.CellTemplate>
@@ -290,7 +315,7 @@
                                     <Button
                                         Margin="2,0"
                                         Padding="6,2"
-                                        Background="#4f6bed"
+                                        Background="#555555"
                                         Command="{x:Static local:SearchByDateResultsPage.OpenBolCommand}"
                                         CommandParameter="{Binding}"
                                         Content="Bill of Lading"
@@ -301,6 +326,16 @@
                         </syncfusion:GridTemplateColumn.CellTemplate>
                     </syncfusion:GridTemplateColumn>
                 </syncfusion:SfDataGrid.Columns>
+                <syncfusion:SfDataGrid.TableSummaryRows>
+                    <syncfusion:GridTableSummaryRow ShowSummaryInRow="True" Title="Total Orders Shipped: {ShippedCount}">
+                        <syncfusion:GridSummaryRow.SummaryColumns>
+                            <syncfusion:GridSummaryColumn Name="ShippedCount"
+                                                          Format="'{Count:d}'"
+                                                          MappingName="Header.OrderNumber"
+                                                          SummaryType="CountAggregate"/>
+                        </syncfusion:GridSummaryRow.SummaryColumns>
+                    </syncfusion:GridTableSummaryRow>
+                </syncfusion:SfDataGrid.TableSummaryRows>
                 <syncfusion:SfDataGrid.RecordContextMenu>
                     <ContextMenu>
                         <MenuItem
@@ -314,10 +349,11 @@
                     </ContextMenu>
                 </syncfusion:SfDataGrid.RecordContextMenu>
             </syncfusion:SfDataGrid>
-            <syncfusion:SfDataPager NumericButtonStyle="{DynamicResource SfDataPagerNumericButtonStyle1}"
+            <syncfusion:SfDataPager
                 x:Name="DataPager"
                 Grid.Row="2"
                 HorizontalAlignment="Center"
+                NumericButtonStyle="{DynamicResource SfDataPagerNumericButtonStyle1}"
                 PageSize="25"
                 Source="{Binding SearchByDateResults}" />
         </Grid>

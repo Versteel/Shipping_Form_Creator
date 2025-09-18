@@ -18,9 +18,9 @@ public partial class PackingListPage
         _viewModel = viewModel;
         DataContext = _viewModel;
         InitializeComponent();
-        _viewModel.PropertyChanged += (o, e) =>
+        _viewModel.PropertyChanged += (_, e) =>
         {
-            if (e.PropertyName == nameof(MainViewModel.SelectedReport))
+            if (e.PropertyName == nameof(MainViewModel.SelectedReport) && _viewModel.SelectedReportTitle == "PACKING LIST")
                 BuildPagesWithBusy();
         };
 
@@ -45,22 +45,11 @@ public partial class PackingListPage
     {
         PageContainer.Children.Clear();
 
-        var selectedReport = _viewModel.SelectedReport is null ? new ReportModel { Header = new(), LineItems = [] } : _viewModel.SelectedReport;
+        var selectedReport = _viewModel.SelectedReport;
         var isDittoUser = _viewModel.IsDittoUser;
 
-        var header = selectedReport != null ? selectedReport.Header: new ReportHeader { };
+        var header = selectedReport.Header;
         header.LogoImagePath = isDittoUser ? Constants.DITTO_LOGO : Constants.VERSTEEL_LOGO;
-
-        static List<LineItemDetail> GetDetailsFor(LineItem li) =>
-        [
-            .. li.LineItemDetails
-                .Where(d => !string.IsNullOrWhiteSpace(d.NoteText))
-                .Where(d => d.PackingListFlag?.Trim().Equals("Y", StringComparison.OrdinalIgnoreCase) == true)
-                .Where(d => d.NoteText is not null &&
-                            !d.NoteText.Contains("OPTIONS BEGIN") &&
-                            !d.NoteText.Contains("OPTIONS END"))
-                .OrderBy(d => d.NoteSequenceNumber)
-        ];
 
         var lineItems = selectedReport.LineItems
             .Where(li => li.LineItemHeader?.LineItemNumber < 950)
@@ -69,7 +58,7 @@ public partial class PackingListPage
 
         var trailerNotes = selectedReport.LineItems
             .SelectMany(li => li.LineItemDetails)
-            .Where(d => d.ModelItem == 950m) // Shipping / BOL Notes
+            .Where(d => d.ModelItem == 950m)
             .Where(d => string.Equals(d.PackingListFlag, "Y", StringComparison.OrdinalIgnoreCase))
             .Where(d => !string.IsNullOrWhiteSpace(d.NoteText))
             .OrderBy(d => d.ModelItem)
@@ -178,5 +167,18 @@ public partial class PackingListPage
 
             _viewModel.PageCount = totalPages;
         }
+
+        return;
+
+        static List<LineItemDetail> GetDetailsFor(LineItem li) =>
+        [
+            .. li.LineItemDetails
+                .Where(d => !string.IsNullOrWhiteSpace(d.NoteText))
+                .Where(d => d.PackingListFlag?.Trim().Equals("Y", StringComparison.OrdinalIgnoreCase) == true)
+                .Where(d => d.NoteText is not null &&
+                            !d.NoteText.Contains("OPTIONS BEGIN") &&
+                            !d.NoteText.Contains("OPTIONS END"))
+                .OrderBy(d => d.NoteSequenceNumber)
+        ];
     }
 }

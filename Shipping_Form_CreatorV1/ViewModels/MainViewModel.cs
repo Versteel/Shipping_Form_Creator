@@ -14,13 +14,12 @@ public class MainViewModel : INotifyPropertyChanged
     private readonly ISqliteService _sqliteService;
     private readonly IOdbcService _odbcService;
 
-    public MainViewModel(ISqliteService sqliteService, IOdbcService odbcService, UserGroupService userGroupService)
+    public MainViewModel(ISqliteService sqliteService, IOdbcService odbcService)
     {
         _sqliteService = sqliteService;
         _odbcService = odbcService;
-        IsDittoUser = userGroupService.IsCurrentUserInDittoGroup();
+        IsDittoUser = UserGroupService.IsCurrentUserInDittoGroup();
 
-        // NEW: prevent null refs in bindings
         SearchByDateResults = [];
         SelectedReportsGroups = [];
         SearchByDateResults = Array.Empty<ReportModel>();
@@ -66,7 +65,7 @@ public class MainViewModel : INotifyPropertyChanged
         }
     }
 
-    public bool IsSaveEnabled => SelectedReportTitle != "BILL OF LADING";
+    public bool IsSaveEnabled => SelectedReportTitle == "PACKING LIST";
 
 
     private int _pageCount;
@@ -197,14 +196,8 @@ public class MainViewModel : INotifyPropertyChanged
         }
     }
 
-
     public int AllPiecesTotal => SelectedReportsGroups.Sum(r => r.TotalPieces);
     public int AllWeightTotal => SelectedReportsGroups.Sum(r => r.TotalWeight);
-
-    public string SearchResultsPageTitle
-    {
-        get => $"Orders Shipped on {SelectedReport.Header.ShipDate}";
-    }
 
     private void UpdateGroups()
     {
@@ -267,7 +260,6 @@ public class MainViewModel : INotifyPropertyChanged
     }
 
 
-    // Simple UI state (add below your other UI props)
     private DateTime? _searchByDate = DateTime.Today.Date;
     public DateTime? SearchByDate
     {
@@ -322,19 +314,17 @@ public class MainViewModel : INotifyPropertyChanged
         try
         {
             var erpDocument = await _odbcService.GetReportAsync(orderNumber, suffixNumber, ct);
-            var cachedDocument = await _sqliteService.GetReportAsync(orderNumber, ct);
+            var cachedDocument = await _sqliteService.GetReportAsync(orderNumber, suffixNumber, ct);
 
-            if (erpDocument is null && cachedDocument is null)
+            switch (erpDocument)
             {
-                DialogService.ShowErrorDialog(
-                    $"Frontier has not created a packing list for Sales Order {orderNumber}.");
-                return;
-            }
-
-            if (erpDocument is null)
-            {
-                SelectedReport = cachedDocument!;
-                return;
+                case null when cachedDocument is null:
+                    DialogService.ShowErrorDialog(
+                        $"Frontier has not created a packing list for Sales Order {orderNumber}.");
+                    return;
+                case null:
+                    SelectedReport = cachedDocument!;
+                    return;
             }
 
             if (cachedDocument is not null)
@@ -387,7 +377,7 @@ public class MainViewModel : INotifyPropertyChanged
 
                     erpLine.Id = cachedLine.Id;
 
-                    if (erpLine.LineItemPackingUnits == null || erpLine.LineItemPackingUnits.Count == 0)
+                    if (erpLine.LineItemPackingUnits.Count == 0)
                         erpLine.LineItemPackingUnits = cachedLine.LineItemPackingUnits;
                 }
             }
@@ -424,32 +414,24 @@ public class MainViewModel : INotifyPropertyChanged
             IsBusy = true;
             await Task.Delay(1, ct);
 
-            // Get the list of order headers/numbers for that date
-            var orders = await _odbcService.GetShippedOrdersByDate(date.Date);
+            var orders = await _odbcService.GetShippedOrdersByDate(date.Date, ct);
 
             var fullReports = new List<ReportModel>();
 
             foreach (var order in orders)
             {
-                // Assume each ReportModel from the search has OrderNumber + Suffix in Header
                 var orderNumber = order.Header.OrderNumber;
                 var suffix = order.Header.Suffix;
 
-                // Reuse your "load" logic to get the complete report
                 var report = await _odbcService.GetReportAsync(orderNumber, suffix, ct);
-                if (report != null)
+                if (report == null) continue;
+                var cached = await _sqliteService.GetReportAsync(orderNumber,suffix, ct);
+                if (cached != null)
                 {
-                    // optionally merge with cached sqlite version, similar to LoadDocumentAsync
-                    var cached = await _sqliteService.GetReportAsync(orderNumber, ct);
-                    if (cached != null)
-                    {
-                        // apply the same merging logic as LoadDocumentAsync
-                        report.Id = cached.Id;
-                        // ...merge header/line items as you already do...
-                    }
-
-                    fullReports.Add(report);
+                    report.Id = cached.Id;
                 }
+
+                fullReports.Add(report);
             }
 
             SearchByDateResults = fullReports;

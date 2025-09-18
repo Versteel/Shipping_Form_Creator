@@ -4,7 +4,7 @@ namespace Shipping_Form_CreatorV1.Services.Implementations
 {
     public class UserGroupService
     {
-        public bool IsCurrentUserInDittoGroup()
+        public static bool IsCurrentUserInDittoGroup()
         {
             const string groupName = "Ditto Sales";
             try

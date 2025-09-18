@@ -13,7 +13,7 @@
     Height="768"
     ui:WindowHelper.UseModernWindowStyle="True"
     Icon="/delivery.png"
-    ResizeMode="CanMinimize"
+    ResizeMode="CanResize"
     WindowState="Maximized"
     mc:Ignorable="d">
 
@@ -24,7 +24,7 @@
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="250" />
-            <ColumnDefinition Width="350" />
+            <ColumnDefinition Width="Auto" />
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
 
@@ -80,22 +80,26 @@
                     <syncfusion:SfTextBoxExt
                         x:Name="OrderNumberTextBox"
                         Width="68"
-                        Padding="0 5 0 0"
                         Margin="15,0,0,0"
+                        Padding="0,5,0,0"
                         Background="#FFF"
                         FontSize="18"
                         KeyDown="OrderNumberTextBox_KeyDown"
                         Text="{Binding SelectedOrderNumber, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                    <TextBlock FontSize="18" Margin="0 0 0 1" Text=".00" VerticalAlignment="Bottom"/>
+                    <TextBlock
+                        Margin="0,0,0,1"
+                        VerticalAlignment="Bottom"
+                        FontSize="18"
+                        Text=".00" />
                     <syncfusion:IntegerTextBox
                         x:Name="SuffixIntegerBox"
                         Width="35"
-                        Padding="0 5 0 0"
+                        Padding="0,5,0,0"
                         Background="#FFF"
                         FontSize="18"
+                        KeyDown="OrderNumberTextBox_KeyDown"
                         MaxValue="99"
                         MinValue="00"
-                        KeyDown="OrderNumberTextBox_KeyDown"
                         Value="{Binding SuffixNumber, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                 </StackPanel>
                 <Button

@@ -2,17 +2,13 @@ using Shipping_Form_CreatorV1.Components;
 using Shipping_Form_CreatorV1.Models;
 using Shipping_Form_CreatorV1.Utilities;
 using Shipping_Form_CreatorV1.ViewModels;
-using Syncfusion.UI.Xaml.ProgressBar;
 using Syncfusion.Windows.Controls.Notification;
 using System.Collections.ObjectModel;
-using System.Printing;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Markup;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using System.Windows.Threading;
 
@@ -34,11 +30,11 @@ public class PrintService
             var header = report.Header;
 
             var lineItems = report.LineItems
-                    .Where(li => !IsNoteOnly(li))
-                    .Where(lih => lih.LineItemHeader?.LineItemNumber > 0)
-                    .Where(li => li.LineItemDetails.All(d => d.PackingListFlag == "Y"))
-                    .OrderBy(li => li.LineItemHeader?.LineItemNumber ?? 0)
-                    .ToList();
+                .Where(li => !IsNoteOnly(li))
+                .Where(li => !string.IsNullOrWhiteSpace(li.LineItemHeader?.ProductDescription))
+                .Where(li => li.LineItemDetails.All(d => d.PackingListFlag == "Y"))
+                .OrderBy(li => li.LineItemHeader?.LineItemNumber ?? 0)
+                .ToList();
 
             var tableLegUnits = lineItems
                 .SelectMany(li => li.LineItemPackingUnits)
@@ -160,150 +156,10 @@ public class PrintService
             UpdateLoadingMessage("Sending to printer...");
 
             printDialog.PrintDocument(fixedDoc.DocumentPaginator, "Packing List");
-
         }
         finally
         {
             HideLoadingIndicator();
-        }
-    }
-
-    public async Task PreviewBillOfLadingAsync(Page bolPage)
-    {
-        try
-        {
-            const double pageWidth = 816, pageHeight = 1056;
-
-            if (bolPage.FindName("BillOfLadingPrintArea") is not FrameworkElement printArea)
-            {
-                MessageBox.Show("BillOfLadingPrintArea not found.");
-                return;
-            }
-
-            await PerformLayoutAsync(printArea, pageWidth, pageHeight);
-
-            // Make sure bindings/visual states (IsChecked) are up-to-date
-            await Application.Current.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.Render);
-
-            // >>> Apply print-safe checkbox template (or disable fallback) <<<
-            var snapshots = PrepareCheckBoxesForPrint(printArea /*, useDisableFallback: true */);
-            try
-            {
-                var fixedDoc = new FixedDocument();
-                var fixedPage = await CreateFixedPageFromVisualAsync(printArea, pageWidth, pageHeight);
-
-                var pageContent = new PageContent();
-                ((IAddChild)pageContent).AddChild(fixedPage);
-                fixedDoc.Pages.Add(pageContent);
-
-                var preview = new PrintPreviewWindow
-                {
-                    Owner = Application.Current.MainWindow,
-                    Document = fixedDoc
-                };
-                preview.ShowDialog();
-            }
-            finally
-            {
-                // >>> Restore original checkbox styles/states <<<
-                RestoreCheckBoxes(snapshots);
-            }
-        }
-        finally
-        {
-            HideLoadingIndicator();
-        }
-    }
-
-    public async Task PreviewPackingListPages(List<UserControl>? pages)
-    {
-        if (pages == null || pages.Count == 0) return;
-
-        ShowLoadingIndicator("Preparing Packing List Preview...");
-        try
-        {
-            double pageWidth = 816, pageHeight = 1056;
-
-            var fixedDoc = new FixedDocument();
-            var totalPages = pages.Count;
-
-            for (int i = 0; i < pages.Count; i++)
-            {
-                var page = pages[i];
-                UpdateLoadingMessage($"Rendering page {i + 1} of {totalPages}...");
-
-                try { (page as dynamic).IsPrinting = true; } catch { }
-
-                var printArea = await GetPrintAreaAsync(page);
-                if (printArea == null) continue;
-
-                await PerformLayoutAsync(printArea, pageWidth, pageHeight);
-
-                var fixedPage = await CreateFixedPageFromVisualAsync(printArea, pageWidth, pageHeight);
-                var pageContent = new PageContent();
-                ((IAddChild)pageContent).AddChild(fixedPage);
-                fixedDoc.Pages.Add(pageContent);
-            }
-
-            var preview = new PrintPreviewWindow
-            {
-                Owner = Application.Current.MainWindow,
-                Document = fixedDoc
-            };
-            preview.ShowDialog();
-        }
-        finally
-        {
-            HideLoadingIndicator();
-        }
-    }
-
-    private sealed record CheckBoxSnapshot(CheckBox Box, Style? OldStyle, bool OldIsEnabled);
-
-    private static IEnumerable<T> FindVisualChildren<T>(DependencyObject root) where T : DependencyObject
-    {
-        if (root == null) yield break;
-        var count = VisualTreeHelper.GetChildrenCount(root);
-        for (int i = 0; i < count; i++)
-        {
-            var child = VisualTreeHelper.GetChild(root, i);
-            if (child is T typed) yield return typed;
-            foreach (var d in FindVisualChildren<T>(child))
-                yield return d;
-        }
-    }
-
-    private List<CheckBoxSnapshot> PrepareCheckBoxesForPrint(FrameworkElement root, bool useDisableFallback = false)
-    {
-        var snapshots = new List<CheckBoxSnapshot>();
-        var printStyle = root.TryFindResource("PrintCheckBoxStyle") as Style;
-
-        foreach (var cb in FindVisualChildren<CheckBox>(root))
-        {
-            var snap = new CheckBoxSnapshot(cb, cb.Style, cb.IsEnabled);
-            snapshots.Add(snap);
-
-            if (printStyle != null)
-            {
-                // Best: apply print template that renders ticks reliably
-                cb.Style = printStyle;
-            }
-            else if (useDisableFallback)
-            {
-                // Simple fallback: disabling often forces state to render on print
-                cb.IsEnabled = false;
-            }
-        }
-
-        return snapshots;
-    }
-
-    private static void RestoreCheckBoxes(IEnumerable<CheckBoxSnapshot> snapshots)
-    {
-        foreach (var s in snapshots)
-        {
-            s.Box.Style = s.OldStyle;
-            s.Box.IsEnabled = s.OldIsEnabled;
         }
     }
 
@@ -326,57 +182,13 @@ public class PrintService
             }
 
             await PerformLayoutAsync(printArea, pageWidth, pageHeight);
-
-            //UpdateLoadingMessage("Rendering Bill of Lading...");
-
-            //var bitmap = new RenderTargetBitmap((int)pageWidth, (int)pageHeight, 96, 96, PixelFormats.Pbgra32);
-            //bitmap.Render(printArea);
-
-            //var image = new Image
-            //{
-            //    Source = bitmap,
-            //    Width = pageWidth,
-            //    Height = pageHeight
-            //};
-
-            //var fixedPage = new FixedPage
-            //{
-            //    Width = pageWidth,
-            //    Height = pageHeight
-            //};
-            //FixedPage.SetLeft(image, 0);
-            //FixedPage.SetTop(image, 0);
-            //fixedPage.Children.Add(image);
-
-            //fixedPage.Measure(new Size(pageWidth, pageHeight));
-            //fixedPage.Arrange(new Rect(new Size(pageWidth, pageHeight)));
-            //fixedPage.UpdateLayout();
-
-            //var fixedDoc = new FixedDocument();
-            //var pageContent = new PageContent();
-            //((IAddChild)pageContent).AddChild(fixedPage);
-            //fixedDoc.Pages.Add(pageContent);
-
-            //UpdateLoadingMessage("Sending to printer...");
-
-
-            //printDialog.PrintDocument(fixedDoc.DocumentPaginator, "Bill of Lading");
-
             await PerformLayoutAsync(printArea, pageWidth, pageHeight);
-            //UpdateLoadingMessage("Rendering Bill of Lading...");
-
-            // VECTOR: build a FixedPage from the live visual (no bitmap)
             var fixedPage = await CreateFixedPageFromVisualAsync(printArea, pageWidth, pageHeight);
-
             var fixedDoc = new FixedDocument();
             var pageContent = new PageContent();
             ((IAddChild)pageContent).AddChild(fixedPage);
             fixedDoc.Pages.Add(pageContent);
-
-            //UpdateLoadingMessage("Sending to printer...");
             printDialog.PrintDocument(fixedDoc.DocumentPaginator, "Bill of Lading");
-
-
         }
         finally
         {
@@ -385,7 +197,7 @@ public class PrintService
     }
 
     private async Task<FixedPage> CreateFixedPageFromVisualAsync(
-    FrameworkElement printArea, double pageWidth, double pageHeight)
+        FrameworkElement printArea, double pageWidth, double pageHeight)
     {
         await Task.Yield();
 
@@ -394,7 +206,7 @@ public class PrintService
 
         var fixedPage = new FixedPage { Width = pageWidth, Height = pageHeight };
 
-        var rect = new System.Windows.Shapes.Rectangle
+        var rect = new Rectangle
         {
             Width = pageWidth,
             Height = pageHeight,
@@ -409,38 +221,6 @@ public class PrintService
         FixedPage.SetLeft(rect, 0);
         FixedPage.SetTop(rect, 0);
         fixedPage.Children.Add(rect);
-
-        fixedPage.Measure(new Size(pageWidth, pageHeight));
-        fixedPage.Arrange(new Rect(new Size(pageWidth, pageHeight)));
-        fixedPage.UpdateLayout();
-
-        return fixedPage;
-    }
-
-
-    private async Task<FixedPage> CreateFixedPageFromImageAsync(FrameworkElement printArea, double pageWidth, double pageHeight)
-    {
-        await Task.Yield();
-
-        var bitmap = new RenderTargetBitmap((int)pageWidth, (int)pageHeight, 96, 96, PixelFormats.Pbgra32);
-        bitmap.Render(printArea);
-
-        var image = new Image
-        {
-            Source = bitmap,
-            Width = pageWidth,
-            Height = pageHeight
-        };
-
-        var fixedPage = new FixedPage
-        {
-            Width = pageWidth,
-            Height = pageHeight
-        };
-
-        FixedPage.SetLeft(image, 0);
-        FixedPage.SetTop(image, 0);
-        fixedPage.Children.Add(image);
 
         fixedPage.Measure(new Size(pageWidth, pageHeight));
         fixedPage.Arrange(new Rect(new Size(pageWidth, pageHeight)));

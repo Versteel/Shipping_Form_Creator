@@ -2,7 +2,6 @@
 using Shipping_Form_CreatorV1.Utilities;
 using System.Collections.ObjectModel;
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Input;
 
 namespace Shipping_Form_CreatorV1.Components;

@@ -46,6 +46,7 @@
     <PackageReference Include="Syncfusion.SfProgressBar.WPF" Version="30.2.6" />
     <PackageReference Include="Syncfusion.SfSkinManager.WPF" Version="30.2.6" />
     <PackageReference Include="Syncfusion.Shared.WPF" Version="30.2.6" />
+    <PackageReference Include="Syncfusion.Themes.Office2019Colorful.WPF" Version="30.2.6" />
     <PackageReference Include="Syncfusion.Themes.Windows11Light.WPF" Version="30.2.6" />
     <PackageReference Include="System.Data.ODBC" Version="9.0.8" />
     <PackageReference Include="System.DirectoryServices.AccountManagement" Version="9.0.8" />

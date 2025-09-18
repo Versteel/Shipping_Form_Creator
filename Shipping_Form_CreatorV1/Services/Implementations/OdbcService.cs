@@ -188,74 +188,73 @@ public class OdbcService : IOdbcService
     }
 
 
-   public async Task<ReportModel?> GetReportAsync(int orderNumber, int suffix, CancellationToken ct = default)
-{
-    var rpt = new ReportModel
+    public async Task<ReportModel?> GetReportAsync(int orderNumber, int suffix, CancellationToken ct = default)
     {
-        LineItems = new ObservableCollection<LineItem>()
-    };
-
-    await using var connection = new OdbcConnection(CONNECTION_STRING);
-    await connection.OpenAsync(ct);
-
-    // Step 1: Get the single header record
-    await using var headerCommand = new OdbcCommand(GET_HEADER_QUERY, connection);
-    headerCommand.Parameters.Add("@OHORD#", OdbcType.Int).Value = orderNumber;
-    headerCommand.Parameters.Add("@OHLSUF", OdbcType.Int).Value = suffix;
-
-    await using var headerReader = await headerCommand.ExecuteReaderAsync(ct);
-    if (await headerReader.ReadAsync(ct))
-    {
-        rpt.Header = new ReportHeader
+        var rpt = new ReportModel
         {
-            OrderNumber = GetSafeInt(headerReader, "OHORD#"),
-            Suffix = GetSafeInt(headerReader, "OHLSUF"),
-            OrdEnterDate = GetSafeString(headerReader, "OrderEnteredDate"),
-            ShipDate = GetSafeString(headerReader, "ShipDate"),
-            SoldToCustNumber = GetSafeString(headerReader, "OHSTKY"),
-            SoldToName = GetSafeString(headerReader, "O4NAME"),
-            SoldToCustAddressLine1 = GetSafeString(headerReader, "O4ADR2"),
-            SoldToCustAddressLine2 = GetSafeString(headerReader, "O4ADR3"),
-            SoldToCustAddressLine3 = GetSafeString(headerReader, "O4ADR4"),
-            SoldToCity = GetSafeString(headerReader, "O4CITY"),
-            SoldToSt = GetSafeString(headerReader, "O4ST"),
-            SoldToZipCode = GetSafeString(headerReader, "O4ZIP"),
-            ShipToCustNumber = GetSafeString(headerReader, "C1STKY"),
-            ShipToName = GetSafeString(headerReader, "CMNAME"),
-            ShipToCustAddressLine1 = GetSafeString(headerReader, "CMLNE1"),
-            ShipToCustAddressLine2 = GetSafeString(headerReader, "CMLNE2"),
-            ShipToCustAddressLine3 = GetSafeString(headerReader, "CMLNE3"),
-            ShipToCity = GetSafeString(headerReader, "CMCITY"),
-            ShipToSt = GetSafeString(headerReader, "CMST"),
-            ShipToZipCode = GetSafeString(headerReader, "CMZIP"),
-            CustomerPONumber = GetSafeString(headerReader, "OHSPO#"),
-            DueDate = GetSafeString(headerReader, "DueDate"),
-            SalesPerson = GetSafeString(headerReader, "SPNAME"),
-            CarrierName = GetSafeString(headerReader, "CarrierDesc"),
-            FreightTerms = GetSafeString(headerReader, "FreightTermsDesc"),
-            TrackingNumber = GetSafeString(headerReader, "ODINST")
+            LineItems = new ObservableCollection<LineItem>()
         };
-    }
-    else
-    {
-        return null; // Header not found
-    }
 
-    // Step 2: Get line items
-    await using var lineItemCommand = new OdbcCommand(GET_LINE_ITEMS_QUERY, connection);
-    lineItemCommand.Parameters.Add("@O6ORD#", OdbcType.Int).Value = orderNumber;
-    lineItemCommand.Parameters.Add("@O6SUFX", OdbcType.Int).Value = suffix;
+        await using var connection = new OdbcConnection(CONNECTION_STRING);
+        await connection.OpenAsync(ct);
 
-    await using var lineItemReader = await lineItemCommand.ExecuteReaderAsync(ct);
+        // Step 1: Get the single header record
+        await using var headerCommand = new OdbcCommand(GET_HEADER_QUERY, connection);
+        headerCommand.Parameters.Add("@OHORD#", OdbcType.Int).Value = orderNumber;
+        headerCommand.Parameters.Add("@OHLSUF", OdbcType.Int).Value = suffix;
 
-    var lineItemMap = new Dictionary<decimal, LineItem>();
-
-    while (await lineItemReader.ReadAsync(ct))
-    {
-        var itemNumber = GetSafeDecimal(lineItemReader, "O6ITEM");
-
-        if (!lineItemMap.ContainsKey(itemNumber))
+        await using var headerReader = await headerCommand.ExecuteReaderAsync(ct);
+        if (await headerReader.ReadAsync(ct))
         {
+            rpt.Header = new ReportHeader
+            {
+                OrderNumber = GetSafeInt(headerReader, "OHORD#"),
+                Suffix = GetSafeInt(headerReader, "OHLSUF"),
+                OrdEnterDate = GetSafeString(headerReader, "OrderEnteredDate"),
+                ShipDate = GetSafeString(headerReader, "ShipDate"),
+                SoldToCustNumber = GetSafeString(headerReader, "OHSTKY"),
+                SoldToName = GetSafeString(headerReader, "O4NAME"),
+                SoldToCustAddressLine1 = GetSafeString(headerReader, "O4ADR2"),
+                SoldToCustAddressLine2 = GetSafeString(headerReader, "O4ADR3"),
+                SoldToCustAddressLine3 = GetSafeString(headerReader, "O4ADR4"),
+                SoldToCity = GetSafeString(headerReader, "O4CITY"),
+                SoldToSt = GetSafeString(headerReader, "O4ST"),
+                SoldToZipCode = GetSafeString(headerReader, "O4ZIP"),
+                ShipToCustNumber = GetSafeString(headerReader, "C1STKY"),
+                ShipToName = GetSafeString(headerReader, "CMNAME"),
+                ShipToCustAddressLine1 = GetSafeString(headerReader, "CMLNE1"),
+                ShipToCustAddressLine2 = GetSafeString(headerReader, "CMLNE2"),
+                ShipToCustAddressLine3 = GetSafeString(headerReader, "CMLNE3"),
+                ShipToCity = GetSafeString(headerReader, "CMCITY"),
+                ShipToSt = GetSafeString(headerReader, "CMST"),
+                ShipToZipCode = GetSafeString(headerReader, "CMZIP"),
+                CustomerPONumber = GetSafeString(headerReader, "OHSPO#"),
+                DueDate = GetSafeString(headerReader, "DueDate"),
+                SalesPerson = GetSafeString(headerReader, "SPNAME"),
+                CarrierName = GetSafeString(headerReader, "CarrierDesc"),
+                FreightTerms = GetSafeString(headerReader, "FreightTermsDesc"),
+                TrackingNumber = GetSafeString(headerReader, "ODINST")
+            };
+        }
+        else
+        {
+            return null; // Header not found
+        }
+
+        // Step 2: Get line items
+        await using var lineItemCommand = new OdbcCommand(GET_LINE_ITEMS_QUERY, connection);
+        lineItemCommand.Parameters.Add("@O6ORD#", OdbcType.Int).Value = orderNumber;
+        lineItemCommand.Parameters.Add("@O6SUFX", OdbcType.Int).Value = suffix;
+
+        await using var lineItemReader = await lineItemCommand.ExecuteReaderAsync(ct);
+
+        var lineItemMap = new Dictionary<decimal, LineItem>();
+
+        while (await lineItemReader.ReadAsync(ct))
+        {
+            var itemNumber = GetSafeDecimal(lineItemReader, "O6ITEM");
+
+            if (lineItemMap.ContainsKey(itemNumber)) continue;
             var lih = new LineItemHeader
             {
                 LineItemNumber = itemNumber,
@@ -263,8 +262,9 @@ public class OdbcService : IOdbcService
                 ProductDescription = GetSafeString(lineItemReader, "PartDescription"),
                 OrderedQuantity = GetSafeDecimal(lineItemReader, "ODORGQ"),
                 PickOrShipQuantity = GetSafeDecimal(lineItemReader, "ODSHPQ"),
-                BackOrderQuantity = GetSafeDecimal(lineItemReader, "ODBALQ"),
+                // BackOrderQuantity = GetSafeDecimal(lineItemReader, "ODBALQ"),
             };
+            lih.BackOrderQuantity = lih.OrderedQuantity > lih.PickOrShipQuantity ? lih.OrderedQuantity - lih.PickOrShipQuantity : 0;
             var li = new LineItem
             {
                 LineItemHeader = lih,
@@ -273,68 +273,66 @@ public class OdbcService : IOdbcService
             lineItemMap[itemNumber] = li;
             rpt.LineItems.Add(li);
         }
-    }
 
-    // Step 3: Get "floating" notes
-    await using var notesCommand = new OdbcCommand(GET_ORDER_NOTES_QUERY, connection);
-    notesCommand.Parameters.Add("@O5ORD#", OdbcType.Int).Value = orderNumber;
-    notesCommand.Parameters.Add("@O5SUFX", OdbcType.Int).Value = suffix;
+        // Step 3: Get "floating" notes
+        await using var notesCommand = new OdbcCommand(GET_ORDER_NOTES_QUERY, connection);
+        notesCommand.Parameters.Add("@O5ORD#", OdbcType.Int).Value = orderNumber;
+        notesCommand.Parameters.Add("@O5SUFX", OdbcType.Int).Value = suffix;
 
-    await using var notesReader = await notesCommand.ExecuteReaderAsync(ct);
+        await using var notesReader = await notesCommand.ExecuteReaderAsync(ct);
 
-    var floatingNotesMap = new Dictionary<decimal, LineItem>();
+        var floatingNotesMap = new Dictionary<decimal, LineItem>();
 
-    while (await notesReader.ReadAsync(ct))
-    {
-        var modelItem = GetSafeInt(notesReader, "ModelItem");
-        var subItem = GetSafeDecimal(notesReader, "O5ITEM");
-
-        var detail = new LineItemDetail
+        while (await notesReader.ReadAsync(ct))
         {
-            ModelItem = modelItem,
-            NoteSequenceNumber = GetSafeDecimal(notesReader, "NoteSeq"),
-            NoteText = GetSafeString(notesReader, "ODTEXT"),
-            PackingListFlag = GetSafeString(notesReader, "ODPRT2"),
-            BolFlag = GetSafeString(notesReader, "ODPRT3")
-        };
+            var modelItem = GetSafeInt(notesReader, "ModelItem");
 
-        if (lineItemMap.TryGetValue(modelItem, out var li))
-        {
-            li.LineItemDetails.Add(detail);
-        }
-        else
-        {
-            if (!floatingNotesMap.ContainsKey(modelItem))
+            var detail = new LineItemDetail
             {
-                var lih = new LineItemHeader
-                {
-                    LineItemNumber = modelItem,
-                    ProductNumber = string.Empty,
-                    ProductDescription = modelItem switch
-                    {
-                        0 => "ORDER NOTES",
-                        950 => "SHIPPING / BOL NOTES",
-                        _ => "NOTES"
-                    },
-                    OrderedQuantity = 0m,
-                    PickOrShipQuantity = 0m,
-                    BackOrderQuantity = 0m,
-                };
-                var liNew = new LineItem
-                {
-                    LineItemHeader = lih,
-                    LineItemDetails = new ObservableCollection<LineItemDetail>()
-                };
-                floatingNotesMap[modelItem] = liNew;
-                rpt.LineItems.Add(liNew);
+                ModelItem = modelItem,
+                NoteSequenceNumber = GetSafeDecimal(notesReader, "NoteSeq"),
+                NoteText = GetSafeString(notesReader, "ODTEXT"),
+                PackingListFlag = GetSafeString(notesReader, "ODPRT2"),
+                BolFlag = GetSafeString(notesReader, "ODPRT3")
+            };
+
+            if (lineItemMap.TryGetValue(modelItem, out var li))
+            {
+                li.LineItemDetails.Add(detail);
             }
-            floatingNotesMap[modelItem].LineItemDetails.Add(detail);
+            else
+            {
+                if (!floatingNotesMap.ContainsKey(modelItem))
+                {
+                    var lih = new LineItemHeader
+                    {
+                        LineItemNumber = modelItem,
+                        ProductNumber = string.Empty,
+                        ProductDescription = modelItem switch
+                        {
+                            0 => "ORDER NOTES",
+                            950 => "SHIPPING / BOL NOTES",
+                            _ => "NOTES"
+                        },
+                        OrderedQuantity = 0m,
+                        PickOrShipQuantity = 0m,
+                        BackOrderQuantity = 0m,
+                    };
+                    var liNew = new LineItem
+                    {
+                        LineItemHeader = lih,
+                        LineItemDetails = []
+                    };
+                    floatingNotesMap[modelItem] = liNew;
+                    rpt.LineItems.Add(liNew);
+                }
+                floatingNotesMap[modelItem].LineItemDetails.Add(detail);
+            }
         }
+
+        rpt.LineItems = new ObservableCollection<LineItem>(rpt.LineItems.OrderBy(li => li.LineItemHeader?.LineItemNumber ?? 0));
+
+        return rpt;
     }
-
-    rpt.LineItems = new ObservableCollection<LineItem>(rpt.LineItems.OrderBy(li => li.LineItemHeader.LineItemNumber));
-
-    return rpt;
-}
 
 }

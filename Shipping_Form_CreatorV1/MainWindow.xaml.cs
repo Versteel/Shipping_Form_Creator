@@ -214,24 +214,4 @@ public partial class MainWindow
             ContentFrame.Content = new BillOfLading(_viewModel);
     }
 
-    private async void ShipDatePicker_OnKeyDown(object sender, KeyEventArgs e)
-    {
-        if (e.Key != Key.Enter) return;
-        try
-        {
-
-            if (_viewModel.SearchByDate is null)
-            {
-                DialogService.ShowErrorDialog("Please choose a ship date.");
-                return;
-            }
-
-            await _viewModel.GetSearchByDateResults(_viewModel.SearchByDate.Value);
-            ContentFrame.Content = new SearchByDateResultsPage(_viewModel);
-        }
-        catch (Exception ex)
-        {
-            DialogService.ShowErrorDialog($"Error: {ex.Message}");
-        }
-    }
 }

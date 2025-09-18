@@ -10,7 +10,7 @@ namespace Shipping_Form_CreatorV1.Components
     /// <summary>
     /// Interaction logic for PackingListPageOne.xaml
     /// </summary>
-    public partial class PackingListPageOne : UserControl
+    public partial class PackingListPageOne
     {
         public static readonly DependencyProperty PageNumberTextProperty =
             DependencyProperty.Register(nameof(PageNumberText), typeof(string), typeof(PackingListPageOne),

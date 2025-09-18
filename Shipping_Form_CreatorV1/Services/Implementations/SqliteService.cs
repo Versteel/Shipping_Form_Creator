@@ -8,12 +8,13 @@ namespace Shipping_Form_CreatorV1.Services.Implementations;
 
 public class SqliteService(IDbContextFactory<AppDbContext> dbContext) : ISqliteService
 {
-    public async Task<ReportModel?> GetReportAsync(int orderNumber, CancellationToken ct = default)
+    public async Task<ReportModel?> GetReportAsync(int orderNumber, int suffixNumber, CancellationToken ct = default)
     {
         await using var db = await dbContext.CreateDbContextAsync(ct);
 
         var reportModelId = await db.ReportHeaders
             .Where(h => h.OrderNumber == orderNumber)
+            .Where(h => h.Suffix == suffixNumber)
             .Select(h => h.ReportModelId)
             .FirstOrDefaultAsync(ct);
 
@@ -43,7 +44,6 @@ public class SqliteService(IDbContextFactory<AppDbContext> dbContext) : ISqliteS
 
         var search = date.ToString("MM/dd/yyyy", CultureInfo.InvariantCulture);
 
-        // Start from headers so we only get rows that actually have a header
         var query = await db.ReportModels
             .Include(r => r.Header)
             .Where(r => r.Header.ShipDate == search)
@@ -87,7 +87,6 @@ public class SqliteService(IDbContextFactory<AppDbContext> dbContext) : ISqliteS
             ?? throw new InvalidOperationException($"Report with ID {report.Id} not found.");
 
         UpdateReportHeader(existingReport.Header, report.Header);
-
         UpdateLineItems(db, existingReport, report.LineItems);
     }
 
@@ -151,7 +150,7 @@ public class SqliteService(IDbContextFactory<AppDbContext> dbContext) : ISqliteS
         }
     }
 
-    private void UpdateLineItem(DbContext db, LineItem existingLineItem, LineItem updatedLineItem)
+    private static void UpdateLineItem(DbContext db, LineItem existingLineItem, LineItem updatedLineItem)
     {
         if (updatedLineItem.LineItemHeader != null)
         {
@@ -181,7 +180,7 @@ public class SqliteService(IDbContextFactory<AppDbContext> dbContext) : ISqliteS
         existing.BackOrderQuantity = updated.BackOrderQuantity;
     }
 
-    private void UpdateLineItemDetails(DbContext db, LineItem existingLineItem, ICollection<LineItemDetail> updatedDetails)
+    private static void UpdateLineItemDetails(DbContext db, LineItem existingLineItem, ICollection<LineItemDetail> updatedDetails)
     {
         var updatedDetailIds = updatedDetails.Where(d => d.Id != 0).Select(d => d.Id).ToHashSet();
 
@@ -219,7 +218,7 @@ public class SqliteService(IDbContextFactory<AppDbContext> dbContext) : ISqliteS
         existing.BolFlag = updated.BolFlag;
     }
 
-    private void UpdateLineItemPackingUnits(DbContext db, LineItem existingLineItem, ICollection<LineItemPackingUnit> updatedPackingUnits)
+    private static void UpdateLineItemPackingUnits(DbContext db, LineItem existingLineItem, ICollection<LineItemPackingUnit> updatedPackingUnits)
     {
         var updatedPackingUnitIds = updatedPackingUnits.Where(pu => pu.Id != 0).Select(pu => pu.Id).ToHashSet();
 
