@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Serilog;
 using Shipping_Form_CreatorV1.Data;
 using Shipping_Form_CreatorV1.Services.Implementations;
 using Shipping_Form_CreatorV1.Services.Interfaces;
@@ -18,6 +19,18 @@ namespace Shipping_Form_CreatorV1
         {
             //Register Syncfusion license
             Syncfusion.Licensing.SyncfusionLicenseProvider.RegisterLicense("Ngo9BigBOggjHTQxAR8/V1JEaF5cXmRCf1FpRmJGdld5fUVHYVZUTXxaS00DNHVRdkdmWXdfdHRcRmdfVkJ3X0dWYEk=");
+
+            Log.Logger = new LoggerConfiguration()
+                .MinimumLevel.Debug()
+                .WriteTo.File(
+                    @"\\store2\software\software\ShippingFormsCreator\Logs\DbLog.txt",
+                    rollingInterval: RollingInterval.Day,   // 1 file per day
+                    retainedFileCountLimit: 7,              // keep only last 7 days
+                    fileSizeLimitBytes: 10_000_000,         // ~10 MB
+                    rollOnFileSizeLimit: true               // roll if bigger than 10 MB
+                )
+                .CreateLogger();
+
         }
 
         protected override void OnStartup(StartupEventArgs e)
@@ -40,7 +53,7 @@ namespace Shipping_Form_CreatorV1
             services.AddDbContextFactory<AppDbContext>(options =>
             {
                 options.UseSqlServer(
-                    "Server=reportingpc,1433;Database=ShippingFormsDb;Integrated Security=SSPI;Encrypt=False;TrustServerCertificate=True;MultipleActiveResultSets=True;",
+                    "Server=store2,1433;Database=ShippingFormsDb;Integrated Security=SSPI;Encrypt=False;TrustServerCertificate=True;MultipleActiveResultSets=True;",
                     sql =>
                     {
                         sql.EnableRetryOnFailure(5, TimeSpan.FromSeconds(10), null);
@@ -72,6 +85,7 @@ namespace Shipping_Form_CreatorV1
             {
                 disposable.Dispose();
             }
+            Log.CloseAndFlush();
         }
     }
 

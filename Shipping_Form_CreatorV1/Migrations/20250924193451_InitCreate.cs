@@ -74,6 +74,7 @@ namespace Shipping_Form_CreatorV1.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     LogoImagePath = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     OrderNumber = table.Column<int>(type: "int", nullable: false),
+                    Suffix = table.Column<int>(type: "int", nullable: false),
                     PageCount = table.Column<int>(type: "int", nullable: false),
                     OrdEnterDate = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     ShipDate = table.Column<string>(type: "nvarchar(max)", nullable: false),
@@ -97,7 +98,7 @@ namespace Shipping_Form_CreatorV1.Migrations
                     DueDate = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     SalesPerson = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     CarrierName = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    ShippingInstructions = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    TrackingNumber = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     FreightTerms = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     ReportModelId = table.Column<int>(type: "int", nullable: false)
                 },

@@ -22,7 +22,10 @@ public class Constants
     [
         "TABLE TOPS",
         "TABLE LEGS, TUBULAR STL EXC 1 QTR DIAMETER, N-G-T 2 INCH DIAMETER",
-        "CHAIRS, CURVARE, IMMIX, OLLIE",
+        "CHAIRS", 
+        "CURVARE", 
+        "IMMIX", 
+        "OLLIE",
         "ROVERS, TABLES ALUMINUM STEEL",
         "ELECTRICAL WIRING PLUG",
         "TRANSPORTS",

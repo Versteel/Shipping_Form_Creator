@@ -6,6 +6,7 @@ using Shipping_Form_CreatorV1.Services.Interfaces;
 using Shipping_Form_CreatorV1.Utilities;
 using System.ComponentModel;
 using System.Data.Odbc;
+using Serilog;
 
 namespace Shipping_Form_CreatorV1.ViewModels;
 
@@ -80,7 +81,7 @@ public class MainViewModel : INotifyPropertyChanged
             OnPropertyChanged(nameof(PageCount));
         }
     }
-    
+
     private ObservableCollection<int> _lineNumbersForDropdown;
     public ObservableCollection<int> LineNumbersForDropdown
     {
@@ -92,6 +93,8 @@ public class MainViewModel : INotifyPropertyChanged
             OnPropertyChanged(nameof(LineNumbersForDropdown));
         }
     }
+
+    public string CurrentUser => Environment.UserName;
 
     private bool _isDittoUser;
 
@@ -211,14 +214,14 @@ public class MainViewModel : INotifyPropertyChanged
         var summary = units
             .GroupBy(u => new
             {
-                TypeOfUnit = string.IsNullOrWhiteSpace(u.TypeOfUnit) ? "Unknown" : u.TypeOfUnit,
+                TypeOfUnit = NormalizeUnitType(u.TypeOfUnit),
                 CartonOrSkid = string.IsNullOrWhiteSpace(u.CartonOrSkid) ? "Unknown" : u.CartonOrSkid
             })
             .Select(g => new BolSummaryRow
             {
                 TypeOfUnit = g.Key.TypeOfUnit,
                 CartonOrSkid = g.Key.CartonOrSkid,
-                CartonCount = g.Where(x => x.CartonOrSkid?.Equals("Carton", StringComparison.InvariantCultureIgnoreCase) == true)
+                CartonCount = g.Where(x => x.CartonOrSkid?.Equals("Box", StringComparison.InvariantCultureIgnoreCase) == true)
                                .Sum(x => x.Quantity),
                 SkidCount = g.Where(x => x.CartonOrSkid?.Equals("Skid", StringComparison.InvariantCultureIgnoreCase) == true)
                                .Sum(x => x.Quantity),
@@ -229,27 +232,33 @@ public class MainViewModel : INotifyPropertyChanged
                     var t when t == Constants.PackingUnitCategories[0] => "70",
                     var t when t == Constants.PackingUnitCategories[1] => "70",
                     var t when t == Constants.PackingUnitCategories[2] => "250",
-                    var t when t == Constants.PackingUnitCategories[3] => "125",
-                    var t when t == Constants.PackingUnitCategories[4] => "71",
-                    var t when t == Constants.PackingUnitCategories[5] => "70",
-                    var t when t == Constants.PackingUnitCategories[6] => "70",
-                    var t when t == Constants.PackingUnitCategories[7] => "85",
-                    var t when t == Constants.PackingUnitCategories[8] => "100",
-                    var t when t == Constants.PackingUnitCategories[9] => "125",
+                    var t when t == Constants.PackingUnitCategories[3] => "250",
+                    var t when t == Constants.PackingUnitCategories[4] => "250",
+                    var t when t == Constants.PackingUnitCategories[5] => "250",
+                    var t when t == Constants.PackingUnitCategories[6] => "125",
+                    var t when t == Constants.PackingUnitCategories[7] => "71",
+                    var t when t == Constants.PackingUnitCategories[8] => "70",
+                    var t when t == Constants.PackingUnitCategories[9] => "70",
+                    var t when t == Constants.PackingUnitCategories[10] => "85",
+                    var t when t == Constants.PackingUnitCategories[11] => "100",
+                    var t when t == Constants.PackingUnitCategories[12] => "125",
                     _ => "0",
                 },
                 NMFC = g.Key.TypeOfUnit switch
                 {
-                    var t when t == Constants.PackingUnitCategories[0] => "79300-09",
-                    var t when t == Constants.PackingUnitCategories[1] => "79300-09",
-                    var t when t == Constants.PackingUnitCategories[2] => "79300-03",
-                    var t when t == Constants.PackingUnitCategories[3] => "79300-05",
-                    var t when t == Constants.PackingUnitCategories[4] => "61680-01",
-                    var t when t == Constants.PackingUnitCategories[5] => "189035",
-                    var t when t == Constants.PackingUnitCategories[6] => "95190-09",
-                    var t when t == Constants.PackingUnitCategories[7] => "83060",
-                    var t when t == Constants.PackingUnitCategories[8] => "22260-06",
-                    var t when t == Constants.PackingUnitCategories[9] => "79300-05",
+                    var t when t ==  Constants.PackingUnitCategories[0]  => "79300-09",
+                    var t when t ==  Constants.PackingUnitCategories[1]  => "79300-09",
+                    var t when t ==  Constants.PackingUnitCategories[2]  => "79300-03",
+                    var t when t ==  Constants.PackingUnitCategories[3]  => "79300-03",
+                    var t when t ==  Constants.PackingUnitCategories[4]  => "79300-03",
+                    var t when t ==  Constants.PackingUnitCategories[5]  => "79300-03",
+                    var t when t ==  Constants.PackingUnitCategories[6]  => "79300-05",
+                    var t when t ==  Constants.PackingUnitCategories[7]  => "61680-01",
+                    var t when t ==  Constants.PackingUnitCategories[8]  => "189035",
+                    var t when t ==  Constants.PackingUnitCategories[9]  => "95190-09",
+                    var t when t ==  Constants.PackingUnitCategories[10] => "83060",
+                    var t when t ==  Constants.PackingUnitCategories[11] => "22260-06",
+                    var t when t ==  Constants.PackingUnitCategories[12] => "79300-05",
                     _ => "000000-00",
                 }
             })
@@ -258,6 +267,19 @@ public class MainViewModel : INotifyPropertyChanged
 
         SelectedReportsGroups = new ObservableCollection<BolSummaryRow>(summary);
     }
+
+    private static string NormalizeUnitType(string? typeOfUnit)
+    {
+        if (string.IsNullOrWhiteSpace(typeOfUnit))
+            return "Unknown";
+
+        return typeOfUnit.ToUpperInvariant() switch
+        {
+            "CHAIRS" or "CURVARE" or "IMMIX" or "OLLIE" => "CHAIRS",
+            _ => typeOfUnit.ToUpperInvariant()
+        };
+    }
+
 
 
     private DateTime? _searchByDate = DateTime.Today.Date;
@@ -289,6 +311,8 @@ public class MainViewModel : INotifyPropertyChanged
 
     public async Task LoadDocumentAsync(string orderNumberInput, string suffix, CancellationToken ct = default)
     {
+        Log.Information($"User {CurrentUser} is attempting to load Sales Order {orderNumberInput}-{suffix}");
+
         SelectedReport = new ReportModel
         {
             Header = new ReportHeader(),
@@ -402,12 +426,14 @@ public class MainViewModel : INotifyPropertyChanged
         }
         finally
         {
+            Log.Information($"User {CurrentUser} finished loading Sales Order {orderNumber}-{suffix}");
             IsBusy = false;
         }
     }
 
     public async Task GetSearchByDateResults(DateTime date, CancellationToken ct = default)
     {
+        Log.Information($"User {CurrentUser} is searching for shipped orders on {date:d}");
         SelectedReportTitle = "SEARCH RESULTS";
         try
         {
@@ -425,7 +451,7 @@ public class MainViewModel : INotifyPropertyChanged
 
                 var report = await _odbcService.GetReportAsync(orderNumber, suffix, ct);
                 if (report == null) continue;
-                var cached = await _sqliteService.GetReportAsync(orderNumber,suffix, ct);
+                var cached = await _sqliteService.GetReportAsync(orderNumber, suffix, ct);
                 if (cached != null)
                 {
                     report.Id = cached.Id;
@@ -442,6 +468,7 @@ public class MainViewModel : INotifyPropertyChanged
         }
         finally
         {
+            Log.Information($"User {CurrentUser} finished searching for shipped orders on {date:d}");
             IsBusy = false;
         }
     }

@@ -11,7 +11,7 @@ namespace Shipping_Form_CreatorV1.Data
 
             // Use your actual SQL Server connection string here
             options.UseSqlServer(
-                "Server=reportingpc,1433;Database=ShippingFormsDb;Integrated Security=SSPI;Encrypt=False;TrustServerCertificate=True;MultipleActiveResultSets=True;",
+                "Server=store2,1433;Database=ShippingFormsDb;Integrated Security=SSPI;Encrypt=False;TrustServerCertificate=True;MultipleActiveResultSets=True;",
                 sql =>
                 {
                     sql.EnableRetryOnFailure(5, TimeSpan.FromSeconds(10), null);
