@@ -427,7 +427,7 @@
                                                             FontWeight="Bold"
                                                             TextAlignment="Center"
                                                             TextWrapping="Wrap">
-                                                            CTN
+                                                            BOX
                                                         </TextBlock>
                                                     </Border>
                                                 </Grid>

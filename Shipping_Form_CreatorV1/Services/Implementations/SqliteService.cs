@@ -38,7 +38,7 @@ public class SqliteService(IDbContextFactory<AppDbContext> dbContext) : ISqliteS
 
         return report;
     }
-    
+
     public async Task<List<ReportModel>> GetAllReportsByDateAsync(DateTime date, CancellationToken ct = default)
     {
         await using var db = await dbContext.CreateDbContextAsync(ct);
@@ -90,7 +90,7 @@ public class SqliteService(IDbContextFactory<AppDbContext> dbContext) : ISqliteS
                 .ThenInclude(li => li.LineItemDetails)
             .Include(r => r.LineItems)
                 .ThenInclude(li => li.LineItemPackingUnits)
-            .FirstOrDefaultAsync(r => r.Id == report.Id, ct) 
+            .FirstOrDefaultAsync(r => r.Id == report.Id, ct)
             ?? throw new InvalidOperationException($"Report with ID {report.Id} not found.");
 
         UpdateReportHeader(existingReport.Header, report.Header);
@@ -259,27 +259,32 @@ public class SqliteService(IDbContextFactory<AppDbContext> dbContext) : ISqliteS
 
     private static void UpdateLineItemPackingUnit(LineItemPackingUnit existing, LineItemPackingUnit updated)
     {
-        if(existing.Quantity != updated.Quantity)
+        if (existing.Quantity != updated.Quantity)
         {
             Log.Information("User: {User} changed Quantity from {OldValue} to {NewValue} for LineItemPackingUnit ID {PackingUnitId} in LineItem ID {LineItemId} of ReportModel ID {ReportId}",
                 Environment.UserName, existing.Quantity, updated.Quantity, existing.Id, existing.LineItemId, existing.LineItem.ReportModelId);
         }
-        if(existing.CartonOrSkid != updated.CartonOrSkid)
+        if (existing.CartonOrSkid != updated.CartonOrSkid)
         {
             Log.Information("User: {User} changed CartonOrSkid from {OldValue} to {NewValue} for LineItemPackingUnit ID {PackingUnitId} in LineItem ID {LineItemId} of ReportModel ID {ReportId}",
                 Environment.UserName, existing.CartonOrSkid, updated.CartonOrSkid, existing.Id, existing.LineItemId, existing.LineItem.ReportModelId);
         }
-        if(existing.LineNumber != updated.LineNumber)
+        if (existing.LineNumber != updated.LineNumber)
         {
             Log.Information("User: {User} changed LineNumber from {OldValue} to {NewValue} for LineItemPackingUnit ID {PackingUnitId} in LineItem ID {LineItemId} of ReportModel ID {ReportId}",
                 Environment.UserName, existing.LineNumber, updated.LineNumber, existing.Id, existing.LineItemId, existing.LineItem.ReportModelId);
         }
-        if(existing.TypeOfUnit != updated.TypeOfUnit)
+        if (existing.CartonOrSkidContents != updated.CartonOrSkidContents)
+        {
+            Log.Information("User: {User} changed CartonOrSkidContents from {OldValue} to {NewValue} for LineItemPackingUnit Id {PackingUnitId} in LineItem ID {LineItemId} of ReportModel ID {ReportId}",
+                Environment.UserName, existing.CartonOrSkidContents, updated.CartonOrSkidContents, existing.Id, existing.LineItemId, existing.LineItem.ReportModelId);
+        }
+        if (existing.TypeOfUnit != updated.TypeOfUnit)
         {
             Log.Information("User: {User} changed TypeOfUnit from {OldValue} to {NewValue} for LineItemPackingUnit ID {PackingUnitId} in LineItem ID {LineItemId} of ReportModel ID {ReportId}",
                 Environment.UserName, existing.TypeOfUnit, updated.TypeOfUnit, existing.Id, existing.LineItemId, existing.LineItem.ReportModelId);
         }
-        if(existing.Weight != updated.Weight)
+        if (existing.Weight != updated.Weight)
         {
             Log.Information("User: {User} changed Weight from {OldValue} to {NewValue} for LineItemPackingUnit ID {PackingUnitId} in LineItem ID {LineItemId} of ReportModel ID {ReportId}",
                 Environment.UserName, existing.Weight, updated.Weight, existing.Id, existing.LineItemId, existing.LineItem.ReportModelId);
@@ -288,6 +293,7 @@ public class SqliteService(IDbContextFactory<AppDbContext> dbContext) : ISqliteS
         existing.Quantity = updated.Quantity;
         existing.CartonOrSkid = updated.CartonOrSkid;
         existing.LineNumber = updated.LineNumber;
+        existing.CartonOrSkidContents = updated.CartonOrSkidContents;
         existing.TypeOfUnit = updated.TypeOfUnit;
         existing.Weight = updated.Weight;
     }
