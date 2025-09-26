@@ -11,8 +11,8 @@ using Shipping_Form_CreatorV1.Data;
 namespace Shipping_Form_CreatorV1.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250909121318_header-suffix")]
-    partial class headersuffix
+    [Migration("20250924193451_InitCreate")]
+    partial class InitCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

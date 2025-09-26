@@ -93,7 +93,7 @@ public partial class PackingListPage
                 .Where(li => GetDetailsFor(li).Count > 0)
                 .ToList();
 
-            const int maxDetailsPerPage = 45;
+            const int maxDetailsPerPage = 35;
             var currentPageItems = new List<LineItem>();
             var currentDetailsCount = 0;
             var pageCounter = 2;

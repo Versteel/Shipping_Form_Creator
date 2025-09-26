@@ -122,6 +122,9 @@ namespace Shipping_Form_CreatorV1.Migrations
                     b.Property<string>("CartonOrSkid")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("CartonOrSkidContents")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<int>("LineItemId")
                         .HasColumnType("int");
 

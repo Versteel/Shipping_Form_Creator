@@ -11,8 +11,8 @@ using Shipping_Form_CreatorV1.Data;
 namespace Shipping_Form_CreatorV1.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250903150338_InitCreate")]
-    partial class InitCreate
+    [Migration("20250925121229_CartonOrSkidContents")]
+    partial class CartonOrSkidContents
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -125,6 +125,9 @@ namespace Shipping_Form_CreatorV1.Migrations
                     b.Property<string>("CartonOrSkid")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("CartonOrSkidContents")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<int>("LineItemId")
                         .HasColumnType("int");
 
@@ -228,9 +231,6 @@ namespace Shipping_Form_CreatorV1.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("ShippingInstructions")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("SoldToCity")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -261,6 +261,12 @@ namespace Shipping_Form_CreatorV1.Migrations
 
                     b.Property<string>("SoldToZipCode")
                         .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Suffix")
+                        .HasColumnType("int");
+
+                    b.Property<string>("TrackingNumber")
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");

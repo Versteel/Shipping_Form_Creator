@@ -11,6 +11,7 @@ public class LineItemPackingUnit
     public string? CartonOrSkid { get; set; }
     public int LineNumber { get; set; }
     public string? TypeOfUnit { get; set; }
+    public string? CartonOrSkidContents { get; set; }
     public int Weight { get; set; }
 
     public int LineItemId { get; set; }

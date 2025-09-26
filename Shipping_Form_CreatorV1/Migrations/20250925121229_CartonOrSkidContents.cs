@@ -5,25 +5,24 @@
 namespace Shipping_Form_CreatorV1.Migrations
 {
     /// <inheritdoc />
-    public partial class headersuffix : Migration
+    public partial class CartonOrSkidContents : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AddColumn<int>(
-                name: "Suffix",
-                table: "ReportHeaders",
-                type: "int",
-                nullable: false,
-                defaultValue: 0);
+            migrationBuilder.AddColumn<string>(
+                name: "CartonOrSkidContents",
+                table: "LineItemPackingUnits",
+                type: "nvarchar(max)",
+                nullable: true);
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropColumn(
-                name: "Suffix",
-                table: "ReportHeaders");
+                name: "CartonOrSkidContents",
+                table: "LineItemPackingUnits");
         }
     }
 }
