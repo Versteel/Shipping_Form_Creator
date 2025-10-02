@@ -387,7 +387,7 @@
                                                                                             FontSize="10"
                                                                                             Foreground="#000"
                                                                                             Text="Weight" />
-                                                                                        <syncfusion:IntegerTextBox Width="50" Value="{Binding Weight, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                                                                        <syncfusion:IntegerTextBox Width="40" Value="{Binding Weight, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                                                                     </StackPanel>
 
                                                                                     <TextBlock

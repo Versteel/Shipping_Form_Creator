@@ -52,14 +52,13 @@
                                         HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
                                         VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
                                         Focusable="False" />
-                                    <Border Grid.Column="0" x:Name="PART_FilterPopUpPresenter" />
+                                    <Border x:Name="PART_FilterPopUpPresenter" Grid.Column="0" />
                                     <Grid
                                         x:Name="PART_SortButtonPresenter"
                                         Grid.Column="1"
                                         SnapsToDevicePixels="True">
                                         <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="0"
-                                                              MinWidth="{Binding SortDirection, Converter={StaticResource sortDirectionToWidthConverter}, Mode=OneWay, RelativeSource={RelativeSource Mode=TemplatedParent}}" />
+                                            <ColumnDefinition Width="0" MinWidth="{Binding SortDirection, Converter={StaticResource sortDirectionToWidthConverter}, Mode=OneWay, RelativeSource={RelativeSource Mode=TemplatedParent}}" />
                                             <ColumnDefinition Width="*" />
                                         </Grid.ColumnDefinitions>
                                         <Path
@@ -80,7 +79,8 @@
                                             </Path.RenderTransform>
                                         </Path>
                                         <Path
-                                            Grid.Column="0" Width="8.938"
+                                            Grid.Column="0"
+                                            Width="8.938"
                                             Height="8.138"
                                             HorizontalAlignment="Center"
                                             VerticalAlignment="Center"
@@ -153,8 +153,7 @@
                                 StrokeDashArray="2,2"
                                 StrokeThickness="1"
                                 Visibility="{TemplateBinding CurrentFocusRowVisibility}" />
-                            <Border BorderBrush="{TemplateBinding BorderBrush}"
-                                    BorderThickness="{TemplateBinding BorderThickness}">
+                            <Border BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
                                 <ContentPresenter />
                             </Border>
                             <Border
@@ -217,9 +216,9 @@
 
     <!--  Hook command handlers on the page  -->
     <Page.CommandBindings>
-        <CommandBinding Command="{x:Static local:SearchByDateResultsPage.OpenPackingListCommand}"
-                        Executed="OpenPackingList_Executed" />
+        <CommandBinding Command="{x:Static local:SearchByDateResultsPage.OpenPackingListCommand}" Executed="OpenPackingList_Executed" />
         <CommandBinding Command="{x:Static local:SearchByDateResultsPage.OpenBolCommand}" Executed="OpenBol_Executed" />
+        <CommandBinding Command="{x:Static local:SearchByDateResultsPage.ProcessAllDocumentsCommand}" Executed="ProcessAllDocuments_Executed" />
     </Page.CommandBindings>
 
     <Notification:SfBusyIndicator
@@ -234,26 +233,44 @@
                 <RowDefinition Height="*" />
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
-            <StackPanel
-                Grid.Row="0"
-                HorizontalAlignment="Center"
-                Orientation="Horizontal">
-                <TextBlock
-                    FontSize="25"
-                    FontWeight="Bold"
-                    Foreground="#000"
-                    Text="ORDERS SHIPPED " />
-                <TextBlock
-                    FontSize="25"
-                    FontWeight="Bold"
-                    Text="{Binding SearchDateString}" />
-            </StackPanel>
+            <Grid Grid.Row="0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <StackPanel
+                    Grid.Column="0"
+                    Margin="10,0,0,0"
+                    Orientation="Horizontal">
+                    <TextBlock
+                        FontSize="25"
+                        FontWeight="Bold"
+                        Foreground="#000"
+                        Text="ORDERS SHIPPED " />
+                    <TextBlock
+                        FontSize="25"
+                        FontWeight="Bold"
+                        Text="{Binding SearchDateString}" />
+                </StackPanel>
+
+
+                <!--<Button
+                    Grid.Column="1"
+                    Margin="0,0,10,0"
+                    Padding="10,5"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Center"
+                    Background="#e31f26"
+                    Command="{x:Static local:SearchByDateResultsPage.ProcessAllDocumentsCommand}"
+                    Content="Process All Packing Lists"
+                    Cursor="Hand"
+                    Foreground="#FFF" />-->
+            </Grid>
             <syncfusion:SfDataGrid
                 x:Name="searchResultsDataGrid"
                 Grid.Row="1"
                 Margin="10"
                 AllowResizingColumns="True"
-                TableSummaryRowStyle="{StaticResource tableSummaryRowStyle}"
                 AlternatingRowStyle="{StaticResource alternatingRowStyle}"
                 AlternationCount="2"
                 AutoGenerateColumns="False"
@@ -266,13 +283,15 @@
                 MouseDoubleClick="SearchResultsDataGrid_OnMouseDoubleClick"
                 RowHeight="30"
                 RowStyle="{StaticResource RowStyle}"
-                SelectedItem="{Binding SelectedReport, Mode=TwoWay}">
+                SelectedItem="{Binding SelectedReport, Mode=TwoWay}"
+                TableSummaryRowStyle="{StaticResource tableSummaryRowStyle}">
                 <syncfusion:SfDataGrid.Columns>
-                    <syncfusion:GridNumericColumn
+                    <syncfusion:GridTextColumn
                         Width="100"
                         HeaderText="Order #"
                         TextAlignment="Right"
-                        ValueBinding="{Binding Header.OrderNumber}" />
+                        ValueBinding="{Binding Header.OrderNumberWithSuffix}" />                    
+                    
                     <syncfusion:GridTextColumn
                         Width="100"
                         HeaderText="Customer #"
@@ -327,12 +346,13 @@
                     </syncfusion:GridTemplateColumn>
                 </syncfusion:SfDataGrid.Columns>
                 <syncfusion:SfDataGrid.TableSummaryRows>
-                    <syncfusion:GridTableSummaryRow ShowSummaryInRow="True" Title="Total Orders Shipped: {ShippedCount}">
+                    <syncfusion:GridTableSummaryRow Title="Total Orders Shipped: {ShippedCount}" ShowSummaryInRow="True">
                         <syncfusion:GridSummaryRow.SummaryColumns>
-                            <syncfusion:GridSummaryColumn Name="ShippedCount"
-                                                          Format="'{Count:d}'"
-                                                          MappingName="Header.OrderNumber"
-                                                          SummaryType="CountAggregate"/>
+                            <syncfusion:GridSummaryColumn
+                                Name="ShippedCount"
+                                Format="'{Count:d}'"
+                                MappingName="Header.OrderNumber"
+                                SummaryType="CountAggregate" />
                         </syncfusion:GridSummaryRow.SummaryColumns>
                     </syncfusion:GridTableSummaryRow>
                 </syncfusion:SfDataGrid.TableSummaryRows>

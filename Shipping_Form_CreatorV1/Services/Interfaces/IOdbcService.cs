@@ -6,4 +6,5 @@ public interface IOdbcService
 {
     Task<ReportModel?> GetReportAsync(int orderNumberInput, int suffixInput, CancellationToken ct = default);
     Task<List<ReportModel>> GetShippedOrdersByDate(DateTime shipDate, CancellationToken ct = default);
+    Task<List<ReportModel>> GetOrdersByOrderNumber(int orderNumber, CancellationToken ct = default);
 }

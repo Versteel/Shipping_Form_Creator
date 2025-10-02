@@ -71,7 +71,7 @@
                             <TextBlock
                                 FontSize="18"
                                 FontWeight="Bold"
-                                Text="{Binding Header.OrderNumber, RelativeSource={RelativeSource AncestorType=UserControl}}" />
+                                Text="{Binding Header.OrderNumberWithSuffix, RelativeSource={RelativeSource AncestorType=UserControl}}" />
                         </StackPanel>
                     </StackPanel>
                     <StackPanel Grid.Column="2" Orientation="Vertical">
@@ -391,7 +391,7 @@
                             </Grid.DataContext>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="1*" />
+                                <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="3*" />
                                 <ColumnDefinition Width="1*" />
                                 <ColumnDefinition Width="1*" />
@@ -578,7 +578,7 @@
                                                                         FontSize="10"
                                                                         Foreground="#000"
                                                                         Text="Weight" />
-                                                                    <syncfusion:IntegerTextBox Width="30" Value="{Binding Weight, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                                                    <syncfusion:IntegerTextBox Width="40" Value="{Binding Weight, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                                                 </StackPanel>
 
                                                                 <TextBlock

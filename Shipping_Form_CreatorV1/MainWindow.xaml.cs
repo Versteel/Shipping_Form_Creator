@@ -75,7 +75,23 @@ public partial class MainWindow
     {
         try
         {
-            if (!OrderNumberIsValid(OrderNumberTextBox.Text.Trim())) return;
+            //var rawInput = OrderNumberTextBox.Text.Trim();
+
+            //if (!OrderNumberIsValid(rawInput))
+            //    return;
+
+            //if (!int.TryParse(rawInput, out var orderNumber))
+            //{
+            //    DialogService.ShowErrorDialog("Invalid order number. Please enter a valid number.");
+            //    return;
+            //}
+
+            //await _viewModel.GetSearchByOrderNumberResults(orderNumber);
+
+            //_viewModel.SelectedReportTitle = "SEARCH RESULTS";
+
+            //ContentFrame.Content = new SearchByDateResultsPage(_viewModel, _printService);
+
             await _viewModel.LoadDocumentAsync(OrderNumberTextBox.Text.Trim(), SuffixIntegerBox.Text.Trim());
             if (_viewModel.SelectedReportTitle == "SEARCH RESULTS")
             {
@@ -196,7 +212,7 @@ public partial class MainWindow
             }
 
             await _viewModel.GetSearchByDateResults(_viewModel.SearchByDate.Value);
-            ContentFrame.Content = new SearchByDateResultsPage(_viewModel);
+            ContentFrame.Content = new SearchByDateResultsPage(_viewModel, _printService);
         }
         catch (Exception ex)
         {

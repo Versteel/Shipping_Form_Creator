@@ -63,10 +63,12 @@ public class MainViewModel : INotifyPropertyChanged
             _selectedReportTitle = value;
             OnPropertyChanged(nameof(SelectedReportTitle));
             OnPropertyChanged(nameof(IsSaveEnabled));
+            OnPropertyChanged(nameof(IsPrintAvailable));
         }
     }
 
     public bool IsSaveEnabled => SelectedReportTitle == "PACKING LIST";
+    public bool IsPrintAvailable => SelectedReportTitle != "SEARCH RESULTS";
 
 
     private int _pageCount;
@@ -221,9 +223,10 @@ public class MainViewModel : INotifyPropertyChanged
             {
                 TypeOfUnit = g.Key.TypeOfUnit,
                 CartonOrSkid = g.Key.CartonOrSkid,
-                CartonCount = g.Where(x => x.CartonOrSkid?.Equals("Box", StringComparison.InvariantCultureIgnoreCase) == true)
+                CartonCount = g.Where(x => x.CartonOrSkid?.Equals("BOX", StringComparison.InvariantCultureIgnoreCase) == true
+                                      || x.CartonOrSkid?.Equals("SINGLE PACK") == true)
                                .Sum(x => x.Quantity),
-                SkidCount = g.Where(x => x.CartonOrSkid?.Equals("Skid", StringComparison.InvariantCultureIgnoreCase) == true)
+                SkidCount = g.Where(x => x.CartonOrSkid?.Equals("SKID", StringComparison.InvariantCultureIgnoreCase) == true)
                                .Sum(x => x.Quantity),
                 TotalPieces = g.Sum(x => x.Quantity),
                 TotalWeight = g.Sum(x => x.Weight),
@@ -235,13 +238,17 @@ public class MainViewModel : INotifyPropertyChanged
                     var t when t == Constants.PackingUnitCategories[3] => "250",
                     var t when t == Constants.PackingUnitCategories[4] => "250",
                     var t when t == Constants.PackingUnitCategories[5] => "250",
-                    var t when t == Constants.PackingUnitCategories[6] => "125",
-                    var t when t == Constants.PackingUnitCategories[7] => "71",
-                    var t when t == Constants.PackingUnitCategories[8] => "70",
+                    var t when t == Constants.PackingUnitCategories[6] => "250",
+                    var t when t == Constants.PackingUnitCategories[7] => "125",
+                    var t when t == Constants.PackingUnitCategories[8] => "71",
                     var t when t == Constants.PackingUnitCategories[9] => "70",
-                    var t when t == Constants.PackingUnitCategories[10] => "85",
-                    var t when t == Constants.PackingUnitCategories[11] => "100",
-                    var t when t == Constants.PackingUnitCategories[12] => "125",
+                    var t when t == Constants.PackingUnitCategories[10] => "70",
+                    var t when t == Constants.PackingUnitCategories[11] => "70",
+                    var t when t == Constants.PackingUnitCategories[12] => "70",
+                    var t when t == Constants.PackingUnitCategories[13] => "85",
+                    var t when t == Constants.PackingUnitCategories[14] => "100",
+                    var t when t == Constants.PackingUnitCategories[15] => "125",
+                    
                     _ => "0",
                 },
                 NMFC = g.Key.TypeOfUnit switch
@@ -253,12 +260,15 @@ public class MainViewModel : INotifyPropertyChanged
                     var t when t ==  Constants.PackingUnitCategories[4]  => "79300-03",
                     var t when t ==  Constants.PackingUnitCategories[5]  => "79300-03",
                     var t when t ==  Constants.PackingUnitCategories[6]  => "79300-05",
-                    var t when t ==  Constants.PackingUnitCategories[7]  => "61680-01",
-                    var t when t ==  Constants.PackingUnitCategories[8]  => "189035",
-                    var t when t ==  Constants.PackingUnitCategories[9]  => "95190-09",
-                    var t when t ==  Constants.PackingUnitCategories[10] => "83060",
-                    var t when t ==  Constants.PackingUnitCategories[11] => "22260-06",
-                    var t when t ==  Constants.PackingUnitCategories[12] => "79300-05",
+                    var t when t ==  Constants.PackingUnitCategories[7]  => "79300-05",
+                    var t when t ==  Constants.PackingUnitCategories[8]  => "61680-01",
+                    var t when t ==  Constants.PackingUnitCategories[9]  => "189035",
+                    var t when t ==  Constants.PackingUnitCategories[10]  => "95190-09",
+                    var t when t ==  Constants.PackingUnitCategories[11]  => "95190-09",
+                    var t when t ==  Constants.PackingUnitCategories[12]  => "95190-09",
+                    var t when t ==  Constants.PackingUnitCategories[13] => "83060",
+                    var t when t ==  Constants.PackingUnitCategories[14] => "22260-06",
+                    var t when t ==  Constants.PackingUnitCategories[15] => "79300-05",
                     _ => "000000-00",
                 }
             })
@@ -275,7 +285,8 @@ public class MainViewModel : INotifyPropertyChanged
 
         return typeOfUnit.ToUpperInvariant() switch
         {
-            "CHAIRS" or "CURVARE" or "IMMIX" or "OLLIE" => "CHAIRS",
+            "CHAIRS" or "CURVARE" or "IMMIX" or "OH!" or "OLLIE" => "CHAIRS",
+            "TABLE LEGS, TUBULAR STL EXC 1 QTR DIAMETER, N-G-T 2 INCH DIAMETER" => "TABLE LEGS",
             _ => typeOfUnit.ToUpperInvariant()
         };
     }
@@ -344,7 +355,7 @@ public class MainViewModel : INotifyPropertyChanged
             {
                 case null when cachedDocument is null:
                     DialogService.ShowErrorDialog(
-                        $"Frontier has not created a packing list for Sales Order {orderNumber}.");
+                        $"Frontier has not created a packing list for Sales Order {orderNumber}-{suffix}.");
                     return;
                 case null:
                     SelectedReport = cachedDocument!;
@@ -431,6 +442,8 @@ public class MainViewModel : INotifyPropertyChanged
         }
     }
 
+    // In MainViewModel.cs
+
     public async Task GetSearchByDateResults(DateTime date, CancellationToken ct = default)
     {
         Log.Information($"User {CurrentUser} is searching for shipped orders on {date:d}");
@@ -441,7 +454,6 @@ public class MainViewModel : INotifyPropertyChanged
             await Task.Delay(1, ct);
 
             var orders = await _odbcService.GetShippedOrdersByDate(date.Date, ct);
-
             var fullReports = new List<ReportModel>();
 
             foreach (var order in orders)
@@ -451,10 +463,31 @@ public class MainViewModel : INotifyPropertyChanged
 
                 var report = await _odbcService.GetReportAsync(orderNumber, suffix, ct);
                 if (report == null) continue;
+
                 var cached = await _sqliteService.GetReportAsync(orderNumber, suffix, ct);
+
+                // This is the new logic to add
                 if (cached != null)
                 {
                     report.Id = cached.Id;
+                    report.Header.Id = cached.Header.Id;
+
+                    // Loop through line items to merge packing units from the cache
+                    foreach (var erpLine in report.LineItems)
+                    {
+                        var cachedLine = cached.LineItems.FirstOrDefault(li =>
+                            li.LineItemHeader?.LineItemNumber == erpLine.LineItemHeader?.LineItemNumber);
+
+                        if (cachedLine == null) continue;
+
+                        erpLine.Id = cachedLine.Id;
+
+                        // If the ERP line has no packing units, use the ones from the cache
+                        if (erpLine.LineItemPackingUnits.Count == 0)
+                        {
+                            erpLine.LineItemPackingUnits = cachedLine.LineItemPackingUnits;
+                        }
+                    }
                 }
 
                 fullReports.Add(report);
@@ -473,6 +506,61 @@ public class MainViewModel : INotifyPropertyChanged
         }
     }
 
+
+    public async Task GetSearchByOrderNumberResults(int orderNumber, CancellationToken ct = default)
+    {
+        Log.Information($"User {CurrentUser} is searching for Sales Order {orderNumber}");
+        SelectedReportTitle = "SEARCH RESULTS";
+        try
+        {
+            IsBusy = true;
+            await Task.Delay(1, ct);
+
+            var orders = await _odbcService.GetOrdersByOrderNumber(orderNumber, ct);
+            var fullReports = new List<ReportModel>();
+
+            foreach (var order in orders)
+            {
+                var orderNum = order.Header.OrderNumber;
+                var suffix = order.Header.Suffix;
+
+                var report = await _odbcService.GetReportAsync(orderNum, suffix, ct);
+                if (report == null) continue;
+
+                var cached = await _sqliteService.GetReportAsync(orderNum, suffix, ct);
+
+                // This is the new logic to add
+                if (cached == null) continue;
+                report.Id = cached.Id;
+                report.Header.Id = cached.Header.Id;
+
+                // Loop through line items to merge packing units from the cache
+                foreach (var erpLine in report.LineItems)
+                {
+                    var cachedLine = cached.LineItems.FirstOrDefault(li =>
+                        li.LineItemHeader?.LineItemNumber == erpLine.LineItemHeader?.LineItemNumber);
+                    if (cachedLine == null) continue;
+                    erpLine.Id = cachedLine.Id;
+                    // If the ERP line has no packing units, use the ones from the cache
+                    if (erpLine.LineItemPackingUnits.Count == 0)
+                    {
+                        erpLine.LineItemPackingUnits = cachedLine.LineItemPackingUnits;
+                    }
+                }
+                fullReports.Add(report);
+            }
+            SearchByDateResults = fullReports;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Exception: {ex.Message}. Inner Exception {ex.InnerException}");
+        }
+        finally
+        {
+            Log.Information($"User {CurrentUser} finished searching for Sales Order {orderNumber}");
+            IsBusy = false;
+        }
+    }
 
     public async Task SaveCurrentReportAsync(CancellationToken ct = default)
     {
