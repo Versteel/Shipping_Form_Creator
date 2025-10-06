@@ -142,7 +142,7 @@ public class SqliteService(IDbContextFactory<AppDbContext> dbContext) : ISqliteS
         foreach (var updatedLineItem in updatedLineItems)
         {
             if (updatedLineItem.Id == 0)
-            {
+            {                
                 updatedLineItem.ReportModelId = existingReport.Id;
                 existingReport.LineItems.Add(updatedLineItem);
             }
@@ -178,7 +178,7 @@ public class SqliteService(IDbContextFactory<AppDbContext> dbContext) : ISqliteS
     }
 
     private static void UpdateLineItemHeader(LineItemHeader existing, LineItemHeader updated)
-    {
+    {        
         existing.LineItemNumber = updated.LineItemNumber;
         existing.ProductNumber = updated.ProductNumber;
         existing.ProductDescription = updated.ProductDescription;
@@ -258,7 +258,12 @@ public class SqliteService(IDbContextFactory<AppDbContext> dbContext) : ISqliteS
     }
 
     private static void UpdateLineItemPackingUnit(LineItemPackingUnit existing, LineItemPackingUnit updated)
-    {
+    {     
+        if (existing.TruckNumber != updated.TruckNumber)
+        {
+            Log.Information("User: {User} changed TruckNumber from {OldValue} to {NewValue} for LineItemPackingUnit ID {PackingUnitId} in LineItem ID {LineItemId} of ReportModel ID {ReportId}",
+                Environment.UserName, existing.TruckNumber, updated.TruckNumber, existing.Id, existing.LineItemId, existing.LineItem.ReportModelId);
+        }
         if (existing.Quantity != updated.Quantity)
         {
             Log.Information("User: {User} changed Quantity from {OldValue} to {NewValue} for LineItemPackingUnit ID {PackingUnitId} in LineItem ID {LineItemId} of ReportModel ID {ReportId}",
@@ -290,6 +295,7 @@ public class SqliteService(IDbContextFactory<AppDbContext> dbContext) : ISqliteS
                 Environment.UserName, existing.Weight, updated.Weight, existing.Id, existing.LineItemId, existing.LineItem.ReportModelId);
         }
 
+        existing.TruckNumber = updated.TruckNumber;
         existing.Quantity = updated.Quantity;
         existing.CartonOrSkid = updated.CartonOrSkid;
         existing.LineNumber = updated.LineNumber;

@@ -25,7 +25,7 @@ namespace Shipping_Form_CreatorV1
                 .WriteTo.File(
                     Constants.LOG_FILE_PATH,
                     rollingInterval: RollingInterval.Day,  
-                    retainedFileCountLimit: 7,              
+                    retainedFileCountLimit: 5,              
                     fileSizeLimitBytes: 10_000_000,         
                     rollOnFileSizeLimit: true               
                 )

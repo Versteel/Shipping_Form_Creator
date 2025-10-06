@@ -5,6 +5,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="clr-namespace:Shipping_Form_CreatorV1.Components"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:syncfusion="http://schemas.syncfusion.com/wpf"
     xmlns:utils="clr-namespace:Shipping_Form_CreatorV1.Utilities"
     Title="BillOfLading"
     d:DesignHeight="1200"
@@ -65,8 +66,32 @@
     </Page.Resources>
 
     <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <StackPanel
+            Grid.Row="0"
+            Width="840"
+            Background="#e6e6e6"
+            Orientation="Horizontal">
+            <TextBlock
+                Margin="10,0,5,0"
+                VerticalAlignment="Center"
+                FontSize="20"
+                Foreground="#000"
+                Text="TRUCK NUMBER" />
+            <syncfusion:ComboBoxAdv
+                Width="100"
+                Height="30"
+                HorizontalContentAlignment="Right"
+                FontSize="18"
+                ItemsSource="{x:Static utils:Constants.ViewOptions}"
+                SelectedItem="{Binding SelectedReportView, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+        </StackPanel>
         <ScrollViewer
-            Padding="20"
+            Grid.Row="1"
+            Padding="20 0 20 20"
             Background="#e6e6e6"
             HorizontalScrollBarVisibility="Disabled"
             VerticalScrollBarVisibility="Auto">

@@ -4,6 +4,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="clr-namespace:Shipping_Form_CreatorV1.Components"
+    xmlns:constants="clr-namespace:Shipping_Form_CreatorV1.Utilities"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:syncfusion="http://schemas.syncfusion.com/wpf"
     xmlns:ui="http://schemas.modernwpf.com/2019"
@@ -279,6 +280,7 @@
                                                                 x:Name="PackingUnitsDropDownStackPanel"
                                                                 Orientation="Vertical"
                                                                 Visibility="{Binding IsPrinting, RelativeSource={RelativeSource AncestorType={x:Type local:PackingListPageTwoPlus}}, Converter={StaticResource InverseBoolToVis}}">
+
                                                                 <ui:HyperlinkButton
                                                                     HorizontalAlignment="Center"
                                                                     Command="{Binding AddPackUnitCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
@@ -323,7 +325,7 @@
                                                                                             FontSize="10"
                                                                                             Foreground="#000"
                                                                                             Text="Qty" />
-                                                                                        <syncfusion:IntegerTextBox Width="50" Value="{Binding Quantity, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                                                                        <syncfusion:IntegerTextBox Width="25" Value="{Binding Quantity, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                                                                     </StackPanel>
                                                                                     <StackPanel
                                                                                         x:Name="spCartonOrSkidContents"
@@ -390,12 +392,17 @@
                                                                                         <syncfusion:IntegerTextBox Width="40" Value="{Binding Weight, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                                                                     </StackPanel>
 
-                                                                                    <TextBlock
-                                                                                        x:Name="lbsDisplay"
-                                                                                        VerticalAlignment="Bottom"
-                                                                                        FontSize="14"
-                                                                                        Foreground="#000"
-                                                                                        Text="Lbs." />
+                                                                                    <StackPanel x:Name="spTruckNumber" Orientation="Vertical">
+                                                                                        <TextBlock
+                                                                                            FontSize="10"
+                                                                                            Foreground="#000"
+                                                                                            Text="Truck" />
+                                                                                        <syncfusion:ComboBoxAdv
+                                                                                            Width="70"
+                                                                                            Height="20"
+                                                                                            ItemsSource="{x:Static constants:Constants.TruckNumbers}"
+                                                                                            SelectedItem="{Binding TruckNumber, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                                                                    </StackPanel>
                                                                                 </StackPanel>
 
                                                                                 <DataTemplate.Triggers>
@@ -404,7 +411,6 @@
                                                                                         <Setter TargetName="spLineNumber" Property="UIElement.Visibility" Value="Visible" />
                                                                                         <Setter TargetName="spCartonOrSkidContents" Property="UIElement.Visibility" Value="Visible" />
                                                                                         <Setter TargetName="spWeight" Property="UIElement.Visibility" Value="Collapsed" />
-                                                                                        <Setter TargetName="lbsDisplay" Property="UIElement.Visibility" Value="Collapsed" />
                                                                                         <Setter TargetName="sfQty" Property="UIElement.Visibility" Value="Collapsed" />
                                                                                     </DataTrigger>
                                                                                 </DataTemplate.Triggers>
@@ -422,6 +428,7 @@
                                                                 <ItemsControl.ItemTemplate>
                                                                     <DataTemplate>
                                                                         <StackPanel Margin="0,2,0,2" Orientation="Horizontal">
+                                                                            
                                                                             <TextBlock Text="{Binding Quantity}">
                                                                                 <TextBlock.Style>
                                                                                     <Style TargetType="TextBlock">
@@ -492,6 +499,18 @@
                                                                                                 </MultiBinding>
                                                                                             </Setter.Value>
                                                                                         </Setter>
+                                                                                        <Style.Triggers>
+                                                                                            <DataTrigger Binding="{Binding CartonOrSkid}" Value="PACKED WITH LINE ">
+                                                                                                <Setter Property="Visibility" Value="Collapsed" />
+                                                                                            </DataTrigger>
+                                                                                        </Style.Triggers>
+                                                                                    </Style>
+                                                                                </TextBlock.Style>
+                                                                            </TextBlock>
+                                                                            <TextBlock Margin="8,0,0,0" Text="{Binding TruckNumber}">
+                                                                                <TextBlock.Style>
+                                                                                    <Style TargetType="TextBlock">
+                                                                                        <Setter Property="Visibility" Value="Visible" />
                                                                                         <Style.Triggers>
                                                                                             <DataTrigger Binding="{Binding CartonOrSkid}" Value="PACKED WITH LINE ">
                                                                                                 <Setter Property="Visibility" Value="Collapsed" />

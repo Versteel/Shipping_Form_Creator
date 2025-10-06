@@ -1,5 +1,4 @@
 ﻿using PdfSharp.Xps;
-using PdfSharp.Xps;
 using Shipping_Form_CreatorV1.Components;
 using Shipping_Form_CreatorV1.Models;
 using Shipping_Form_CreatorV1.Utilities;
@@ -73,30 +72,60 @@ public class PrintService
             var report = viewModel.SelectedReport;
             var header = report.Header;
 
-            var lineItems = report.LineItems
+            // 1. Get the selected view (Truck Number or "ALL")
+            var selectedView = viewModel.SelectedReportView;
+            var isAllView = selectedView == Constants.ViewOptions[0]; // Assuming Constants.ViewOptions[0] is "ALL"
+
+            // 2. Filter line items by number and general note-only status
+            var rawLineItems = report.LineItems
                 .Where(li => !IsNoteOnly(li))
                 .Where(li => !string.IsNullOrWhiteSpace(li.LineItemHeader?.ProductDescription))
                 .OrderBy(li => li.LineItemHeader?.LineItemNumber ?? 0)
                 .ToList();
 
-            // This part remains the same
-            var tableLegUnits = lineItems
+            // This part remains the same (Unit Type transformation)
+            var tableLegUnits = rawLineItems
                 .SelectMany(li => li.LineItemPackingUnits)
                 .Where(pu => pu.TypeOfUnit == Constants.PackingUnitCategories[1]);
             foreach (var packingUnit in tableLegUnits)
                 packingUnit.TypeOfUnit = "TABLE LEGS";
 
+
+            // 3. FILTER AND CLONE LINE ITEMS TO ONLY INCLUDE SELECTED PACKING UNITS
+            var filteredLineItems = new List<LineItem>();
+            foreach (var li in rawLineItems)
+            {
+                var filteredPackingUnits = li.LineItemPackingUnits
+                    .Where(pu => isAllView || string.Equals(pu.TruckNumber, selectedView, StringComparison.OrdinalIgnoreCase))
+                    .ToList();
+
+                // Only include the line item if it has matching packing units
+                if (filteredPackingUnits.Count > 0)
+                {
+                    // **ACTUAL CLONING LOGIC** using the new copy constructor!
+                    var lineItemCopy = new LineItem(
+                        original: li,
+                        newPackingUnits: new ObservableCollection<LineItemPackingUnit>(filteredPackingUnits)
+                    );
+
+                    filteredLineItems.Add(lineItemCopy);
+                }
+            }
+            // Use the new filtered list for the rest of the page building logic
+            var lineItems = filteredLineItems;
+
+
             if (lineItems.Count > 0)
             {
                 UpdateLoadingMessage("Creating page 1...");
-                var firstLineItem = lineItems[0];
+                var firstLineItem = lineItems[0]; 
 
                 var pageOne = new PackingListPageOne
                 {
                     Header = header,
                     LineItem = firstLineItem,
                     Details = new ObservableCollection<LineItemDetail>(GetDetailsFor(firstLineItem)),
-                    PackingUnits = new ObservableCollection<LineItemPackingUnit>(firstLineItem.LineItemPackingUnits),
+                    PackingUnits = firstLineItem.LineItemPackingUnits,
                     IsPrinting = true
                 };
                 pages.Add(pageOne);
@@ -104,6 +133,7 @@ public class PrintService
             }
 
             var remainingItems = lineItems.Skip(1).ToList();
+
 
             const int maxDetailsPerPage = 35;
             var currentPageItems = new List<LineItem>();
@@ -368,109 +398,6 @@ public class PrintService
         }
     }
 
-    //public void PrintXpsToPdf(byte[] bytes, string outputFilePath, string documentTitle)
-    //{
-    //    // Get Microsoft Print to PDF print queue
-    //    var pdfPrintQueue = GetMicrosoftPdfPrintQueue();
-
-    //    // Copy byte array to unmanaged pointer
-    //    var ptrUnmanagedBytes = Marshal.AllocCoTaskMem(bytes.Length);
-    //    Marshal.Copy(bytes, 0, ptrUnmanagedBytes, bytes.Length);
-
-    //    // Prepare document info
-    //    var di = new DOCINFOA
-    //    {
-    //        pDocName = documentTitle,
-    //        pOutputFile = outputFilePath,
-    //        pDataType = "RAW"
-    //    };
-
-    //    // Print to PDF
-    //    var errorCode = SendBytesToPrinter(pdfPrintQueue.Name, ptrUnmanagedBytes, bytes.Length, di, out var jobId);
-
-    //    ShowLoadingIndicator("Preparing PDF....");
-    //    // Free unmanaged memory
-    //    Marshal.FreeCoTaskMem(ptrUnmanagedBytes);
-
-    //    // Check if job in error state (for example not enough disk space)
-    //    var jobFailed = false;
-    //    try
-    //    {
-    //        var pdfPrintJob = pdfPrintQueue.GetJob(jobId);
-    //        if (pdfPrintJob.IsInError)
-    //        {
-    //            jobFailed = true;
-    //            pdfPrintJob.Cancel();
-    //        }
-    //    }
-    //    catch
-    //    {
-    //        // If job succeeds, GetJob will throw an exception. Ignore it. 
-    //    }
-    //    finally
-    //    {
-    //        pdfPrintQueue.Dispose();
-    //        HideLoadingIndicator();
-    //    }
-
-    //    if (errorCode > 0 || jobFailed)
-    //    {
-    //        try
-    //        {
-    //            if (File.Exists(outputFilePath))
-    //            {
-    //                File.Delete(outputFilePath);
-    //            }
-    //        }
-    //        catch
-    //        {
-    //            // ignored
-    //        }
-    //    }
-
-    //    if (errorCode > 0)
-    //    {
-    //        throw new Exception($"Printing to PDF failed. Error code: {errorCode}.");
-    //    }
-
-    //    if (jobFailed)
-    //    {
-    //        throw new Exception("PDF Print job failed.");
-    //    }
-    //}
-
-    //private static int SendBytesToPrinter(string szPrinterName, IntPtr pBytes, int dwCount, DOCINFOA documentInfo, out int jobId)
-    //{
-    //    jobId = 0;
-    //    var dwWritten = 0;
-    //    var success = false;
-
-    //    if (OpenPrinter(szPrinterName.Normalize(), out var hPrinter, IntPtr.Zero))
-    //    {
-    //        jobId = StartDocPrinter(hPrinter, 1, documentInfo);
-    //        if (jobId > 0)
-    //        {
-    //            if (StartPagePrinter(hPrinter))
-    //            {
-    //                success = WritePrinter(hPrinter, pBytes, dwCount, out dwWritten);
-    //                EndPagePrinter(hPrinter);
-    //            }
-
-    //            EndDocPrinter(hPrinter);
-    //        }
-
-    //        ClosePrinter(hPrinter);
-    //    }
-
-    //    // TODO: The other methods such as OpenPrinter also have return values. Check those?
-
-    //    if (success == false)
-    //    {
-    //        return Marshal.GetLastWin32Error();
-    //    }
-
-    //    return 0;
-    //}
 
     private static PrintQueue GetMicrosoftPdfPrintQueue()
     {

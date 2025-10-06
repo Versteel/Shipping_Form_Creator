@@ -13,7 +13,7 @@ public class LineItemPackingUnit
     public string? TypeOfUnit { get; set; }
     public string? CartonOrSkidContents { get; set; }
     public int Weight { get; set; }
-
+    public string TruckNumber { get; set; } = Constants.TruckNumbers[0];
     public int LineItemId { get; set; }
     [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
     public LineItem LineItem { get; set; } = null!;

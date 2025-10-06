@@ -165,6 +165,19 @@ public class MainViewModel : INotifyPropertyChanged
         }
     }
 
+    private string _selectedReportView = "ALL";
+    public string SelectedReportView
+    {
+        get => _selectedReportView;
+        set
+        {
+            if (_selectedReportView == value) return;
+            _selectedReportView = value;
+            OnPropertyChanged(nameof(SelectedReportView));
+            UpdateGroups();
+        }
+    }
+
 
     private ICollection<ReportModel> _searchByDateResults;
     public ICollection<ReportModel> SearchByDateResults
@@ -203,14 +216,19 @@ public class MainViewModel : INotifyPropertyChanged
 
     public int AllPiecesTotal => SelectedReportsGroups.Sum(r => r.TotalPieces);
     public int AllWeightTotal => SelectedReportsGroups.Sum(r => r.TotalWeight);
+    public static string[] ViewOptions => Constants.ViewOptions;
 
     private void UpdateGroups()
     {
         var items = SelectedReport?.LineItems ?? Enumerable.Empty<LineItem>();
 
+        var selectedView = SelectedReportView;
+        var isAllView = selectedView == Constants.ViewOptions[0]; 
+
         var units = items
             .SelectMany(li => li.LineItemPackingUnits ?? Enumerable.Empty<LineItemPackingUnit>())
             .Where(pu => !string.IsNullOrWhiteSpace(pu.TypeOfUnit))
+            .Where(pu => isAllView || string.Equals(pu.TruckNumber, selectedView, StringComparison.OrdinalIgnoreCase))
             .ToList();
 
         var summary = units
@@ -224,10 +242,10 @@ public class MainViewModel : INotifyPropertyChanged
                 TypeOfUnit = g.Key.TypeOfUnit,
                 CartonOrSkid = g.Key.CartonOrSkid,
                 CartonCount = g.Where(x => x.CartonOrSkid?.Equals("BOX", StringComparison.InvariantCultureIgnoreCase) == true
-                                      || x.CartonOrSkid?.Equals("SINGLE PACK") == true)
-                               .Sum(x => x.Quantity),
+                                        || x.CartonOrSkid?.Equals("SINGLE PACK") == true)
+                                       .Sum(x => x.Quantity),
                 SkidCount = g.Where(x => x.CartonOrSkid?.Equals("SKID", StringComparison.InvariantCultureIgnoreCase) == true)
-                               .Sum(x => x.Quantity),
+                                       .Sum(x => x.Quantity),
                 TotalPieces = g.Sum(x => x.Quantity),
                 TotalWeight = g.Sum(x => x.Weight),
                 Class = g.Key.TypeOfUnit switch
@@ -248,27 +266,27 @@ public class MainViewModel : INotifyPropertyChanged
                     var t when t == Constants.PackingUnitCategories[13] => "85",
                     var t when t == Constants.PackingUnitCategories[14] => "100",
                     var t when t == Constants.PackingUnitCategories[15] => "125",
-                    
+
                     _ => "0",
                 },
                 NMFC = g.Key.TypeOfUnit switch
                 {
-                    var t when t ==  Constants.PackingUnitCategories[0]  => "79300-09",
-                    var t when t ==  Constants.PackingUnitCategories[1]  => "79300-09",
-                    var t when t ==  Constants.PackingUnitCategories[2]  => "79300-03",
-                    var t when t ==  Constants.PackingUnitCategories[3]  => "79300-03",
-                    var t when t ==  Constants.PackingUnitCategories[4]  => "79300-03",
-                    var t when t ==  Constants.PackingUnitCategories[5]  => "79300-03",
-                    var t when t ==  Constants.PackingUnitCategories[6]  => "79300-05",
-                    var t when t ==  Constants.PackingUnitCategories[7]  => "79300-05",
-                    var t when t ==  Constants.PackingUnitCategories[8]  => "61680-01",
-                    var t when t ==  Constants.PackingUnitCategories[9]  => "189035",
-                    var t when t ==  Constants.PackingUnitCategories[10]  => "95190-09",
-                    var t when t ==  Constants.PackingUnitCategories[11]  => "95190-09",
-                    var t when t ==  Constants.PackingUnitCategories[12]  => "95190-09",
-                    var t when t ==  Constants.PackingUnitCategories[13] => "83060",
-                    var t when t ==  Constants.PackingUnitCategories[14] => "22260-06",
-                    var t when t ==  Constants.PackingUnitCategories[15] => "79300-05",
+                    var t when t == Constants.PackingUnitCategories[0] => "79300-09",
+                    var t when t == Constants.PackingUnitCategories[1] => "79300-09",
+                    var t when t == Constants.PackingUnitCategories[2] => "79300-03",
+                    var t when t == Constants.PackingUnitCategories[3] => "79300-03",
+                    var t when t == Constants.PackingUnitCategories[4] => "79300-03",
+                    var t when t == Constants.PackingUnitCategories[5] => "79300-03",
+                    var t when t == Constants.PackingUnitCategories[6] => "79300-05",
+                    var t when t == Constants.PackingUnitCategories[7] => "79300-05",
+                    var t when t == Constants.PackingUnitCategories[8] => "61680-01",
+                    var t when t == Constants.PackingUnitCategories[9] => "189035",
+                    var t when t == Constants.PackingUnitCategories[10] => "95190-09",
+                    var t when t == Constants.PackingUnitCategories[11] => "95190-09",
+                    var t when t == Constants.PackingUnitCategories[12] => "95190-09",
+                    var t when t == Constants.PackingUnitCategories[13] => "83060",
+                    var t when t == Constants.PackingUnitCategories[14] => "22260-06",
+                    var t when t == Constants.PackingUnitCategories[15] => "79300-05",
                     _ => "000000-00",
                 }
             })

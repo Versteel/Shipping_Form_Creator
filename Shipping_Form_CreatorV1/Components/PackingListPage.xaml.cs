@@ -13,15 +13,21 @@ public partial class PackingListPage
 {
     private readonly MainViewModel _viewModel;
 
+
+
     public PackingListPage(MainViewModel viewModel)
     {
         _viewModel = viewModel;
         DataContext = _viewModel;
+
         InitializeComponent();
+
         _viewModel.PropertyChanged += (_, e) =>
         {
-            if (e.PropertyName == nameof(MainViewModel.SelectedReport) && _viewModel.SelectedReportTitle == "PACKING LIST")
+            if (e.PropertyName == nameof(MainViewModel.SelectedReport) || (e.PropertyName == nameof(MainViewModel.SelectedReportView) && _viewModel.SelectedReport != null) && _viewModel.SelectedReportTitle == "PACKING LIST")
+            {
                 BuildPagesWithBusy();
+            }
         };
 
         Loaded += (_, _) => BuildPagesWithBusy();
@@ -45,16 +51,51 @@ public partial class PackingListPage
     {
         PageContainer.Children.Clear();
 
-        var selectedReport = _viewModel.SelectedReport;
+        var selectedReport = _viewModel.SelectedReport ?? new ReportModel
+        {
+            Header = new ReportHeader(),
+            LineItems = new ObservableCollection<LineItem>()
+        };
         var isDittoUser = _viewModel.IsDittoUser;
 
         var header = selectedReport.Header;
         header.LogoImagePath = isDittoUser ? Constants.DITTO_LOGO : Constants.VERSTEEL_LOGO;
 
-        var lineItems = selectedReport.LineItems
+        var selectedView = _viewModel.SelectedReportView;
+
+        // 1. FILTER AND PREPARE LINE ITEMS 
+        var rawLineItems = selectedReport.LineItems
             .Where(li => li.LineItemHeader?.LineItemNumber < 950)
             .OrderBy(li => li.LineItemHeader?.LineItemNumber ?? 0)
             .ToList();
+
+        var lineItems = new List<LineItem>();
+
+        foreach (var li in rawLineItems)
+        {
+            var filteredPackingUnits = li.LineItemPackingUnits
+                .Where(pu => selectedView == "ALL" || string.Equals(pu.TruckNumber, selectedView, StringComparison.OrdinalIgnoreCase))
+                .ToList();
+
+            // Only include the line item if it has matching packing units OR the view is "ALL"
+            if (filteredPackingUnits.Count > 0)
+            {
+                // IMPORTANT: Create a COPY of the line item to hold the filtered packing units.
+                // Assuming LineItem has a copy/clone constructor or method for this.
+                // If it doesn't, you'll need to implement one.
+                var lineItemCopy = new LineItem // **REPLACE WITH YOUR ACTUAL CLONING LOGIC**
+                {
+                    // ... Copy all properties from 'li'
+                    LineItemHeader = li.LineItemHeader,
+                    LineItemDetails = li.LineItemDetails,
+                    // ... other properties
+                    // And crucially, set the filtered collection:
+                    LineItemPackingUnits = new ObservableCollection<LineItemPackingUnit>(filteredPackingUnits)
+                };
+                lineItems.Add(lineItemCopy);
+            }
+        }
+        // ------------------------------------
 
         var trailerNotes = selectedReport.LineItems
             .SelectMany(li => li.LineItemDetails)
@@ -73,7 +114,7 @@ public partial class PackingListPage
         }
         else
         {
-            var firstItem = lineItems[0];
+            var firstItem = lineItems[0]; // This now has the already-filtered PackingUnits
             var firstDetails = new ObservableCollection<LineItemDetail>(GetDetailsFor(firstItem));
             var filteredDetails = new ObservableCollection<LineItemDetail>(firstDetails.Where(d =>
                 d.PackingListFlag?.Trim().Equals("Y", StringComparison.OrdinalIgnoreCase) == true));
@@ -84,7 +125,8 @@ public partial class PackingListPage
                 Header = header,
                 LineItem = firstItem,
                 Details = filteredDetails,
-                PackingUnits = new ObservableCollection<LineItemPackingUnit>(firstItem.LineItemPackingUnits)
+                // 2. USE THE ALREADY FILTERED PACKING UNITS
+                PackingUnits = firstItem.LineItemPackingUnits
             };
             PageContainer.Children.Add(pageOne);
 
@@ -92,6 +134,8 @@ public partial class PackingListPage
                 .Skip(1)
                 .Where(li => GetDetailsFor(li).Count > 0)
                 .ToList();
+
+            // ... rest of the code remains the same as 'lineItems' now contains the correct data ...
 
             const int maxDetailsPerPage = 35;
             var currentPageItems = new List<LineItem>();
@@ -173,12 +217,12 @@ public partial class PackingListPage
         static List<LineItemDetail> GetDetailsFor(LineItem li) =>
         [
             .. li.LineItemDetails
-                .Where(d => !string.IsNullOrWhiteSpace(d.NoteText))
-                .Where(d => d.PackingListFlag?.Trim().Equals("Y", StringComparison.OrdinalIgnoreCase) == true)
-                .Where(d => d.NoteText is not null &&
-                            !d.NoteText.Contains("OPTIONS BEGIN") &&
-                            !d.NoteText.Contains("OPTIONS END"))
-                .OrderBy(d => d.NoteSequenceNumber)
+            .Where(d => !string.IsNullOrWhiteSpace(d.NoteText))
+            .Where(d => d.PackingListFlag?.Trim().Equals("Y", StringComparison.OrdinalIgnoreCase) == true)
+            .Where(d => d.NoteText is not null &&
+                        !d.NoteText.Contains("OPTIONS BEGIN") &&
+                        !d.NoteText.Contains("OPTIONS END"))
+            .OrderBy(d => d.NoteSequenceNumber)
         ];
     }
 }

@@ -50,6 +50,7 @@ public partial class PackingListPageTwoPlus
 
     public static string[] CartonOrSkidOptions => Constants.CartonOrSkidOptions;
     public static string[] PackingUnitCategories => Constants.PackingUnitCategories;
+    public static string[] TruckNumbers => Constants.TruckNumbers;
 
 
     // You can bind to these globally and pass the LineItem as CommandParameter
@@ -65,6 +66,7 @@ public partial class PackingListPageTwoPlus
 
         var newPackingUnit = new LineItemPackingUnit
         {
+            TruckNumber = Constants.TruckNumbers[0],
             Quantity = 1,
             CartonOrSkid = CartonOrSkidOptions.FirstOrDefault() ?? "Carton",
             TypeOfUnit = string.Empty,

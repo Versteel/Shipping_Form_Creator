@@ -52,11 +52,13 @@ namespace Shipping_Form_CreatorV1.Components
         public int PackUnitQty { get; set; }
         public string CartonOrSkid { get; set; } = string.Empty;
         public string TypeOfUnit { get; set; } = string.Empty;
+        public string TruckNumber { get; set; } = Constants.TruckNumbers[0];
         public int Weight { get; set; }
 
         public string UomText => string.Equals(CartonOrSkid?.Trim(), Constants.CartonOrSkidOptions[2], StringComparison.OrdinalIgnoreCase) ? string.Empty : "Lbs";
         public static string[] CartonOrSkidOptions => Constants.CartonOrSkidOptions;
         public static string[] PackingUnitCategories => Constants.PackingUnitCategories;
+        public static string[] TruckNumbers => Constants.TruckNumbers;
 
         public ObservableCollection<LineItemPackingUnit> PackingUnits
         {
@@ -80,6 +82,7 @@ namespace Shipping_Form_CreatorV1.Components
 
             var newPackingUnit = new LineItemPackingUnit
             {
+                TruckNumber = TruckNumber,
                 Quantity = PackUnitQty,
                 CartonOrSkid = CartonOrSkid,
                 TypeOfUnit = TypeOfUnit,
