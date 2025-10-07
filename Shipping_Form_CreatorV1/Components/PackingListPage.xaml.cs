@@ -135,7 +135,6 @@ public partial class PackingListPage
                 .Where(li => GetDetailsFor(li).Count > 0)
                 .ToList();
 
-            // ... rest of the code remains the same as 'lineItems' now contains the correct data ...
 
             const int maxDetailsPerPage = 35;
             var currentPageItems = new List<LineItem>();

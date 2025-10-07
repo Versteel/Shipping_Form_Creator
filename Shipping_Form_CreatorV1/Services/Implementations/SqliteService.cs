@@ -37,6 +37,7 @@ public class SqliteService(IDbContextFactory<AppDbContext> dbContext) : ISqliteS
 
 
         return report;
+    
     }
 
     public async Task<List<ReportModel>> GetAllReportsByDateAsync(DateTime date, CancellationToken ct = default)

@@ -576,8 +576,8 @@
                                                                     <TextBlock
                                                                         FontSize="10"
                                                                         Foreground="#000"
-                                                                        Text="Weight" />
-                                                                    <syncfusion:IntegerTextBox Width="40" Value="{Binding Weight, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                                                        Text="Wgt" />
+                                                                    <syncfusion:IntegerTextBox Width="30" Value="{Binding Weight, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                                                 </StackPanel>
 
                                                                 <StackPanel x:Name="spTruckNumber" Orientation="Vertical">
@@ -586,10 +586,11 @@
                                                                         Foreground="#000"
                                                                         Text="Truck" />
                                                                     <syncfusion:ComboBoxAdv
-                                                                        Width="70"
+                                                                        Width="80"
                                                                         Height="20"
-                                                                        ItemsSource="{x:Static local:PackingListPageOne.TruckNumbers}"
-                                                                        SelectedItem="{Binding TruckNumber, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                                                        ItemsSource="{Binding DataContext.Trucks, RelativeSource={RelativeSource AncestorType=Page}}"
+                                                                        SelectedItem="{Binding TruckNumber, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                                        SelectionChanged="TruckComboBox_SelectionChanged" />
                                                                 </StackPanel>
                                                             </StackPanel>
 
@@ -615,7 +616,7 @@
                                             Visibility="{Binding IsPrinting, RelativeSource={RelativeSource AncestorType={x:Type local:PackingListPageOne}}, Converter={StaticResource BoolToVis}}">
                                             <ItemsControl.ItemTemplate>
                                                 <DataTemplate>
-                                                    <StackPanel Margin="0,2,0,2" Orientation="Horizontal">                                                        
+                                                    <StackPanel Margin="0,2,0,2" Orientation="Horizontal">
 
                                                         <TextBlock Text="{Binding Quantity}">
                                                             <TextBlock.Style>
@@ -673,7 +674,7 @@
                                                             <TextBlock Text="{Binding CartonOrSkidContents}" />
                                                             <TextBlock Text=" Packed with line " />
                                                             <TextBlock Text="{Binding LineNumber}" />
-                                                            <TextBlock Text="{Binding TruckNumber}"/>
+                                                            <TextBlock Text="{Binding TruckNumber}" />
                                                         </StackPanel>
 
                                                         <!--  Weight  -->

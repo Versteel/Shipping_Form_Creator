@@ -1,109 +1,128 @@
 ﻿using Shipping_Form_CreatorV1.Models;
 using Shipping_Form_CreatorV1.Utilities;
+using Shipping_Form_CreatorV1.ViewModels;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
 
-namespace Shipping_Form_CreatorV1.Components;
-
-public partial class PackingListPageTwoPlus
+namespace Shipping_Form_CreatorV1.Components
 {
-    public static readonly DependencyProperty PageNumberTwoPlusTextProperty =
-        DependencyProperty.Register(nameof(PageNumberTwoPlusText), typeof(string), typeof(PackingListPageTwoPlus), new PropertyMetadata(string.Empty));
-
-    public static readonly DependencyProperty ReportHeaderProperty =
-        DependencyProperty.Register(nameof(Header), typeof(ReportHeader), typeof(PackingListPageTwoPlus), new PropertyMetadata(null));
-
-    public static readonly DependencyProperty ItemsProperty =
-        DependencyProperty.Register(nameof(Items), typeof(ObservableCollection<LineItem>), typeof(PackingListPageTwoPlus), new PropertyMetadata(null));
-
-    public bool IsPrinting
+    public partial class PackingListPageTwoPlus
     {
-        get => (bool)GetValue(IsPrintingProperty);
-        set => SetValue(IsPrintingProperty, value);
-    }
-
-    public static readonly DependencyProperty IsPrintingProperty =
-        DependencyProperty.Register(
-            nameof(IsPrinting),
-            typeof(bool),
-            typeof(PackingListPageTwoPlus),
-            new PropertyMetadata(false));
-
-    public string PageNumberTwoPlusText
-    {
-        get => (string)GetValue(PageNumberTwoPlusTextProperty);
-        set => SetValue(PageNumberTwoPlusTextProperty, value);
-    }
-
-    public ReportHeader? Header
-    {
-        get => (ReportHeader?)GetValue(ReportHeaderProperty);
-        set => SetValue(ReportHeaderProperty, value);
-    }
-
-    public ObservableCollection<LineItem>? Items
-    {
-        get => (ObservableCollection<LineItem>?)GetValue(ItemsProperty);
-        set => SetValue(ItemsProperty, value);
-    }
-
-    public static string[] CartonOrSkidOptions => Constants.CartonOrSkidOptions;
-    public static string[] PackingUnitCategories => Constants.PackingUnitCategories;
-    public static string[] TruckNumbers => Constants.TruckNumbers;
-
-
-    // You can bind to these globally and pass the LineItem as CommandParameter
-    public ICommand AddPackUnitCommand => new RelayCommand(param =>
-    {
-        System.Diagnostics.Debug.WriteLine($"[DEBUG] Received CommandParameter of type: {param?.GetType().Name}");
-
-        if (param is not LineItem lineItem)
+        public PackingListPageTwoPlus()
         {
-            MessageBox.Show("LineItem not passed to AddPackUnitCommand");
-            return;
+            InitializeComponent();
         }
 
-        var newPackingUnit = new LineItemPackingUnit
-        {
-            TruckNumber = Constants.TruckNumbers[0],
-            Quantity = 1,
-            CartonOrSkid = CartonOrSkidOptions.FirstOrDefault() ?? "Carton",
-            TypeOfUnit = string.Empty,
-            Weight = 0,
-            LineItem = lineItem,
-            LineItemId = lineItem.Id
-        };
+        public static readonly DependencyProperty PageNumberTwoPlusTextProperty =
+            DependencyProperty.Register(nameof(PageNumberTwoPlusText), typeof(string), typeof(PackingListPageTwoPlus), new PropertyMetadata(string.Empty));
 
-        if (lineItem.LineItemPackingUnits is { } observable)
+        public static readonly DependencyProperty ReportHeaderProperty =
+            DependencyProperty.Register(nameof(Header), typeof(ReportHeader), typeof(PackingListPageTwoPlus), new PropertyMetadata(null));
+
+        public static readonly DependencyProperty ItemsProperty =
+            DependencyProperty.Register(nameof(Items), typeof(ObservableCollection<LineItem>), typeof(PackingListPageTwoPlus), new PropertyMetadata(null));
+
+        public bool IsPrinting
         {
-            observable.Add(newPackingUnit);
-        }
-        else
-        {
-            lineItem.LineItemPackingUnits = [newPackingUnit];
+            get => (bool)GetValue(IsPrintingProperty);
+            set => SetValue(IsPrintingProperty, value);
         }
 
-        System.Diagnostics.Debug.WriteLine($"[Add] Added new packing unit to LineItem {lineItem.Id}");
-    });
+        public static readonly DependencyProperty IsPrintingProperty =
+            DependencyProperty.Register(
+                nameof(IsPrinting),
+                typeof(bool),
+                typeof(PackingListPageTwoPlus),
+                new PropertyMetadata(false));
 
-    public ICommand RemovePackUnitCommand => new RelayCommand(param =>
-    {
-        if (param is not LineItemPackingUnit unit) return;
-
-        foreach (var lineItem in Items ?? [])
+        public string PageNumberTwoPlusText
         {
-            if (!lineItem.LineItemPackingUnits.Contains(unit))
+            get => (string)GetValue(PageNumberTwoPlusTextProperty);
+            set => SetValue(PageNumberTwoPlusTextProperty, value);
+        }
+
+        public ReportHeader? Header
+        {
+            get => (ReportHeader?)GetValue(ReportHeaderProperty);
+            set => SetValue(ReportHeaderProperty, value);
+        }
+
+        public ObservableCollection<LineItem>? Items
+        {
+            get => (ObservableCollection<LineItem>?)GetValue(ItemsProperty);
+            set => SetValue(ItemsProperty, value);
+        }
+
+        public static string[] CartonOrSkidOptions => Constants.CartonOrSkidOptions;
+        public static string[] PackingUnitCategories => Constants.PackingUnitCategories;
+
+        public ICommand AddPackUnitCommand => new RelayCommand(param =>
+        {
+            System.Diagnostics.Debug.WriteLine($"[DEBUG] Received CommandParameter of type: {param?.GetType().Name}");
+
+            if (param is not LineItem lineItem)
             {
-                continue;
+                MessageBox.Show("LineItem not passed to AddPackUnitCommand");
+                return;
             }
-            lineItem.LineItemPackingUnits.Remove(unit);
-            break;
-        }
-    });
 
-    public PackingListPageTwoPlus()
-    {
-        InitializeComponent();
+            if (Application.Current.MainWindow?.DataContext is not MainViewModel viewModel) return;
+
+            var newPackingUnit = new LineItemPackingUnit
+            {
+                TruckNumber = viewModel.Trucks.FirstOrDefault() ?? "TRUCK 1",
+                Quantity = 1,
+                CartonOrSkid = CartonOrSkidOptions.FirstOrDefault() ?? "Carton",
+                TypeOfUnit = string.Empty,
+                Weight = 0,
+                LineItem = lineItem,
+                LineItemId = lineItem.Id
+            };
+
+            if (lineItem.LineItemPackingUnits is { } observable)
+            {
+                observable.Add(newPackingUnit);
+            }
+            else
+            {
+                lineItem.LineItemPackingUnits = [newPackingUnit];
+            }
+
+            viewModel.UpdateViewOptions();
+
+            System.Diagnostics.Debug.WriteLine($"[Add] Added new packing unit to LineItem {lineItem.Id}");
+        });
+
+        public ICommand RemovePackUnitCommand => new RelayCommand(param =>
+        {
+            if (param is not LineItemPackingUnit unit) return;
+
+            foreach (var lineItem in this.Items ?? [])
+            {
+                if (lineItem.LineItemPackingUnits.Contains(unit))
+                {
+                    lineItem.LineItemPackingUnits.Remove(unit);
+
+                    if (Application.Current.MainWindow?.DataContext is MainViewModel viewModel)
+                    {
+                        viewModel.UpdateViewOptions();
+                    }
+                    break;
+                }
+            }
+        });
+
+        private void TruckComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (Application.Current.MainWindow?.DataContext is not MainViewModel viewModel) return;
+
+            if (sender is ComboBox comboBox && comboBox.SelectedItem is string selectedTruck)
+            {
+                viewModel.SelectedTruck = selectedTruck;
+            }
+        }
     }
 }

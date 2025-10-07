@@ -1,6 +1,9 @@
 ﻿using Shipping_Form_CreatorV1.Models;
 using Shipping_Form_CreatorV1.Utilities;
+using Shipping_Form_CreatorV1.ViewModels;
+using Syncfusion.Windows.Tools.Controls;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -72,38 +75,60 @@ namespace Shipping_Form_CreatorV1.Components
             set => SetValue(LineItemProperty, value);
         }
 
-        public ICommand AddPackUnitCommand => new RelayCommand(() =>
+        public ICommand AddPackUnitCommand => new RelayCommand(param =>
         {
-            if (LineItem == null)
+            Debug.WriteLine($"[DEBUG] Received CommandParameter of type: {param?.GetType().Name}");
+
+            if (param is not LineItem lineItem)
             {
-                MessageBox.Show("LineItem is not set.");
+                MessageBox.Show("LineItem not passed to AddPackUnitCommand");
                 return;
             }
 
+            // Get the MainViewModel
+            if (Application.Current.MainWindow?.DataContext is not MainViewModel viewModel) return;
+
             var newPackingUnit = new LineItemPackingUnit
             {
-                TruckNumber = TruckNumber,
-                Quantity = PackUnitQty,
-                CartonOrSkid = CartonOrSkid,
-                TypeOfUnit = TypeOfUnit,
-                Weight = Weight,
-                LineItem = LineItem,
-                LineItemId = LineItem.Id
+                // Use the first truck from the dynamic list as the default
+                TruckNumber = viewModel.Trucks.FirstOrDefault() ?? "TRUCK 1",
+                Quantity = 1,
+                CartonOrSkid = CartonOrSkidOptions.FirstOrDefault() ?? "BOX",
+                TypeOfUnit = string.Empty,
+                Weight = 0,
+                LineItem = lineItem,
+                LineItemId = lineItem.Id
             };
 
-            LineItem.LineItemPackingUnits.Add(newPackingUnit);
-            System.Diagnostics.Debug.WriteLine($"[CMD] After Add: Count = {LineItem.LineItemPackingUnits.Count}");
+            if (lineItem.LineItemPackingUnits is { } observable)
+            {
+                observable.Add(newPackingUnit);
+            }
+            else
+            {
+                lineItem.LineItemPackingUnits = [newPackingUnit];
+            }
+
+            viewModel.UpdateViewOptions();
+
+            Debug.WriteLine($"[Add] Added new packing unit to LineItem {lineItem.Id}");
         });
 
         public ICommand RemovePackUnitCommand => new RelayCommand(pu =>
         {
             if (pu is not LineItemPackingUnit packUnit || LineItem == null) return;
             LineItem.LineItemPackingUnits.Remove(packUnit);
+
+            // Get the MainViewModel and tell it to update the list
+            if (Application.Current.MainWindow?.DataContext is MainViewModel viewModel)
+            {
+                viewModel.UpdateViewOptions();
+            }
         });
 
         public PackingListPageOne()
         {
-            InitializeComponent();            
+            InitializeComponent();
         }
 
         public string PageNumberText
@@ -122,6 +147,18 @@ namespace Shipping_Form_CreatorV1.Components
         {
             get => (ObservableCollection<LineItemDetail>?)GetValue(DetailsProperty);
             set => SetValue(DetailsProperty, value);
+        }
+
+        private void TruckComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            // Get the MainViewModel from the application's main window
+            if (Application.Current.MainWindow?.DataContext is not MainViewModel viewModel) return;
+
+            // If a truck was selected, tell the view model
+            if (sender is ComboBoxAdv comboBox && comboBox.SelectedItem is string selectedTruck)
+            {
+                viewModel.SelectedTruck = selectedTruck;
+            }
         }
     }
 }

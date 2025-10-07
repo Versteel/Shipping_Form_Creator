@@ -26,7 +26,10 @@
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
-            <StackPanel Orientation="Horizontal" Width="840" Background="#e6e6e6">
+            <StackPanel
+                Width="840"
+                Background="#e6e6e6"
+                Orientation="Horizontal">
                 <TextBlock
                     Margin="10,0,5,0"
                     VerticalAlignment="Center"
@@ -34,16 +37,16 @@
                     Foreground="#000"
                     Text="TRUCK NUMBER" />
                 <syncfusion:ComboBoxAdv
-                    Width="100"
+                    Width="120"
                     Height="30"
                     HorizontalContentAlignment="Right"
                     FontSize="18"
-                    ItemsSource="{x:Static constants:Constants.ViewOptions}"
+                    ItemsSource="{Binding ViewOptions}"
                     SelectedItem="{Binding SelectedReportView, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
             </StackPanel>
             <ScrollViewer
                 Grid.Row="1"
-                Padding="20 0 20 20"
+                Padding="20,0,20,20"
                 Background="#e6e6e6"
                 HorizontalScrollBarVisibility="Auto"
                 VerticalScrollBarVisibility="Auto">

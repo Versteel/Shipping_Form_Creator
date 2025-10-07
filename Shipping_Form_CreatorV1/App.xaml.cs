@@ -35,20 +35,6 @@ namespace Shipping_Form_CreatorV1
 
         protected override void OnStartup(StartupEventArgs e)
         {
-            try
-            {
-                string ghostscriptPath = Constants.GHOSTSCRIPT_PATH; 
-                string baseDir = AppDomain.CurrentDomain.BaseDirectory;
-
-                HocrValidator.ValidateEnvironment(ghostscriptPath, baseDir);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"HOCR environment validation failed:\n{ex.Message}",
-                    "HOCR Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                Current.Shutdown();
-            }
-
             var serviceCollection = new ServiceCollection();
             ConfigureServices(serviceCollection);
 

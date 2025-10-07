@@ -4,9 +4,7 @@ using Shipping_Form_CreatorV1.Models;
 using Shipping_Form_CreatorV1.Utilities;
 using Shipping_Form_CreatorV1.ViewModels;
 using Syncfusion.Windows.Controls.Notification;
-using System.CodeDom;
 using System.Collections.ObjectModel;
-using System.Diagnostics;
 using System.IO;
 using System.IO.Packaging;
 using System.Printing;
@@ -19,9 +17,7 @@ using System.Windows.Media;
 using System.Windows.Shapes;
 using System.Windows.Threading;
 using System.Windows.Xps.Packaging;
-using Utility.Hocr.Enums;
-using Utility.Hocr.Pdf;
-using Path = System.IO.Path;
+
 
 namespace Shipping_Form_CreatorV1.Services.Implementations;
 
