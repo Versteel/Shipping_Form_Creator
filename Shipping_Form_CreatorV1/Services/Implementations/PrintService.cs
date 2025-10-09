@@ -32,8 +32,7 @@ public class PrintService
             var lineItems = report.LineItems
                 .Where(li => !IsNoteOnly(li))
                 .Where(li => !string.IsNullOrWhiteSpace(li.LineItemHeader?.ProductDescription))
-                .Where(li => li.LineItemDetails.All(d => d.PackingListFlag == "Y"))
-                .OrderBy(li => li.LineItemHeader?.LineItemNumber ?? 0)
+                .Where(li => li.LineItemDetails != null && li.LineItemDetails.Any(d => d.PackingListFlag == "Y")).OrderBy(li => li.LineItemHeader?.LineItemNumber ?? 0)
                 .ToList();
 
             var tableLegUnits = lineItems
