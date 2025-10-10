@@ -27,6 +27,7 @@
 
 	<!-- NuGet dependencies -->
 	<ItemGroup>
+		<PackageReference Include="gong-wpf-dragdrop" Version="4.0.0" />
 		<PackageReference Include="itext" Version="9.3.0" />
 		<PackageReference Include="itext.bouncy-castle-adapter" Version="9.3.0" />
 		<PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="9.0.8" />

@@ -155,6 +155,7 @@ public class MainViewModel : INotifyPropertyChanged
             if (_viewOptions == value) return;
             _viewOptions = value;
             OnPropertyChanged(nameof(ViewOptions));
+            OnPropertyChanged(nameof(IsMultiTruckOrder));
         }
     }
 
@@ -253,6 +254,7 @@ public class MainViewModel : INotifyPropertyChanged
     public int BolTotalWeight => SelectedReportsGroups.Sum(r => r.TotalWeight);
     public int AllPiecesTotal => SelectedReportsGroups.Sum(r => r.TotalPieces);
     public int AllWeightTotal => SelectedReportsGroups.Sum(r => r.TotalWeight);
+    public bool IsMultiTruckOrder => ViewOptions != null && ViewOptions.Count > 2;
 
     public ObservableCollection<LineItemDetail> BolSpecialInstructions =>
         new(SelectedReport.LineItems
@@ -636,6 +638,7 @@ public class MainViewModel : INotifyPropertyChanged
         {
             SelectedReportView = "ALL";
         }
+        OnPropertyChanged(nameof(IsMultiTruckOrder));
     }
 
     private List<string> GenerateTruckList(int selectedTruckNumber)

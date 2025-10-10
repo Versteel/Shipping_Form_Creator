@@ -78,6 +78,20 @@ public class PrintService
                 .Where(li => !string.IsNullOrWhiteSpace(li.LineItemHeader?.ProductDescription))
                 .OrderBy(li => li.LineItemHeader?.LineItemNumber ?? 0)
                 .ToList();
+            bool onlyDefaultTruckUsed = rawLineItems
+                .SelectMany(item => item.LineItemPackingUnits)
+                .All(pu => pu.TruckNumber == Constants.TruckNumbers[0] || string.IsNullOrEmpty(pu.TruckNumber));
+            
+            if (onlyDefaultTruckUsed)
+            {
+                foreach (var item in rawLineItems)
+                {
+                    foreach (var packUnit in item.LineItemPackingUnits)
+                    {
+                        packUnit.TruckNumber = string.Empty;
+                    }
+                }
+            }
 
             // This part remains the same (Unit Type transformation)
             var tableLegUnits = rawLineItems

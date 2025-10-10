@@ -232,8 +232,8 @@ public class OdbcService : IOdbcService
 
         // Step 1: Get the single header record
         await using var headerCommand = new OdbcCommand(GET_HEADER_QUERY, connection);
-        headerCommand.Parameters.Add("@OHORD#", OdbcType.Int).Value = orderNumber;
-        headerCommand.Parameters.Add("@OHLSUF", OdbcType.Int).Value = suffix;
+        headerCommand.Parameters.Add("?", OdbcType.Int).Value = orderNumber;
+        headerCommand.Parameters.Add("?", OdbcType.Int).Value = suffix;
 
         await using var headerReader = await headerCommand.ExecuteReaderAsync(ct);
         if (await headerReader.ReadAsync(ct))
@@ -275,8 +275,8 @@ public class OdbcService : IOdbcService
 
         // Step 2: Get line items
         await using var lineItemCommand = new OdbcCommand(GET_LINE_ITEMS_QUERY, connection);
-        lineItemCommand.Parameters.Add("@O6ORD#", OdbcType.Int).Value = orderNumber;
-        lineItemCommand.Parameters.Add("@O6SUFX", OdbcType.Int).Value = suffix;
+        lineItemCommand.Parameters.Add("?", OdbcType.Int).Value = orderNumber;
+        lineItemCommand.Parameters.Add("?", OdbcType.Int).Value = suffix;
 
         await using var lineItemReader = await lineItemCommand.ExecuteReaderAsync(ct);
 
@@ -308,8 +308,8 @@ public class OdbcService : IOdbcService
 
         // Step 3: Get "floating" notes
         await using var notesCommand = new OdbcCommand(GET_ORDER_NOTES_QUERY, connection);
-        notesCommand.Parameters.Add("@O5ORD#", OdbcType.Int).Value = orderNumber;
-        notesCommand.Parameters.Add("@O5SUFX", OdbcType.Int).Value = suffix;
+        notesCommand.Parameters.Add("?", OdbcType.Int).Value = orderNumber;
+        notesCommand.Parameters.Add("?", OdbcType.Int).Value = suffix;
 
         await using var notesReader = await notesCommand.ExecuteReaderAsync(ct);
 

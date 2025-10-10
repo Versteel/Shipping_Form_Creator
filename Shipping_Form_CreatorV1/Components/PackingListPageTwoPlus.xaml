@@ -288,7 +288,7 @@
                                                                     Content="Add New Packing Unit" />
 
                                                                 <ScrollViewer
-                                                                    Height="175"
+                                                                    MaxHeight="175"
                                                                     HorizontalScrollBarVisibility="Disabled"
                                                                     VerticalScrollBarVisibility="Auto">
                                                                     <ItemsControl ItemsSource="{Binding LineItemPackingUnits}">
@@ -485,8 +485,10 @@
                                                                                     </Style>
                                                                                 </StackPanel.Style>
                                                                                 <TextBlock Text="{Binding CartonOrSkidContents}" />
-                                                                                <TextBlock Text=" Packed with line " />
+                                                                                <TextBlock Text=" PACKED WITH LINE " />
                                                                                 <TextBlock Text="{Binding LineNumber}" />
+                                                                                <TextBlock Text=" " />
+                                                                                <TextBlock Text="{Binding TruckNumber}" />
 
                                                                             </StackPanel>
 

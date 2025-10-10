@@ -8,12 +8,12 @@
     xmlns:local="clr-namespace:Shipping_Form_CreatorV1.Components"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:syncfusion="http://schemas.syncfusion.com/wpf"
+    xmlns:vm="clr-namespace:Shipping_Form_CreatorV1.ViewModels"
     Title="PackingListPage"
     d:DesignHeight="450"
     d:DesignWidth="800"
     Background="#e6e6e6"
     mc:Ignorable="d">
-
     <Notification:SfBusyIndicator
         AnimationType="Gear"
         Background="Transparent"
@@ -26,24 +26,59 @@
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
-            <StackPanel
-                Width="840"
-                Background="#e6e6e6"
-                Orientation="Horizontal">
-                <TextBlock
-                    Margin="10,0,5,0"
-                    VerticalAlignment="Center"
-                    FontSize="20"
-                    Foreground="#000"
-                    Text="TRUCK NUMBER" />
-                <syncfusion:ComboBoxAdv
-                    Width="120"
-                    Height="30"
-                    HorizontalContentAlignment="Right"
-                    FontSize="18"
-                    ItemsSource="{Binding ViewOptions}"
-                    SelectedItem="{Binding SelectedReportView, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-            </StackPanel>
+            <Grid Grid.Column="0" Width="840">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition />
+                    <ColumnDefinition />
+                </Grid.ColumnDefinitions>
+                <StackPanel
+                    Grid.Column="0"
+                    HorizontalAlignment="Right"
+                    Background="#e6e6e6"
+                    Orientation="Horizontal">
+                    <TextBlock
+                        Margin="10,0,5,0"
+                        VerticalAlignment="Center"
+                        FontSize="20"
+                        Foreground="#000"
+                        Text="TRUCK NUMBER" />
+                    <syncfusion:ComboBoxAdv
+                        Width="120"
+                        Height="30"
+                        HorizontalContentAlignment="Right"
+                        FontSize="18"
+                        ItemsSource="{Binding ViewOptions}"
+                        SelectedItem="{Binding SelectedReportView, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                </StackPanel>
+
+                <StackPanel Grid.Column="1" Orientation="Horizontal">
+                    <Path
+                        Width="50"
+                        Height="50"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Data="M10,0 L0,10 L10,20 L10,15 L20,15 L20,5 L10,5 Z"
+                        Fill="Red"
+                        Stretch="Uniform" />
+                    <Border
+                        Padding="5"
+                        BorderBrush="Red"
+                        BorderThickness="2">
+                        <StackPanel Orientation="Vertical">
+                            <TextBlock
+                                HorizontalAlignment="Center"
+                                FontSize="18"
+                                Foreground="Red"
+                                Text="ATTENTION" />
+                            <TextBlock
+                                FontSize="15"
+                                Foreground="Red"
+                                Text="MULTI-TRUCK ORDER" />
+                        </StackPanel>
+                    </Border>
+
+                </StackPanel>
+            </Grid>
             <ScrollViewer
                 Grid.Row="1"
                 Padding="20,0,20,20"

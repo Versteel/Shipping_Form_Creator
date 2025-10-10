@@ -473,7 +473,7 @@
                                             <ui:HyperlinkButton
                                                 HorizontalAlignment="Left"
                                                 Command="{Binding AddPackUnitCommand, ElementName=Root}"
-                                                CommandParameter="{Binding}"
+                                                CommandParameter="{Binding LineItem, ElementName=Root}"
                                                 Content="Add New Packing Unit" />
 
                                             <ScrollViewer
@@ -674,6 +674,7 @@
                                                             <TextBlock Text="{Binding CartonOrSkidContents}" />
                                                             <TextBlock Text=" Packed with line " />
                                                             <TextBlock Text="{Binding LineNumber}" />
+                                                            <TextBlock Text=" " />
                                                             <TextBlock Text="{Binding TruckNumber}" />
                                                         </StackPanel>
 

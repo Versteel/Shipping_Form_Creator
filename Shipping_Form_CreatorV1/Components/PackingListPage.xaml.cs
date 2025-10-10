@@ -63,39 +63,34 @@ public partial class PackingListPage
 
         var selectedView = _viewModel.SelectedReportView;
 
-        // 1. FILTER AND PREPARE LINE ITEMS 
         var rawLineItems = selectedReport.LineItems
             .Where(li => li.LineItemHeader?.LineItemNumber < 950)
             .OrderBy(li => li.LineItemHeader?.LineItemNumber ?? 0)
             .ToList();
 
         var lineItems = new List<LineItem>();
+        var isAllView = selectedView == "ALL";
 
         foreach (var li in rawLineItems)
         {
-            var filteredPackingUnits = li.LineItemPackingUnits
-                .Where(pu => selectedView == "ALL" || string.Equals(pu.TruckNumber, selectedView, StringComparison.OrdinalIgnoreCase))
-                .ToList();
-
-            // Only include the line item if it has matching packing units OR the view is "ALL"
-            if (filteredPackingUnits.Count > 0)
+            if (isAllView)
             {
-                // IMPORTANT: Create a COPY of the line item to hold the filtered packing units.
-                // Assuming LineItem has a copy/clone constructor or method for this.
-                // If it doesn't, you'll need to implement one.
-                var lineItemCopy = new LineItem // **REPLACE WITH YOUR ACTUAL CLONING LOGIC**
-                {
-                    // ... Copy all properties from 'li'
-                    LineItemHeader = li.LineItemHeader,
-                    LineItemDetails = li.LineItemDetails,
-                    // ... other properties
-                    // And crucially, set the filtered collection:
-                    LineItemPackingUnits = new ObservableCollection<LineItemPackingUnit>(filteredPackingUnits)
-                };
+                var lineItemCopy = new LineItem(li, li.LineItemPackingUnits);
                 lineItems.Add(lineItemCopy);
             }
+            else
+            {
+                var filteredPackingUnits = li.LineItemPackingUnits
+                    .Where(pu => string.Equals(pu.TruckNumber, selectedView, StringComparison.OrdinalIgnoreCase))
+                    .ToList();
+
+                if (filteredPackingUnits.Any())
+                {
+                    var lineItemCopy = new LineItem(li, new ObservableCollection<LineItemPackingUnit>(filteredPackingUnits));
+                    lineItems.Add(lineItemCopy);
+                }
+            }
         }
-        // ------------------------------------
 
         var trailerNotes = selectedReport.LineItems
             .SelectMany(li => li.LineItemDetails)
@@ -107,121 +102,112 @@ public partial class PackingListPage
             .ToList();
         _viewModel.PackingListNotes = new ObservableCollection<LineItemDetail>(trailerNotes);
 
-        if (lineItems.Count == 0)
+        var physicalItems = lineItems
+            .Where(li => !string.IsNullOrEmpty(li.LineItemHeader?.ProductNumber))
+            .ToList();
+
+        if (!physicalItems.Any())
         {
-            var emptyPage = new PackingListPageOne { PageNumberText = "Page 1 of 1" };
+            var emptyPage = new PackingListPageOne { PageNumberText = "Page 1 of 1", Header = header };
             PageContainer.Children.Add(emptyPage);
+            return;
         }
-        else
+
+        var firstItem = physicalItems[0];
+        var firstDetails = new ObservableCollection<LineItemDetail>(GetDetailsFor(firstItem));
+        var filteredDetails = new ObservableCollection<LineItemDetail>(firstDetails.Where(d =>
+            d.PackingListFlag?.Trim().Equals("Y", StringComparison.OrdinalIgnoreCase) == true));
+
+        var pageOne = new PackingListPageOne
         {
-            var firstItem = lineItems[0]; // This now has the already-filtered PackingUnits
-            var firstDetails = new ObservableCollection<LineItemDetail>(GetDetailsFor(firstItem));
-            var filteredDetails = new ObservableCollection<LineItemDetail>(firstDetails.Where(d =>
-                d.PackingListFlag?.Trim().Equals("Y", StringComparison.OrdinalIgnoreCase) == true));
+            PageNumberText = "Page 1 of 1",
+            Header = header,
+            LineItem = firstItem,
+            Details = filteredDetails
+        };
+        PageContainer.Children.Add(pageOne);
 
-            var pageOne = new PackingListPageOne
-            {
-                PageNumberText = "Page 1 of 1",
-                Header = header,
-                LineItem = firstItem,
-                Details = filteredDetails,
-                // 2. USE THE ALREADY FILTERED PACKING UNITS
-                PackingUnits = firstItem.LineItemPackingUnits
-            };
-            PageContainer.Children.Add(pageOne);
+        var remainingItems = physicalItems.Skip(1).ToList();
+        const int maxLinesPerPage = 35;
+        var currentPageItems = new List<LineItem>();
+        var currentLinesOnPage = 0;
+        var pageCounter = 2; // Start counting from page 2
 
-            var remainingItems = lineItems
-                .Skip(1)
-                .Where(li => GetDetailsFor(li).Count > 0)
-                .ToList();
-
-
-            const int maxDetailsPerPage = 35;
-            var currentPageItems = new List<LineItem>();
-            var currentDetailsCount = 0;
-            var pageCounter = 2;
-
-            foreach (var item in remainingItems)
-            {
-                var detailsCount = GetDetailsFor(item).Count;
-                if (currentDetailsCount + detailsCount > maxDetailsPerPage && currentPageItems.Count > 0)
-                {
-                    var multiPage = new PackingListPageTwoPlus
-                    {
-                        Header = header,
-                        PageNumberTwoPlusText = $"Page {pageCounter} of X",
-                        Items = new ObservableCollection<LineItem>(currentPageItems)
-                    };
-                    PageContainer.Children.Add(multiPage);
-
-                    currentPageItems = [];
-                    currentDetailsCount = 0;
-                    pageCounter++;
-                }
-
-                currentPageItems.Add(item);
-                currentDetailsCount += detailsCount;
-            }
-
-            if (currentPageItems.Count > 0)
+        foreach (var item in remainingItems)
+        {
+            var linesForItem = 1 + GetDetailsFor(item).Count;
+            if (currentLinesOnPage + linesForItem > maxLinesPerPage && currentPageItems.Any())
             {
                 var multiPage = new PackingListPageTwoPlus
                 {
                     Header = header,
-                    PageNumberTwoPlusText = $"Page {pageCounter} of X",
                     Items = new ObservableCollection<LineItem>(currentPageItems)
                 };
                 PageContainer.Children.Add(multiPage);
+
+                currentPageItems = new List<LineItem>();
+                currentLinesOnPage = 0;
                 pageCounter++;
             }
-
-            var hasTrailerNotes = trailerNotes.Count > 0;
-            if (hasTrailerNotes)
-            {
-                var trailerNotesPage = new PackingListNotesPage
-                {
-                    PageNumberText = $"Page {pageCounter} of {pageCounter}",
-                    Header = header,
-                    Details = new ObservableCollection<LineItemDetail>(trailerNotes)
-                };
-                PageContainer.Children.Add(trailerNotesPage);
-                pageCounter++;
-            }
-
-            var totalPages = pageCounter - 1;
-
-            if (lineItems.Count == 0)
-            {
-                totalPages = hasTrailerNotes ? 2 : 1;
-            }
-
-            if (PageContainer.Children.Count > 0 && PageContainer.Children[0] is PackingListPageOne firstPage)
-            {
-                firstPage.PageNumberText = $"Page 1 of {totalPages}";
-            }
-
-            for (var i = 1; i < PageContainer.Children.Count; i++)
-            {
-                if (PageContainer.Children[i] is PackingListPageTwoPlus page)
-                {
-                    page.PageNumberTwoPlusText = $"Page {i + 1} of {totalPages}";
-                }
-            }
-
-            _viewModel.PageCount = totalPages;
+            currentPageItems.Add(item);
+            currentLinesOnPage += linesForItem;
         }
 
-        return;
+        if (currentPageItems.Count != 0)
+        {
+            var multiPage = new PackingListPageTwoPlus
+            {
+                Header = header,
+                Items = new ObservableCollection<LineItem>(currentPageItems)
+            };
+            PageContainer.Children.Add(multiPage);
+            pageCounter++;
+        }
+
+        // --- RE-ADDED NOTES PAGE LOGIC ---
+        var hasTrailerNotes = trailerNotes.Count != 0;
+        if (hasTrailerNotes)
+        {
+            var trailerNotesPage = new PackingListNotesPage
+            {
+                Header = header,
+                Details = new ObservableCollection<LineItemDetail>(trailerNotes)
+            };
+            PageContainer.Children.Add(trailerNotesPage);
+            pageCounter++;
+        }
+        // --- END OF ADDED LOGIC ---
+
+        // Final page numbering logic
+        var totalPages = PageContainer.Children.Count;
+        if (PageContainer.Children[0] is PackingListPageOne firstPage)
+        {
+            firstPage.PageNumberText = $"Page 1 of {totalPages}";
+        }
+        for (var i = 1; i < PageContainer.Children.Count; i++)
+        {
+            if (PageContainer.Children[i] is PackingListPageTwoPlus page)
+            {
+                page.PageNumberTwoPlusText = $"Page {i + 1} of {totalPages}";
+            }
+            else if (PageContainer.Children[i] is PackingListNotesPage notesPage)
+            {
+                notesPage.PageNumberText = $"Page {i + 1} of {totalPages}";
+            }
+        }
+        _viewModel.PageCount = totalPages;
+
+        return; // This was already here, keeping it for consistency
 
         static List<LineItemDetail> GetDetailsFor(LineItem li) =>
         [
             .. li.LineItemDetails
-            .Where(d => !string.IsNullOrWhiteSpace(d.NoteText))
-            .Where(d => d.PackingListFlag?.Trim().Equals("Y", StringComparison.OrdinalIgnoreCase) == true)
-            .Where(d => d.NoteText is not null &&
-                        !d.NoteText.Contains("OPTIONS BEGIN") &&
-                        !d.NoteText.Contains("OPTIONS END"))
-            .OrderBy(d => d.NoteSequenceNumber)
+        .Where(d => !string.IsNullOrWhiteSpace(d.NoteText))
+        .Where(d => d.PackingListFlag?.Trim().Equals("Y", StringComparison.OrdinalIgnoreCase) == true)
+        .Where(d => d.NoteText is not null &&
+                    !d.NoteText.Contains("OPTIONS BEGIN") &&
+                    !d.NoteText.Contains("OPTIONS END"))
+        .OrderBy(d => d.NoteSequenceNumber)
         ];
     }
 }

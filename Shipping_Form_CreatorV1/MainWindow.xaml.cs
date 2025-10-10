@@ -79,22 +79,7 @@ public partial class MainWindow
     {
         try
         {
-            //var rawInput = OrderNumberTextBox.Text.Trim();
-
-            //if (!OrderNumberIsValid(rawInput))
-            //    return;
-
-            //if (!int.TryParse(rawInput, out var orderNumber))
-            //{
-            //    DialogService.ShowErrorDialog("Invalid order number. Please enter a valid number.");
-            //    return;
-            //}
-
-            //await _viewModel.GetSearchByOrderNumberResults(orderNumber);
-
-            //_viewModel.SelectedReportTitle = "SEARCH RESULTS";
-
-            //ContentFrame.Content = new SearchByDateResultsPage(_viewModel, _printService);
+            
             _viewModel.SelectedReportView = Constants.ViewOptions[0];
             await _viewModel.LoadDocumentAsync(OrderNumberTextBox.Text.Trim(), SuffixIntegerBox.Text.Trim());
             if (_viewModel.SelectedReportTitle == "SEARCH RESULTS")
