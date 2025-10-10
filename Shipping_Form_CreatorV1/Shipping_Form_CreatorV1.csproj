@@ -1,73 +1,79 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <OutputType>WinExe</OutputType>
-    <TargetFramework>net9.0-windows</TargetFramework>
-    <Nullable>enable</Nullable>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <UseWPF>true</UseWPF>
-    <ApplicationIcon>icon.ico</ApplicationIcon>
-    <AssemblyName>Shipping Form Creator</AssemblyName>
-  </PropertyGroup>
+	<PropertyGroup>
+		<OutputType>WinExe</OutputType>
+		<TargetFramework>net9.0-windows</TargetFramework>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<UseWPF>true</UseWPF>
+		<ApplicationIcon>icon.ico</ApplicationIcon>
+		<AssemblyName>Shipping Form Creator</AssemblyName>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <Compile Remove="Services\Implementations\OdbcService - Copy.cs" />
-  </ItemGroup>
 
-  <ItemGroup>
-    <None Remove="blackoutlinelogo.png" />
-    <None Remove="delete.png" />
-    <None Remove="delivery.png" />
-    <None Remove="ditto_logo.jpg" />
-    <None Remove="versteel_logo.png" />
-  </ItemGroup>
+	<ItemGroup>
+		<None Remove="blackoutlinelogo.png" />
+		<None Remove="delete.png" />
+		<None Remove="delivery.png" />
+		<None Remove="ditto_logo.jpg" />
+		<None Remove="versteel_logo.png" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <Content Include="icon.ico">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
+	<ItemGroup>
+		<Content Include="icon.ico">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</Content>
+	</ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="9.0.8" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="9.0.8" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.8" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.8">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.8" />
-    <PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.8" />
-    <PackageReference Include="ModernWpfUI" Version="0.9.6" />
-    <PackageReference Include="Serilog" Version="4.3.0" />
-    <PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
-    <PackageReference Include="Syncfusion.Licensing" Version="30.2.6" />
-    <PackageReference Include="Syncfusion.SfBusyIndicator.WPF" Version="30.2.6" />
-    <PackageReference Include="Syncfusion.SfGrid.WPF" Version="30.2.6" />
-    <PackageReference Include="Syncfusion.SfInput.WPF" Version="30.2.6" />
-    <PackageReference Include="Syncfusion.SfProgressBar.WPF" Version="30.2.6" />
-    <PackageReference Include="Syncfusion.SfSkinManager.WPF" Version="30.2.6" />
-    <PackageReference Include="Syncfusion.Shared.WPF" Version="30.2.6" />
-    <PackageReference Include="Syncfusion.Themes.Office2019Colorful.WPF" Version="30.2.6" />
-    <PackageReference Include="Syncfusion.Themes.Windows11Light.WPF" Version="30.2.6" />
-    <PackageReference Include="System.Data.ODBC" Version="9.0.8" />
-    <PackageReference Include="System.DirectoryServices.AccountManagement" Version="9.0.8" />
-  </ItemGroup>
+	<!-- NuGet dependencies -->
+	<ItemGroup>
+		<PackageReference Include="gong-wpf-dragdrop" Version="4.0.0" />
+		<PackageReference Include="itext" Version="9.3.0" />
+		<PackageReference Include="itext.bouncy-castle-adapter" Version="9.3.0" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="9.0.8" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="9.0.8" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.8" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.8">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.8" />
+		<PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.8" />
+		<PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.135" />
+		<PackageReference Include="ModernWpfUI" Version="0.9.6" />
+        <PackageReference Include="iTextSharp.LGPLv2.Core" Version="3.4.20" />
+        <PackageReference Include="PdfSharp.Xps" Version="1.0.0" />
+		<PackageReference Include="Serilog" Version="4.3.0" />
+		<PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
+		<PackageReference Include="Syncfusion.Licensing" Version="30.2.6" />
+		<PackageReference Include="Syncfusion.SfBusyIndicator.WPF" Version="30.2.6" />
+		<PackageReference Include="Syncfusion.SfGrid.WPF" Version="30.2.6" />
+		<PackageReference Include="Syncfusion.SfInput.WPF" Version="30.2.6" />
+		<PackageReference Include="Syncfusion.SfProgressBar.WPF" Version="30.2.6" />
+		<PackageReference Include="Syncfusion.SfSkinManager.WPF" Version="30.2.6" />
+		<PackageReference Include="Syncfusion.Shared.WPF" Version="30.2.6" />
+		<PackageReference Include="Syncfusion.Themes.Office2019Colorful.WPF" Version="30.2.6" />
+		<PackageReference Include="Syncfusion.Themes.Windows11Light.WPF" Version="30.2.6" />
+		<PackageReference Include="System.Data.ODBC" Version="9.0.8" />
+		<PackageReference Include="System.DirectoryServices.AccountManagement" Version="9.0.8" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <Resource Include="blackoutlinelogo.png">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Resource>
-    <Resource Include="delete.png">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Resource>
-    <Resource Include="delivery.png" />
-    <Resource Include="ditto_logo.jpg">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Resource>
-    <Resource Include="versteel_logo.png">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Resource>
-  </ItemGroup>
+
+	<!-- Resources -->
+	<ItemGroup>
+		<Resource Include="blackoutlinelogo.png">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</Resource>
+		<Resource Include="delete.png">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</Resource>
+		<Resource Include="delivery.png" />
+		<Resource Include="ditto_logo.jpg">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</Resource>
+		<Resource Include="versteel_logo.png">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</Resource>
+	</ItemGroup>
 
 </Project>

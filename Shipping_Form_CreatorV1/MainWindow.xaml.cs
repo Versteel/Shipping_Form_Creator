@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Shipping_Form_CreatorV1.Components;
 using Shipping_Form_CreatorV1.Models;
 using Shipping_Form_CreatorV1.Services.Implementations;
+using Shipping_Form_CreatorV1.Utilities;
 using Shipping_Form_CreatorV1.ViewModels;
 using System.Windows;
 using System.Windows.Input;
@@ -32,6 +33,7 @@ public partial class MainWindow
         SuffixIntegerBox.Value = 0;
         _viewModel.SalesOrderNumber = string.Empty;
         _viewModel.SelectedReportTitle = "PACKING LIST";
+        _viewModel.SelectedReportView = Constants.ViewOptions[0];
         _viewModel.SelectedReport = new ReportModel { Header = new ReportHeader() };
         ContentFrame.Content = new PackingListPage(_viewModel);
     }
@@ -42,6 +44,7 @@ public partial class MainWindow
         SuffixIntegerBox.Value = 0;
         _viewModel.SalesOrderNumber = string.Empty;
         _viewModel.SelectedReportTitle = "BILL OF LADING";
+        _viewModel.SelectedReportView = Constants.ViewOptions[0];
         _viewModel.SelectedReport = new ReportModel { Header = new ReportHeader() };
         ContentFrame.Content = new BillOfLading(_viewModel);
     }
@@ -52,6 +55,7 @@ public partial class MainWindow
         {
             if (!OrderNumberIsValid(OrderNumberTextBox.Text.Trim())) return;
             if (e.Key != Key.Enter) return;
+            _viewModel.SelectedReportView = Constants.ViewOptions[0];
             await _viewModel.LoadDocumentAsync(OrderNumberTextBox.Text.Trim(), SuffixIntegerBox.Text.Trim());
             if (_viewModel.SelectedReportTitle == "SEARCH RESULTS")
             {
@@ -75,7 +79,8 @@ public partial class MainWindow
     {
         try
         {
-            if (!OrderNumberIsValid(OrderNumberTextBox.Text.Trim())) return;
+            
+            _viewModel.SelectedReportView = Constants.ViewOptions[0];
             await _viewModel.LoadDocumentAsync(OrderNumberTextBox.Text.Trim(), SuffixIntegerBox.Text.Trim());
             if (_viewModel.SelectedReportTitle == "SEARCH RESULTS")
             {
@@ -194,9 +199,9 @@ public partial class MainWindow
                 DialogService.ShowErrorDialog("Please choose a ship date.");
                 return;
             }
-
+            _viewModel.SelectedReportView = Constants.ViewOptions[0];
             await _viewModel.GetSearchByDateResults(_viewModel.SearchByDate.Value);
-            ContentFrame.Content = new SearchByDateResultsPage(_viewModel);
+            ContentFrame.Content = new SearchByDateResultsPage(_viewModel, _printService);
         }
         catch (Exception ex)
         {
@@ -208,6 +213,7 @@ public partial class MainWindow
     {
         _viewModel.SelectedReport = report;
         _viewModel.SelectedReportTitle = target;
+        _viewModel.SelectedReportView = Constants.ViewOptions[0];
         if (target == "PACKING LIST")
             ContentFrame.Content = new PackingListPage(_viewModel);
         else

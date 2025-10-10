@@ -10,7 +10,7 @@ public class ReportHeader
     public int OrderNumber { get; set; }
     public int Suffix { get; set; }
     [NotMapped]
-    public string OrderNumberWithSuffix => $"{OrderNumber}-00";
+    public string OrderNumberWithSuffix => $"{OrderNumber}-{Suffix}";
     public int PageCount { get; set; }
     public string OrdEnterDate { get; set; }
     public string ShipDate { get; set; }

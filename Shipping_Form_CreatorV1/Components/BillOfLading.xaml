@@ -5,6 +5,8 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="clr-namespace:Shipping_Form_CreatorV1.Components"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:vm="clr-namespace:Shipping_Form_CreatorV1.ViewModels"
+    xmlns:syncfusion="http://schemas.syncfusion.com/wpf"
     xmlns:utils="clr-namespace:Shipping_Form_CreatorV1.Utilities"
     Title="BillOfLading"
     d:DesignHeight="1200"
@@ -12,6 +14,8 @@
     mc:Ignorable="d">
     <Page.Resources>
         <utils:BolFlagFilterConverter x:Key="BolFlagFilter" FlagValue="Y" />
+        <BooleanToVisibilityConverter x:Key="BoolToVis" />
+
         <Style x:Key="PrintCheckBoxStyle" TargetType="CheckBox">
             <Setter Property="Foreground" Value="Black" />
             <Setter Property="Template">
@@ -65,8 +69,60 @@
     </Page.Resources>
 
     <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <Grid Grid.Column="0" Width="840">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition />
+                <ColumnDefinition />
+            </Grid.ColumnDefinitions>
+            <StackPanel
+                Grid.Column="0"
+                Background="#e6e6e6"
+                Orientation="Horizontal"
+                HorizontalAlignment="Right">
+                <TextBlock
+                    Margin="10,0,5,0"
+                    VerticalAlignment="Center"
+                    FontSize="20"
+                    Foreground="#000"
+                    Text="TRUCK NUMBER" />
+                <syncfusion:ComboBoxAdv
+                    Width="120"
+                    Height="30"
+                    HorizontalContentAlignment="Right"
+                    FontSize="18"
+                    ItemsSource="{Binding ViewOptions}"
+                    SelectedItem="{Binding SelectedReportView, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+            </StackPanel>
+
+            <StackPanel Grid.Column="1" Orientation="Horizontal">
+                <StackPanel.Visibility>
+                    <Binding Path="IsMultiTruckOrder" Converter="{StaticResource BoolToVis}" />
+                </StackPanel.Visibility>
+                <Path
+                    Width="50"
+                    Height="50"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Data="M10,0 L0,10 L10,20 L10,15 L20,15 L20,5 L10,5 Z"
+                    Fill="Red"
+                    Stretch="Uniform" />
+                <Border BorderBrush="Red" BorderThickness="2" Padding="5">
+                    <StackPanel Orientation="Vertical">
+                        <TextBlock Text="ATTENTION" HorizontalAlignment="Center" FontSize="18" Foreground="Red"/>
+                        <TextBlock Text="MULTI-TRUCK ORDER" FontSize="15" Foreground="Red"/>                        
+                    </StackPanel>
+                </Border>
+
+            </StackPanel>
+        </Grid>
+
         <ScrollViewer
-            Padding="20"
+            Grid.Row="1"
+            Padding="20,0,20,20"
             Background="#e6e6e6"
             HorizontalScrollBarVisibility="Disabled"
             VerticalScrollBarVisibility="Auto">
@@ -707,20 +763,43 @@
                                             Grid.ColumnSpan="2"
                                             BorderBrush="#000"
                                             BorderThickness="1">
-                                            <StackPanel Orientation="Horizontal">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto" />
+                                                    <ColumnDefinition Width="*" />
+                                                </Grid.ColumnDefinitions>
                                                 <TextBlock
+                                                    Grid.Column="0"
                                                     Padding="10,3"
                                                     VerticalAlignment="Center"
                                                     FontSize="11"
                                                     FontWeight="Bold">
                                                     CHARGES ARE PREPAID UNLESS MARKED COLLECT, PLEASE CHECK BOX IF COLLECT
                                                 </TextBlock>
-                                                <CheckBox x:Name="MarkCollectCheckBox">
+                                                <CheckBox x:Name="MarkCollectCheckBox" Grid.Column="1">
                                                     <CheckBox.LayoutTransform>
                                                         <ScaleTransform ScaleX=".7" ScaleY=".7" />
                                                     </CheckBox.LayoutTransform>
                                                 </CheckBox>
-                                            </StackPanel>
+                                                <TextBlock
+                                                    Grid.Column="1"
+                                                    Margin="0,0,3,0"
+                                                    HorizontalAlignment="Center"
+                                                    VerticalAlignment="Center"
+                                                    FontWeight="Bold"
+                                                    Text="X">
+                                                    <TextBlock.Style>
+                                                        <Style TargetType="TextBlock">
+                                                            <Setter Property="Visibility" Value="Collapsed" />
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding SelectedReport.Header.FreightTerms}" Value="COLLECT">
+                                                                    <Setter Property="Visibility" Value="Visible" />
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </TextBlock.Style>
+                                                </TextBlock>
+                                            </Grid>
                                         </Border>
 
                                         <Border
@@ -841,4 +920,3 @@
         </ScrollViewer>
     </Grid>
 </Page>
-

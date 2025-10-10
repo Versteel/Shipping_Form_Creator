@@ -11,6 +11,20 @@ public class OdbcService : IOdbcService
     private const string CONNECTION_STRING =
         "Driver={iSeries Access ODBC Driver};System=192.168.1.2;Uid=FRN032;Pwd=FRN032;";
 
+    // Query to search by order number
+    private const string SEARCH_BY_ORDER_NUMBER = """
+                                              SELECT DISTINCT
+                                                  o4ord#,
+                                                  o4sufx
+                                              FROM s107ce82.frndta032.ohpl AS ohpl
+                                              JOIN s107ce82.frndta032.o4pl AS o4pl
+                                                ON ohord# = o4ord#
+                                              WHERE oddiv = 1
+                                                AND o4ord# = ?
+                                              FOR FETCH ONLY
+                                              """;
+
+
     // Query for the main header information
     private const string GET_HEADER_QUERY = """
                                              SELECT
@@ -66,8 +80,7 @@ public class OdbcService : IOdbcService
                                                ON nfcarrier.nftyp = 'CC' AND nfcarrier.nfnumb = o4p.odcarr
                                              WHERE ohp.ohord# = ?
                                                AND ohp.ohlsuf = ?
-                                             FOR FETCH ONLY
-                                             
+                                             FOR FETCH ONLY                                             
                                              """;
 
     // Query for line item details
@@ -105,8 +118,7 @@ public class OdbcService : IOdbcService
                                                   AND UPPER(o5p.odtext) NOT LIKE 'OPTIONS BEGIN%'
                                                   AND UPPER(o5p.odtext) NOT LIKE 'OPTIONS END%'
                                                 ORDER BY o5p.o5item, o5p.o5op
-                                                FOR FETCH ONLY
-                                                                
+                                                FOR FETCH ONLY                                                                
                                                 """;
 
     // Query to get all order headers by ship date
@@ -188,6 +200,26 @@ public class OdbcService : IOdbcService
     }
 
 
+    public async Task<List<ReportModel>> GetOrdersByOrderNumber(int orderNumber, CancellationToken ct = default)
+    {
+        var results = new List<ReportModel>();
+        await using var connection = new OdbcConnection(CONNECTION_STRING);
+        await connection.OpenAsync(ct);
+        await using var cmd = new OdbcCommand(SEARCH_BY_ORDER_NUMBER, connection);
+        cmd.Parameters.Add("@O4ORD#", OdbcType.Int).Value = orderNumber;
+        await using var rdr = await cmd.ExecuteReaderAsync(ct);
+        while (await rdr.ReadAsync(ct))
+        {
+            int ordNum = GetSafeInt(rdr, "O4ORD#");
+            int suffix = GetSafeInt(rdr, "O4SUFX");
+            var odbcService = new OdbcService();
+            var rpt = await odbcService.GetReportAsync(ordNum, suffix, ct);
+            if (rpt != null)
+                results.Add(rpt);
+        }
+        return results;
+    }
+
     public async Task<ReportModel?> GetReportAsync(int orderNumber, int suffix, CancellationToken ct = default)
     {
         var rpt = new ReportModel
@@ -200,8 +232,8 @@ public class OdbcService : IOdbcService
 
         // Step 1: Get the single header record
         await using var headerCommand = new OdbcCommand(GET_HEADER_QUERY, connection);
-        headerCommand.Parameters.Add("@OHORD#", OdbcType.Int).Value = orderNumber;
-        headerCommand.Parameters.Add("@OHLSUF", OdbcType.Int).Value = suffix;
+        headerCommand.Parameters.Add("?", OdbcType.Int).Value = orderNumber;
+        headerCommand.Parameters.Add("?", OdbcType.Int).Value = suffix;
 
         await using var headerReader = await headerCommand.ExecuteReaderAsync(ct);
         if (await headerReader.ReadAsync(ct))
@@ -212,22 +244,22 @@ public class OdbcService : IOdbcService
                 Suffix = GetSafeInt(headerReader, "OHLSUF"),
                 OrdEnterDate = GetSafeString(headerReader, "OrderEnteredDate"),
                 ShipDate = GetSafeString(headerReader, "ShipDate"),
-                SoldToCustNumber = GetSafeString(headerReader, "OHSTKY"),
-                SoldToName = GetSafeString(headerReader, "O4NAME"),
-                SoldToCustAddressLine1 = GetSafeString(headerReader, "O4ADR2"),
-                SoldToCustAddressLine2 = GetSafeString(headerReader, "O4ADR3"),
-                SoldToCustAddressLine3 = GetSafeString(headerReader, "O4ADR4"),
-                SoldToCity = GetSafeString(headerReader, "O4CITY"),
-                SoldToSt = GetSafeString(headerReader, "O4ST"),
-                SoldToZipCode = GetSafeString(headerReader, "O4ZIP"),
-                ShipToCustNumber = GetSafeString(headerReader, "C1STKY"),
-                ShipToName = GetSafeString(headerReader, "CMNAME"),
-                ShipToCustAddressLine1 = GetSafeString(headerReader, "CMLNE1"),
-                ShipToCustAddressLine2 = GetSafeString(headerReader, "CMLNE2"),
-                ShipToCustAddressLine3 = GetSafeString(headerReader, "CMLNE3"),
-                ShipToCity = GetSafeString(headerReader, "CMCITY"),
-                ShipToSt = GetSafeString(headerReader, "CMST"),
-                ShipToZipCode = GetSafeString(headerReader, "CMZIP"),
+                SoldToCustNumber = GetSafeString(headerReader, "C1STKY"),
+                SoldToName = GetSafeString(headerReader, "CMNAME"),
+                SoldToCustAddressLine1 = GetSafeString(headerReader, "CMLNE1"),
+                SoldToCustAddressLine2 = GetSafeString(headerReader, "CMLNE2"),
+                SoldToCustAddressLine3 = GetSafeString(headerReader, "CMLNE3"),
+                SoldToCity = GetSafeString(headerReader, "CMCITY"),
+                SoldToSt = GetSafeString(headerReader, "CMST"),
+                SoldToZipCode = GetSafeString(headerReader, "CMZIP"),
+                ShipToCustNumber = GetSafeString(headerReader, "OHSTKY"),
+                ShipToName = GetSafeString(headerReader, "O4NAME"),
+                ShipToCustAddressLine1 = GetSafeString(headerReader, "O4ADR2"),
+                ShipToCustAddressLine2 = GetSafeString(headerReader, "O4ADR3"),
+                ShipToCustAddressLine3 = GetSafeString(headerReader, "O4ADR4"),
+                ShipToCity = GetSafeString(headerReader, "O4CITY"),
+                ShipToSt = GetSafeString(headerReader, "O4ST"),
+                ShipToZipCode = GetSafeString(headerReader, "O4ZIP"),
                 CustomerPONumber = GetSafeString(headerReader, "OHSPO#"),
                 DueDate = GetSafeString(headerReader, "DueDate"),
                 SalesPerson = GetSafeString(headerReader, "SPNAME"),
@@ -243,8 +275,8 @@ public class OdbcService : IOdbcService
 
         // Step 2: Get line items
         await using var lineItemCommand = new OdbcCommand(GET_LINE_ITEMS_QUERY, connection);
-        lineItemCommand.Parameters.Add("@O6ORD#", OdbcType.Int).Value = orderNumber;
-        lineItemCommand.Parameters.Add("@O6SUFX", OdbcType.Int).Value = suffix;
+        lineItemCommand.Parameters.Add("?", OdbcType.Int).Value = orderNumber;
+        lineItemCommand.Parameters.Add("?", OdbcType.Int).Value = suffix;
 
         await using var lineItemReader = await lineItemCommand.ExecuteReaderAsync(ct);
 
@@ -276,8 +308,8 @@ public class OdbcService : IOdbcService
 
         // Step 3: Get "floating" notes
         await using var notesCommand = new OdbcCommand(GET_ORDER_NOTES_QUERY, connection);
-        notesCommand.Parameters.Add("@O5ORD#", OdbcType.Int).Value = orderNumber;
-        notesCommand.Parameters.Add("@O5SUFX", OdbcType.Int).Value = suffix;
+        notesCommand.Parameters.Add("?", OdbcType.Int).Value = orderNumber;
+        notesCommand.Parameters.Add("?", OdbcType.Int).Value = suffix;
 
         await using var notesReader = await notesCommand.ExecuteReaderAsync(ct);
 

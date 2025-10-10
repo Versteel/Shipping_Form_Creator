@@ -158,7 +158,8 @@
                     Click="PrintBtn_OnClick"
                     Content="Print"
                     Cursor="Hand"
-                    Foreground="#FFF" />
+                    Foreground="#FFF"
+                    IsEnabled="{Binding IsPrintAvailable}" />
             </StackPanel>
         </Border>
 
