@@ -212,7 +212,7 @@
                                                 Text="THIRD PARTY BILLING / SPECIAL INSTRUCTIONS" />
                                         </Border>
                                         <Border Padding="10,0">
-                                            <ItemsControl ItemsSource="{Binding SelectedReport.LineItems, Converter={StaticResource BolFlagFilter}}">
+                                            <ItemsControl ItemsSource="{Binding BolSpecialInstructions}">
                                                 <ItemsControl.ItemTemplate>
                                                     <DataTemplate>
                                                         <TextBlock Text="{Binding NoteText}" TextWrapping="Wrap" />

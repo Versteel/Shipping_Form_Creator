@@ -184,17 +184,29 @@ public class PrintService
                 await Task.Delay(25);
             }
 
-            if (viewModel.PackingListNotes is { Count: > 0 })
+            var trailerNotes = report.LineItems
+                .SelectMany(li => li.LineItemDetails)
+                .Where(d => d.ModelItem == 950m)
+                .Where(d => string.Equals(d.PackingListFlag, "Y", StringComparison.OrdinalIgnoreCase))
+                .Where(d => !string.IsNullOrWhiteSpace(d.NoteText))
+                .OrderBy(d => d.ModelItem)
+                .ThenBy(d => d.NoteSequenceNumber)
+                .ToList();
+            viewModel.PackingListNotes = new ObservableCollection<LineItemDetail>(trailerNotes);
+
+            UpdateLoadingMessage("Creating summary page...");
+            viewModel.UpdateOrderSummary();
+
+            var orderSummaryPage = new PackingListNotesPage
             {
-                UpdateLoadingMessage("Creating notes page...");
-                var notesPage = new PackingListNotesPage
-                {
-                    Header = header,
-                    Details = viewModel.PackingListNotes,
-                    IsPrinting = true
-                };
-                pages.Add(notesPage);
-            }
+                Header = header,
+                ShippingInstructions = viewModel.ShippingInstructions,
+                ConsolidatedSummary = viewModel.ConsolidatedSummary,
+                OverallTotals = viewModel.OverallTotals,
+                HandlingUnits = viewModel.SelectedReport.HandlingUnits,
+                IsPrinting = true
+            };
+            pages.Add(orderSummaryPage);
 
             UpdateLoadingMessage("Finalizing pages...");
             var total = pages.Count;

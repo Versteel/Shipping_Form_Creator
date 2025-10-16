@@ -4,6 +4,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:constants="clr-namespace:Shipping_Form_CreatorV1.Utilities"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:dd="urn:gong-wpf-dragdrop"
     xmlns:local="clr-namespace:Shipping_Form_CreatorV1.Components"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:syncfusion="http://schemas.syncfusion.com/wpf"
@@ -27,7 +28,7 @@
             MinHeight="1056"
             MaxWidth="816"
             MaxHeight="1056"
-            Padding="48"
+            Padding="24"
             HorizontalAlignment="Center"
             Background="White">
             <Grid>
@@ -38,98 +39,10 @@
                 </Grid.RowDefinitions>
 
                 <!--  Header  -->
-                <Grid Grid.Row="0">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition />
-                        <ColumnDefinition />
-                        <ColumnDefinition />
-                    </Grid.ColumnDefinitions>
-                    <StackPanel Grid.Column="0" Orientation="Vertical">
-                        <Image
-                            Width="150"
-                            Height="Auto"
-                            HorizontalAlignment="Left"
-                            Source="{Binding Header.LogoImagePath, RelativeSource={RelativeSource AncestorType=UserControl}}" />
-                        <TextBlock FontSize="14" Text="2332 Cathy Lane" />
-                        <TextBlock FontSize="14" Text="Jasper, Indiana  47546" />
-                        <TextBlock FontSize="14" Text="800.876.2120" />
-                        <TextBlock FontSize="14" Text="versteel.com" />
-                    </StackPanel>
-                    <StackPanel Grid.Column="1" Orientation="Vertical">
-                        <TextBlock
-                            HorizontalAlignment="Center"
-                            FontSize="25"
-                            FontWeight="Bold"
-                            Text="Packing List" />
-                        <StackPanel HorizontalAlignment="Center" Orientation="Horizontal">
-                            <TextBlock
-                                FontSize="18"
-                                FontWeight="Bold"
-                                Text="Order Number: " />
-                            <TextBlock
-                                FontSize="18"
-                                FontWeight="Bold"
-                                Text="{Binding Header.OrderNumber, RelativeSource={RelativeSource AncestorType=UserControl}}" />
-                        </StackPanel>
-                    </StackPanel>
-                    <StackPanel Grid.Column="2" Orientation="Vertical">
-                        <TextBlock
-                            HorizontalAlignment="Right"
-                            FontSize="14"
-                            Text="{Binding PageNumberTwoPlusText, RelativeSource={RelativeSource AncestorType=UserControl}}" />
-                        <Grid
-                            Width="150"
-                            Margin="0,10"
-                            HorizontalAlignment="Right">
-                            <Grid.RowDefinitions>
-                                <RowDefinition />
-                                <RowDefinition />
-                            </Grid.RowDefinitions>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition />
-                                <ColumnDefinition />
-                            </Grid.ColumnDefinitions>
-
-                            <Border
-                                Grid.Row="0"
-                                Grid.Column="0"
-                                Background="#e6e6e6"
-                                BorderBrush="#000"
-                                BorderThickness="1">
-                                <TextBlock
-                                    Margin="5"
-                                    FontWeight="Bold"
-                                    Text="Order Date:" />
-                            </Border>
-                            <Border
-                                Grid.Row="0"
-                                Grid.Column="1"
-                                BorderBrush="#000"
-                                BorderThickness="0,1,1,1">
-                                <TextBlock Margin="5" Text="{Binding Header.OrdEnterDate, RelativeSource={RelativeSource AncestorType=UserControl}}" />
-                            </Border>
-
-                            <Border
-                                Grid.Row="1"
-                                Grid.Column="0"
-                                Background="#e6e6e6"
-                                BorderBrush="#000"
-                                BorderThickness="1,0,1,1">
-                                <TextBlock
-                                    Margin="5"
-                                    FontWeight="Bold"
-                                    Text="Ship Date:" />
-                            </Border>
-                            <Border
-                                Grid.Row="1"
-                                Grid.Column="1"
-                                BorderBrush="#000"
-                                BorderThickness="0,0,1,1">
-                                <TextBlock Margin="5" Text="{Binding Header.ShipDate, RelativeSource={RelativeSource AncestorType=UserControl}}" />
-                            </Border>
-                        </Grid>
-                    </StackPanel>
-                </Grid>
+                <local:ReportHeaderControl
+                    Grid.Row="0"
+                    Header="{Binding Header, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                    PageNumberText="{Binding PageNumberTwoPlusTextProperty, RelativeSource={RelativeSource AncestorType=UserControl}}" />
 
                 <!--  Body  -->
                 <Border
@@ -249,7 +162,7 @@
                                             <!--  Details + Packing Units  -->
                                             <Border
                                                 Grid.Row="2"
-                                                Grid.Column="0"
+                                                Grid.Column="1"
                                                 Grid.ColumnSpan="6">
                                                 <Grid>
                                                     <Grid.ColumnDefinitions>
@@ -260,7 +173,7 @@
                                                     <!--  Notes  -->
                                                     <ItemsControl
                                                         Grid.Column="0"
-                                                        Margin="38,0,0,0"
+                                                        Margin="4,0,0,0"
                                                         ItemsSource="{Binding LineItemDetails}">
                                                         <ItemsControl.ItemTemplate>
                                                             <DataTemplate>
@@ -282,7 +195,7 @@
                                                                 Visibility="{Binding IsPrinting, RelativeSource={RelativeSource AncestorType={x:Type local:PackingListPageTwoPlus}}, Converter={StaticResource InverseBoolToVis}}">
 
                                                                 <ui:HyperlinkButton
-                                                                    HorizontalAlignment="Center"
+                                                                    HorizontalAlignment="Left"
                                                                     Command="{Binding AddPackUnitCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                                                     CommandParameter="{Binding}"
                                                                     Content="Add New Packing Unit" />
@@ -305,108 +218,144 @@
 
                                                                         <ItemsControl.ItemTemplate>
                                                                             <DataTemplate>
-                                                                                <StackPanel Margin="0,4,0,0" Orientation="Horizontal">
-                                                                                    <syncfusion:ButtonAdv
-                                                                                        Width="20"
-                                                                                        Height="20"
-                                                                                        Margin="0,10,0,0"
-                                                                                        VerticalAlignment="Center"
-                                                                                        VerticalContentAlignment="Center"
-                                                                                        Background="Transparent"
-                                                                                        BorderThickness="0"
-                                                                                        Command="{Binding RemovePackUnitCommand, ElementName=Root}"
-                                                                                        CommandParameter="{Binding}"
-                                                                                        Cursor="Hand"
-                                                                                        Label=""
-                                                                                        SmallIcon="/delete.png" />
+                                                                                <Grid>
+                                                                                    <Border
+                                                                                        Margin="0,10,0,5"
+                                                                                        Padding="0 0 0 5"
+                                                                                        dd:DragDrop.IsDragSource="True"
+                                                                                        Background="#fffff0"
+                                                                                        BorderBrush="Black"
+                                                                                        BorderThickness="1"
+                                                                                        CornerRadius="5">
+                                                                                        <StackPanel Margin="0,4,0,0" Orientation="Horizontal">
+                                                                                            <syncfusion:ButtonAdv
+                                                                                                Width="20"
+                                                                                                Height="20"
+                                                                                                Margin="0,10,0,0"
+                                                                                                VerticalAlignment="Center"
+                                                                                                VerticalContentAlignment="Center"
+                                                                                                Background="Transparent"
+                                                                                                BorderThickness="0"
+                                                                                                Command="{Binding RemovePackUnitCommand, RelativeSource={RelativeSource AncestorType={x:Type local:PackingListPageTwoPlus}}}"
+                                                                                                CommandParameter="{Binding}"
+                                                                                                Cursor="Hand"
+                                                                                                Label=""
+                                                                                                SmallIcon="/delete.png" />
 
-                                                                                    <StackPanel x:Name="sfQty" Orientation="Vertical">
+                                                                                            <StackPanel x:Name="sfQty" Orientation="Vertical">
+                                                                                                <TextBlock
+                                                                                                    FontSize="10"
+                                                                                                    Foreground="#000"
+                                                                                                    Text="Qty" />
+                                                                                                <syncfusion:IntegerTextBox Width="25" Value="{Binding Quantity, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                                                                            </StackPanel>
+                                                                                            <StackPanel
+                                                                                                x:Name="spCartonOrSkidContents"
+                                                                                                Orientation="Vertical"
+                                                                                                Visibility="Collapsed">
+                                                                                                <TextBlock
+                                                                                                    FontSize="10"
+                                                                                                    Foreground="#000"
+                                                                                                    Text="Contents" />
+                                                                                                <syncfusion:ComboBoxAdv
+                                                                                                    Width="100"
+                                                                                                    Height="20"
+                                                                                                    ItemsSource="{x:Static local:PackingListPageOne.PackingUnitCategories}"
+                                                                                                    SelectedItem="{Binding CartonOrSkidContents, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                                                                            </StackPanel>
+                                                                                            <StackPanel Orientation="Vertical">
+                                                                                                <TextBlock
+                                                                                                    FontSize="10"
+                                                                                                    Foreground="#000"
+                                                                                                    Text="Unit Type" />
+                                                                                                <syncfusion:ComboBoxAdv
+                                                                                                    Width="100"
+                                                                                                    Height="20"
+                                                                                                    ItemsSource="{x:Static local:PackingListPageOne.CartonOrSkidOptions}"
+                                                                                                    SelectedItem="{Binding CartonOrSkid, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                                                                            </StackPanel>
+
+                                                                                            <StackPanel x:Name="spTypeOfUnit" Orientation="Vertical">
+                                                                                                <TextBlock
+                                                                                                    FontSize="10"
+                                                                                                    Foreground="#000"
+                                                                                                    Text="Contents" />
+                                                                                                <syncfusion:ComboBoxAdv
+                                                                                                    Width="100"
+                                                                                                    Height="20"
+                                                                                                    ItemsSource="{x:Static local:PackingListPageOne.PackingUnitCategories}"
+                                                                                                    SelectedItem="{Binding TypeOfUnit, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                                                                            </StackPanel>
+
+                                                                                            <StackPanel
+                                                                                                x:Name="spLineNumber"
+                                                                                                Orientation="Vertical"
+                                                                                                Visibility="Collapsed">
+                                                                                                <TextBlock
+                                                                                                    FontSize="10"
+                                                                                                    Foreground="#000"
+                                                                                                    Text="Line" />
+                                                                                                <syncfusion:ComboBoxAdv
+                                                                                                    Width="50"
+                                                                                                    Height="20"
+                                                                                                    ItemsSource="{Binding DataContext.LineNumbersForDropdown, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                                                                    SelectedItem="{Binding LineNumber, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                                                                            </StackPanel>
+
+                                                                                            <StackPanel
+                                                                                                x:Name="spWeight"
+                                                                                                HorizontalAlignment="Center"
+                                                                                                Orientation="Vertical">
+                                                                                                <TextBlock
+                                                                                                    FontSize="10"
+                                                                                                    Foreground="#000"
+                                                                                                    Text="Wgt" />
+                                                                                                <syncfusion:IntegerTextBox Width="30" Value="{Binding Weight, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                                                                            </StackPanel>
+
+                                                                                            <StackPanel x:Name="spTruckNumber" Orientation="Vertical">
+                                                                                                <TextBlock
+                                                                                                    FontSize="10"
+                                                                                                    Foreground="#000"
+                                                                                                    Text="Truck" />
+                                                                                                <syncfusion:ComboBoxAdv
+                                                                                                    Width="80"
+                                                                                                    Height="20"
+                                                                                                    ItemsSource="{Binding DataContext.Trucks, RelativeSource={RelativeSource AncestorType=Page}}"
+                                                                                                    SelectedItem="{Binding TruckNumber, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                                                                    SelectionChanged="TruckComboBox_SelectionChanged" />
+                                                                                            </StackPanel>
+                                                                                        </StackPanel>
+                                                                                    </Border>
+                                                                                    <Border
+                                                                                        Margin="0,0,15,0"
+                                                                                        Padding="5,0"
+                                                                                        HorizontalAlignment="Right"
+                                                                                        VerticalAlignment="Top"
+                                                                                        Background="#FFF"
+                                                                                        BorderBrush="Black"
+                                                                                        BorderThickness="1"
+                                                                                        CornerRadius="5">
                                                                                         <TextBlock
-                                                                                            FontSize="10"
-                                                                                            Foreground="#000"
-                                                                                            Text="Qty" />
-                                                                                        <syncfusion:IntegerTextBox Width="25" Value="{Binding Quantity, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                                                                                    </StackPanel>
-                                                                                    <StackPanel
-                                                                                        x:Name="spCartonOrSkidContents"
-                                                                                        Orientation="Vertical"
-                                                                                        Visibility="Collapsed">
-                                                                                        <TextBlock
-                                                                                            FontSize="10"
-                                                                                            Foreground="#000"
-                                                                                            Text="Contents" />
-                                                                                        <syncfusion:ComboBoxAdv
-                                                                                            Width="100"
-                                                                                            Height="20"
-                                                                                            ItemsSource="{x:Static local:PackingListPageOne.PackingUnitCategories}"
-                                                                                            SelectedItem="{Binding CartonOrSkidContents, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                                                                                    </StackPanel>
+                                                                                            FontWeight="Bold"
+                                                                                            Foreground="Red"
+                                                                                            Text="{Binding HandlingUnit.Description}" />
+                                                                                        <Border.Style>
+                                                                                            <Style TargetType="Border">
+                                                                                                <Setter Property="Visibility" Value="Visible" />
+                                                                                                <Style.Triggers>
+                                                                                                    <DataTrigger Binding="{Binding HandlingUnit.Description}" Value="{x:Null}">
+                                                                                                        <Setter Property="Visibility" Value="Collapsed" />
+                                                                                                    </DataTrigger>
+                                                                                                    <DataTrigger Binding="{Binding HandlingUnit.Description}" Value="">
+                                                                                                        <Setter Property="Visibility" Value="Collapsed" />
+                                                                                                    </DataTrigger>
+                                                                                                </Style.Triggers>
+                                                                                            </Style>
+                                                                                        </Border.Style>
+                                                                                    </Border>
 
-                                                                                    <StackPanel Orientation="Vertical">
-                                                                                        <TextBlock
-                                                                                            FontSize="10"
-                                                                                            Foreground="#000"
-                                                                                            Text="Unit Type" />
-                                                                                        <syncfusion:ComboBoxAdv
-                                                                                            Width="100"
-                                                                                            Height="20"
-                                                                                            ItemsSource="{x:Static local:PackingListPageTwoPlus.CartonOrSkidOptions}"
-                                                                                            SelectedItem="{Binding CartonOrSkid, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                                                                                    </StackPanel>
-
-
-                                                                                    <StackPanel x:Name="spTypeOfUnit" Orientation="Vertical">
-                                                                                        <TextBlock
-                                                                                            FontSize="10"
-                                                                                            Foreground="#000"
-                                                                                            Text="Contents" />
-                                                                                        <syncfusion:ComboBoxAdv
-                                                                                            Width="100"
-                                                                                            Height="20"
-                                                                                            ItemsSource="{x:Static local:PackingListPageOne.PackingUnitCategories}"
-                                                                                            SelectedItem="{Binding TypeOfUnit, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                                                                                    </StackPanel>
-
-                                                                                    <StackPanel
-                                                                                        x:Name="spLineNumber"
-                                                                                        Orientation="Vertical"
-                                                                                        Visibility="Collapsed">
-                                                                                        <TextBlock
-                                                                                            FontSize="10"
-                                                                                            Foreground="#000"
-                                                                                            Text="Line" />
-                                                                                        <syncfusion:ComboBoxAdv
-                                                                                            Width="50"
-                                                                                            Height="20"
-                                                                                            ItemsSource="{Binding DataContext.LineNumbersForDropdown, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                                                                            SelectedItem="{Binding LineNumber, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                                                                                    </StackPanel>
-
-
-
-                                                                                    <StackPanel x:Name="spWeight" Orientation="Vertical">
-                                                                                        <TextBlock
-                                                                                            FontSize="10"
-                                                                                            Foreground="#000"
-                                                                                            Text="Wgt" />
-                                                                                        <syncfusion:IntegerTextBox Width="30" Value="{Binding Weight, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                                                                                    </StackPanel>
-
-                                                                                    <StackPanel x:Name="spTruckNumber" Orientation="Vertical">
-                                                                                        <TextBlock
-                                                                                            Margin="5,0"
-                                                                                            FontSize="10"
-                                                                                            Foreground="#000"
-                                                                                            Text="Truck" />
-                                                                                        <syncfusion:ComboBoxAdv
-                                                                                            Width="80"
-                                                                                            Height="20"
-                                                                                            ItemsSource="{Binding DataContext.Trucks, RelativeSource={RelativeSource AncestorType=Page}}"
-                                                                                            SelectedItem="{Binding TruckNumber, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                                                                            SelectionChanged="TruckComboBox_SelectionChanged" />
-                                                                                    </StackPanel>
-                                                                                </StackPanel>
-
+                                                                                </Grid>
                                                                                 <DataTemplate.Triggers>
                                                                                     <DataTrigger Binding="{Binding CartonOrSkid}" Value="PACKED WITH LINE ">
                                                                                         <Setter TargetName="spTypeOfUnit" Property="UIElement.Visibility" Value="Collapsed" />
