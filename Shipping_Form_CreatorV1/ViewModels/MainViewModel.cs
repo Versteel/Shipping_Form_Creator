@@ -584,13 +584,13 @@ public class MainViewModel : INotifyPropertyChanged, IDropTarget
         // 1. Find the highest number used in the names of existing pallets.
         var highestPalletNumber = SelectedReport.HandlingUnits
             .Select(h => h.Description)
-            .Where(d => d.StartsWith("Pallet "))
-            .Select(d => int.TryParse(d.Replace("Pallet ", ""), out int num) ? num : 0)
+            .Where(d => d.StartsWith("Unit "))
+            .Select(d => int.TryParse(d.Replace("Unit ", ""), out int num) ? num : 0)
             .DefaultIfEmpty(0)
             .Max();
 
         // 2. The new pallet's number will be one higher than the current max.
-        var newDescription = $"Pallet {highestPalletNumber + 1}";
+        var newDescription = $"Unit {highestPalletNumber + 1}";
 
         // The ID logic for the database can remain the same.
         var newId = SelectedReport.HandlingUnits.Any()

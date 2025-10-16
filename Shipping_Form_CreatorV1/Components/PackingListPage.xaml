@@ -115,7 +115,7 @@
                             Margin="0,0,0,10"
                             Background="#e41f28"
                             Command="{Binding AddHandlingUnitCommand}"
-                            Content="Add New Pallet"
+                            Content="Add New Handling Unit"
                             Cursor="Hand"
                             Foreground="#FFF" />
 
@@ -168,12 +168,8 @@
                                                             <TextBlock
                                                                 Margin="2"
                                                                 FontStyle="Italic"
-                                                                Foreground="#000">
-                                                                <Run Text="{Binding Quantity}" />
-                                                                x<Run Text="{Binding CartonOrSkid}" />
-                                                                <Run Text="{Binding DisplayTypeOfUnit, Mode=OneWay}" />
-                                                                (Line<Run Text="{Binding LineItem.LineItemHeader.LineItemNumber}" />
-                                                                )</TextBlock>
+                                                                Foreground="#000"
+                                                                Text="{Binding PackingUnitSummary, Mode=OneWay}" />
                                                         </DataTemplate>
                                                     </ItemsControl.ItemTemplate>
                                                 </ItemsControl>

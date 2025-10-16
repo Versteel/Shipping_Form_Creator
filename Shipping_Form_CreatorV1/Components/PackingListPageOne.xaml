@@ -265,7 +265,7 @@
                                 Text="Line" />
                             <TextBlock
                                 Grid.Column="1"
-                                Margin="15 5"
+                                Margin="15,5"
                                 FontWeight="SemiBold"
                                 Text="Product" />
                             <TextBlock
@@ -298,7 +298,7 @@
                         Grid.ColumnSpan="4"
                         BorderBrush="#000"
                         BorderThickness="1,0,1,1">
-                        <Grid>                            
+                        <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="1*" />
@@ -315,7 +315,7 @@
                             <TextBlock
                                 Grid.Column="0"
                                 Margin="5"
-                               Text="{Binding LineItem.LineItemHeader.LineItemNumber, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                Text="{Binding LineItem.LineItemHeader.LineItemNumber, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                 TextTrimming="CharacterEllipsis" />
                             <TextBlock
                                 Grid.Row="0"
@@ -380,16 +380,17 @@
                                             Visibility="{Binding IsPrinting, RelativeSource={RelativeSource AncestorType={x:Type local:PackingListPageOne}}, Converter={StaticResource InverseBoolToVis}}">
 
                                             <ui:HyperlinkButton
-                                                HorizontalAlignment="Left"
+                                                HorizontalAlignment="Left"                                                
                                                 Command="{Binding AddPackUnitCommand, ElementName=Root}"
                                                 CommandParameter="{Binding LineItem, ElementName=Root}"
                                                 Content="Add New Packing Unit" />
 
                                             <ScrollViewer
                                                 Height="300"
+                                                MinWidth="300"
                                                 HorizontalScrollBarVisibility="Disabled"
                                                 VerticalScrollBarVisibility="Auto">
-                                                <ItemsControl  ItemsSource="{Binding LineItem.LineItemPackingUnits, RelativeSource={RelativeSource AncestorType=UserControl}}">
+                                                <ItemsControl ItemsSource="{Binding LineItem.LineItemPackingUnits, RelativeSource={RelativeSource AncestorType=UserControl}}">
                                                     <ItemsControl.Style>
                                                         <Style TargetType="ItemsControl">
                                                             <Setter Property="Visibility" Value="Collapsed" />
@@ -406,7 +407,7 @@
                                                             <Grid>
                                                                 <Border
                                                                     Margin="0,5,10,5"
-                                                                    Padding="3 0 3 3"
+                                                                    Padding="3,0,3,3"
                                                                     dd:DragDrop.IsDragSource="True"
                                                                     Background="#fffff0"
                                                                     BorderBrush="Black"
