@@ -202,6 +202,7 @@
 
                                                                 <ScrollViewer
                                                                     MaxHeight="175"
+                                                                    MinWidth="300"
                                                                     HorizontalScrollBarVisibility="Disabled"
                                                                     VerticalScrollBarVisibility="Auto">
                                                                     <ItemsControl ItemsSource="{Binding LineItemPackingUnits}">
