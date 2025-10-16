@@ -42,7 +42,7 @@
                 <local:ReportHeaderControl
                     Grid.Row="0"
                     Header="{Binding Header, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                    PageNumberText="{Binding PageNumberTwoPlusTextProperty, RelativeSource={RelativeSource AncestorType=UserControl}}" />
+                    PageNumberText="{Binding PageNumberTwoPlusText, RelativeSource={RelativeSource AncestorType=UserControl}}" />
 
                 <!--  Body  -->
                 <Border
