@@ -288,7 +288,7 @@
                                                 HorizontalAlignment="Right"
                                                 FontWeight="SemiBold"
                                                 Foreground="#000"
-                                                Text="{Binding TotalWeight, StringFormat='Pallet Weight: {0} Lbs'}" />
+                                                Text="{Binding TotalWeight, StringFormat='Total Weight: {0} Lbs'}" />
                                         </Grid>
                                     </Border>
                                 </DataTemplate>
