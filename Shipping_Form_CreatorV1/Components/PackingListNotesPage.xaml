@@ -207,7 +207,7 @@
                             </ItemsControl>
                         </Border>
 
-                        <!--<TextBlock
+                        <TextBlock
                             Padding="5"
                             Background="#e6e6e6"
                             FontSize="22"
@@ -293,7 +293,7 @@
                                     </Border>
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
-                        </ItemsControl>-->
+                        </ItemsControl>
                     </StackPanel>
                 </ScrollViewer>
 

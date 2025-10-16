@@ -265,7 +265,7 @@
                                 Text="Line" />
                             <TextBlock
                                 Grid.Column="1"
-                                Margin="5"
+                                Margin="15 5"
                                 FontWeight="SemiBold"
                                 Text="Product" />
                             <TextBlock
@@ -345,17 +345,17 @@
 
                             <Grid
                                 Grid.Row="1"
-                                Grid.Column="1"
+                                Grid.Column="0"
                                 Grid.ColumnSpan="6">
                                 <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
                                     <ColumnDefinition Width="*" />
                                 </Grid.ColumnDefinitions>
 
                                 <!--  Notes  -->
                                 <ItemsControl
                                     Grid.Column="0"
-                                    Margin="10,5,0,0"
+                                    Margin="48,5,0,0"
                                     ItemsSource="{Binding Details, RelativeSource={RelativeSource AncestorType=UserControl}}">
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate>
@@ -370,7 +370,7 @@
                                 </ItemsControl>
 
                                 <!--  Packing units: EDIT + PRINT modes  -->
-                                <Border Grid.Column="1" Margin="0,10,0,0">
+                                <Border Grid.Column="1" HorizontalAlignment="Right">
                                     <Grid>
 
                                         <!--  EDIT MODE (original UI)  -->
@@ -386,10 +386,10 @@
                                                 Content="Add New Packing Unit" />
 
                                             <ScrollViewer
-                                                Height="175"
+                                                Height="300"
                                                 HorizontalScrollBarVisibility="Disabled"
                                                 VerticalScrollBarVisibility="Auto">
-                                                <ItemsControl ItemsSource="{Binding LineItem.LineItemPackingUnits, RelativeSource={RelativeSource AncestorType=UserControl}}">
+                                                <ItemsControl  ItemsSource="{Binding LineItem.LineItemPackingUnits, RelativeSource={RelativeSource AncestorType=UserControl}}">
                                                     <ItemsControl.Style>
                                                         <Style TargetType="ItemsControl">
                                                             <Setter Property="Visibility" Value="Collapsed" />
@@ -405,8 +405,8 @@
                                                         <DataTemplate>
                                                             <Grid>
                                                                 <Border
-                                                                    Margin="0,10,0,5"
-                                                                    Padding="0 0 0 3"
+                                                                    Margin="0,5,10,5"
+                                                                    Padding="3 0 3 3"
                                                                     dd:DragDrop.IsDragSource="True"
                                                                     Background="#fffff0"
                                                                     BorderBrush="Black"
