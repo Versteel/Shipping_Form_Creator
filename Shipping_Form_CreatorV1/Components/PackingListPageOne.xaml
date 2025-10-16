@@ -495,7 +495,7 @@
                                                                                 FontSize="10"
                                                                                 Foreground="#000"
                                                                                 Text="Wgt" />
-                                                                            <syncfusion:IntegerTextBox Width="30" Value="{Binding Weight, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                                                            <syncfusion:IntegerTextBox Width="35" Value="{Binding Weight, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                                                         </StackPanel>
 
                                                                         <StackPanel x:Name="spTruckNumber" Orientation="Vertical">
