@@ -1,11 +1,13 @@
 ﻿using Shipping_Form_CreatorV1.Utilities;
 using System.Collections.ObjectModel;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq; // You'll need this for ToList() or similar if used elsewhere
 
 namespace Shipping_Form_CreatorV1.Models;
 
 public class LineItem
 {
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)] // <-- ADD THIS ATTRIBUTE
     public int Id { get; set; }
 
     public int LineItemHeaderId { get; set; }

@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using System.Globalization;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
@@ -25,12 +26,16 @@ public class SqliteService(IDbContextFactory<AppDbContext> dbContext) : ISqliteS
         var report = await db.ReportModels
             .Where(r => r.Header.OrderNumber == orderNumber)
             .Include(r => r.Header)
+            .Include(r => r.HandlingUnits)
+            .ThenInclude(handlingUnit => handlingUnit.ContainedUnits)
+                .ThenInclude(packingUnit => packingUnit.LineItem)
+                    .ThenInclude(lineItem => lineItem.LineItemHeader)
             .Include(r => r.LineItems)
-            .ThenInclude(li => li.LineItemHeader)
+                .ThenInclude(li => li.LineItemHeader)
             .Include(r => r.LineItems)
-            .ThenInclude(li => li.LineItemDetails)
+                .ThenInclude(li => li.LineItemDetails)
             .Include(r => r.LineItems)
-            .ThenInclude(li => li.LineItemPackingUnits)
+                .ThenInclude(li => li.LineItemPackingUnits)
             .AsSplitQuery()
             .AsNoTracking()
             .FirstOrDefaultAsync(ct);
@@ -85,6 +90,7 @@ public class SqliteService(IDbContextFactory<AppDbContext> dbContext) : ISqliteS
     {
         var existingReport = await db.Set<ReportModel>()
             .Include(r => r.Header)
+            .Include(r => r.HandlingUnits)
             .Include(r => r.LineItems)
                 .ThenInclude(li => li.LineItemHeader)
             .Include(r => r.LineItems)
@@ -96,8 +102,73 @@ public class SqliteService(IDbContextFactory<AppDbContext> dbContext) : ISqliteS
 
         UpdateReportHeader(existingReport.Header, report.Header);
         UpdateLineItems(db, existingReport, report.LineItems);
+        UpdateHandlingUnits(db, existingReport, report.HandlingUnits);
     }
+    private static void UpdateHandlingUnits(DbContext db, ReportModel existingReport, ICollection<HandlingUnit> updatedHandlingUnits)
+    {
+        var updatedIds = updatedHandlingUnits.Select(h => h.Id).ToHashSet();
 
+        // 1. Handle Deletions: Find units in the DB that are not in the UI's list and remove them.
+        var unitsToRemove = existingReport.HandlingUnits.Where(h => !updatedIds.Contains(h.Id)).ToList();
+        foreach (var unit in unitsToRemove)
+        {
+            // Un-assign all children before deleting the parent pallet.
+            foreach (var contained in unit.ContainedUnits.ToList())
+            {
+                unit.ContainedUnits.Remove(contained);
+            }
+            existingReport.HandlingUnits.Remove(unit);
+            db.Set<HandlingUnit>().Remove(unit);
+        }
+
+        // Create a lookup for all packing units currently tracked by Entity Framework for this report.
+        var allTrackedPackingUnits = existingReport.LineItems
+            .SelectMany(li => li.LineItemPackingUnits)
+            .Where(pu => pu.Id > 0)
+            .ToDictionary(pu => pu.Id);
+
+
+        // 2. Handle Additions and Updates for each pallet from the UI.
+        foreach (var updatedUnit in updatedHandlingUnits)
+        {
+            // Try to find the corresponding unit that EF is tracking.
+            var existingUnit = existingReport.HandlingUnits.FirstOrDefault(h => h.Id == updatedUnit.Id);
+
+            if (existingUnit == null)
+            {
+                // This is a NEW handling unit. Create it and add it to the report.
+                existingUnit = new HandlingUnit { ReportModelId = existingReport.Id };
+                existingReport.HandlingUnits.Add(existingUnit);
+            }
+
+            // Update properties from the UI object to the tracked entity.
+            existingUnit.Description = updatedUnit.Description;
+
+            // Now, reconcile the children (the items dragged onto the pallet).
+            var uiContainedUnitIds = updatedUnit.ContainedUnits.Select(cu => cu.Id).ToHashSet();
+
+            // Remove children that are no longer on this pallet.
+            var childrenToRemove = existingUnit.ContainedUnits.Where(cu => !uiContainedUnitIds.Contains(cu.Id)).ToList();
+            foreach (var child in childrenToRemove)
+            {
+                existingUnit.ContainedUnits.Remove(child);
+            }
+
+            // Add children that were newly dragged onto this pallet.
+            foreach (var uiChild in updatedUnit.ContainedUnits)
+            {
+                // Check if the existing pallet already contains this child.
+                if (!existingUnit.ContainedUnits.Any(c => c.Id == uiChild.Id))
+                {
+                    // Find the EF-tracked version of this child from our lookup and add it.
+                    if (allTrackedPackingUnits.TryGetValue(uiChild.Id, out var trackedChild))
+                    {
+                        existingUnit.ContainedUnits.Add(trackedChild);
+                    }
+                }
+            }
+        }
+    }
     private static void UpdateReportHeader(ReportHeader existing, ReportHeader updated)
     {
         existing.LogoImagePath = updated.LogoImagePath;
@@ -131,9 +202,9 @@ public class SqliteService(IDbContextFactory<AppDbContext> dbContext) : ISqliteS
 
     private void UpdateLineItems(DbContext db, ReportModel existingReport, ICollection<LineItem> updatedLineItems)
     {
-        var updatedLineItemIds = updatedLineItems.Where(li => li.Id != 0).Select(li => li.Id).ToHashSet();
+        var updatedLineItemIds = updatedLineItems.Where(li => li.Id > 0).Select(li => li.Id).ToHashSet();
 
-        var lineItemsToRemove = existingReport.LineItems.Where(li => !updatedLineItemIds.Contains(li.Id)).ToList();
+        var lineItemsToRemove = existingReport.LineItems.Where(li => li.Id > 0 && !updatedLineItemIds.Contains(li.Id)).ToList();
         foreach (var lineItem in lineItemsToRemove)
         {
             existingReport.LineItems.Remove(lineItem);
@@ -142,10 +213,16 @@ public class SqliteService(IDbContextFactory<AppDbContext> dbContext) : ISqliteS
 
         foreach (var updatedLineItem in updatedLineItems)
         {
-            if (updatedLineItem.Id == 0)
-            {                
-                updatedLineItem.ReportModelId = existingReport.Id;
-                existingReport.LineItems.Add(updatedLineItem);
+            if (updatedLineItem.Id <= 0) // <-- CHANGE IS HERE
+            {
+                var newLineItem = new LineItem
+                {
+                    ReportModelId = existingReport.Id,
+                    LineItemHeader = updatedLineItem.LineItemHeader,
+                    LineItemDetails = new ObservableCollection<LineItemDetail>(updatedLineItem.LineItemDetails),
+                    LineItemPackingUnits = new ObservableCollection<LineItemPackingUnit>(updatedLineItem.LineItemPackingUnits)
+                };
+                existingReport.LineItems.Add(newLineItem);
             }
             else
             {
@@ -228,9 +305,9 @@ public class SqliteService(IDbContextFactory<AppDbContext> dbContext) : ISqliteS
 
     private static void UpdateLineItemPackingUnits(DbContext db, LineItem existingLineItem, ICollection<LineItemPackingUnit> updatedPackingUnits)
     {
-        var updatedPackingUnitIds = updatedPackingUnits.Where(pu => pu.Id != 0).Select(pu => pu.Id).ToHashSet();
+        var updatedPackingUnitIds = updatedPackingUnits.Where(pu => pu.Id > 0).Select(pu => pu.Id).ToHashSet();
 
-        var packingUnitsToRemove = existingLineItem.LineItemPackingUnits.Where(pu => !updatedPackingUnitIds.Contains(pu.Id)).ToList();
+        var packingUnitsToRemove = existingLineItem.LineItemPackingUnits.Where(pu => pu.Id > 0 && !updatedPackingUnitIds.Contains(pu.Id)).ToList();
         foreach (var packingUnit in packingUnitsToRemove)
         {
             Log.Information("User {User} is deleting packing unit {Id}.", Environment.UserName, packingUnit.Id);
@@ -240,69 +317,41 @@ public class SqliteService(IDbContextFactory<AppDbContext> dbContext) : ISqliteS
 
         foreach (var updatedPackingUnit in updatedPackingUnits)
         {
-            if (updatedPackingUnit.Id == 0)
+            if (updatedPackingUnit.Id <= 0) // This is a new unit from the UI
             {
-                Log.Information("User {User} is adding a new packing unit to LineItem ID {LineItemId} of ReportModel ID {ReportId}.",
-                    Environment.UserName, existingLineItem.Id, existingLineItem.ReportModelId);
-                updatedPackingUnit.LineItemId = existingLineItem.Id;
-                existingLineItem.LineItemPackingUnits.Add(updatedPackingUnit);
+                var newDbUnit = new LineItemPackingUnit
+                {
+                    Quantity = updatedPackingUnit.Quantity,
+                    CartonOrSkid = updatedPackingUnit.CartonOrSkid,
+                    TypeOfUnit = updatedPackingUnit.TypeOfUnit,
+                    Weight = updatedPackingUnit.Weight,
+                    TruckNumber = updatedPackingUnit.TruckNumber,
+                    LineNumber = updatedPackingUnit.LineNumber,
+                    CartonOrSkidContents = updatedPackingUnit.CartonOrSkidContents,
+                };
+
+                // FIX: Add the new unit to the existing line item's collection
+                existingLineItem.LineItemPackingUnits.Add(newDbUnit);
+
+                // AND explicitly tell the DbContext to track it as a new entity.
+                db.Add(newDbUnit);
             }
             else
             {
                 var existingPackingUnit = existingLineItem.LineItemPackingUnits.FirstOrDefault(pu => pu.Id == updatedPackingUnit.Id);
                 if (existingPackingUnit != null)
                 {
-                    UpdateLineItemPackingUnit(existingPackingUnit, updatedPackingUnit);
+                    UpdateLineItemPackingUnit(db, existingPackingUnit, updatedPackingUnit);
                 }
             }
         }
     }
 
-    private static void UpdateLineItemPackingUnit(LineItemPackingUnit existing, LineItemPackingUnit updated)
-    {     
-        if (existing.TruckNumber != updated.TruckNumber)
-        {
-            Log.Information("User: {User} changed TruckNumber from {OldValue} to {NewValue} for LineItemPackingUnit ID {PackingUnitId} in LineItem ID {LineItemId} of ReportModel ID {ReportId}",
-                Environment.UserName, existing.TruckNumber, updated.TruckNumber, existing.Id, existing.LineItemId, existing.LineItem.ReportModelId);
-        }
-        if (existing.Quantity != updated.Quantity)
-        {
-            Log.Information("User: {User} changed Quantity from {OldValue} to {NewValue} for LineItemPackingUnit ID {PackingUnitId} in LineItem ID {LineItemId} of ReportModel ID {ReportId}",
-                Environment.UserName, existing.Quantity, updated.Quantity, existing.Id, existing.LineItemId, existing.LineItem.ReportModelId);
-        }
-        if (existing.CartonOrSkid != updated.CartonOrSkid)
-        {
-            Log.Information("User: {User} changed CartonOrSkid from {OldValue} to {NewValue} for LineItemPackingUnit ID {PackingUnitId} in LineItem ID {LineItemId} of ReportModel ID {ReportId}",
-                Environment.UserName, existing.CartonOrSkid, updated.CartonOrSkid, existing.Id, existing.LineItemId, existing.LineItem.ReportModelId);
-        }
-        if (existing.LineNumber != updated.LineNumber)
-        {
-            Log.Information("User: {User} changed LineNumber from {OldValue} to {NewValue} for LineItemPackingUnit ID {PackingUnitId} in LineItem ID {LineItemId} of ReportModel ID {ReportId}",
-                Environment.UserName, existing.LineNumber, updated.LineNumber, existing.Id, existing.LineItemId, existing.LineItem.ReportModelId);
-        }
-        if (existing.CartonOrSkidContents != updated.CartonOrSkidContents)
-        {
-            Log.Information("User: {User} changed CartonOrSkidContents from {OldValue} to {NewValue} for LineItemPackingUnit Id {PackingUnitId} in LineItem ID {LineItemId} of ReportModel ID {ReportId}",
-                Environment.UserName, existing.CartonOrSkidContents, updated.CartonOrSkidContents, existing.Id, existing.LineItemId, existing.LineItem.ReportModelId);
-        }
-        if (existing.TypeOfUnit != updated.TypeOfUnit)
-        {
-            Log.Information("User: {User} changed TypeOfUnit from {OldValue} to {NewValue} for LineItemPackingUnit ID {PackingUnitId} in LineItem ID {LineItemId} of ReportModel ID {ReportId}",
-                Environment.UserName, existing.TypeOfUnit, updated.TypeOfUnit, existing.Id, existing.LineItemId, existing.LineItem.ReportModelId);
-        }
-        if (existing.Weight != updated.Weight)
-        {
-            Log.Information("User: {User} changed Weight from {OldValue} to {NewValue} for LineItemPackingUnit ID {PackingUnitId} in LineItem ID {LineItemId} of ReportModel ID {ReportId}",
-                Environment.UserName, existing.Weight, updated.Weight, existing.Id, existing.LineItemId, existing.LineItem.ReportModelId);
-        }
-
-        existing.TruckNumber = updated.TruckNumber;
-        existing.Quantity = updated.Quantity;
-        existing.CartonOrSkid = updated.CartonOrSkid;
-        existing.LineNumber = updated.LineNumber;
-        existing.CartonOrSkidContents = updated.CartonOrSkidContents;
-        existing.TypeOfUnit = updated.TypeOfUnit;
-        existing.Weight = updated.Weight;
+    private static void UpdateLineItemPackingUnit(DbContext db, LineItemPackingUnit existing, LineItemPackingUnit updated)
+    {
+        // Use EF's built-in method to copy the scalar properties.
+        // This is safer and avoids navigation property conflicts.
+        db.Entry(existing).CurrentValues.SetValues(updated);
     }
 
 }

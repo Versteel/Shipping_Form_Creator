@@ -5,6 +5,7 @@ namespace Shipping_Form_CreatorV1.Models;
 
 public class ReportHeader
 {
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)] // <-- VERIFY THIS EXISTS
     public int Id { get; set; }
     public string LogoImagePath { get; set; } = string.Empty;
     public int OrderNumber { get; set; }

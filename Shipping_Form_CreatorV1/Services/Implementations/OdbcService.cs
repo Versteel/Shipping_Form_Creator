@@ -13,75 +13,71 @@ public class OdbcService : IOdbcService
 
     // Query to search by order number
     private const string SEARCH_BY_ORDER_NUMBER = """
-                                              SELECT DISTINCT
-                                                  o4ord#,
-                                                  o4sufx
-                                              FROM s107ce82.frndta032.ohpl AS ohpl
-                                              JOIN s107ce82.frndta032.o4pl AS o4pl
-                                                ON ohord# = o4ord#
-                                              WHERE oddiv = 1
-                                                AND o4ord# = ?
-                                              FOR FETCH ONLY
-                                              """;
+    SELECT DISTINCT
+        o4ord#,
+        o4sufx
+    FROM s107ce82.frndta032.o4p
+    WHERE o4ord# = ?
+    FOR FETCH ONLY
+    """;
 
 
     // Query for the main header information
     private const string GET_HEADER_QUERY = """
-                                             SELECT
-                                                 spp.spname,
-                                                 ohp.ohord#,
-                                                 ohp.ohlsuf,
-                                                 ohp.ohstky,
-                                                 ohp.ohspo#,
-                                                 ohp.ohentm,
-                                                 ohp.ohenty,
-                                                 ohp.ohreqm,
-                                                 ohp.ohreqy,
-                                                 o4p.odinst,
-                                                 o4p.o4name,
-                                                 o4p.o4adr2,
-                                                 o4p.o4adr3,
-                                                 o4p.o4adr4,
-                                                 o4p.o4city,
-                                                 o4p.o4st,
-                                                 o4p.o4zip,
-                                                 o4p.odshpm,
-                                                 o4p.odshpy,
-                                                 cm1p.c1stky,
-                                                 cm1p.cmname,
-                                                 cm1p.cmlne1,
-                                                 cm1p.cmlne2,
-                                                 cm1p.cmlne3,
-                                                 cm1p.cmcity,
-                                                 cm1p.cmst,
-                                                 cm1p.cmzip,
-                                                 Lpad(SUBSTRING(Lpad(ohp.ohentm, 4, '0'), 1, 2), 2, '0')
-                                                     || '/' || Lpad(SUBSTRING(Lpad(ohp.ohentm, 4, '0'), 3, 2), 2, '0')
-                                                     || '/' || '20' || Lpad(ohp.ohenty, 2, '0') AS OrderEnteredDate,
-                                                 Lpad(SUBSTRING(Lpad(o4p.odshpm, 4, '0'), 1, 2), 2, '0')
-                                                     || '/' || Lpad(SUBSTRING(Lpad(o4p.odshpm, 4, '0'), 3, 2), 2, '0')
-                                                     || '/' || '20' || Lpad(o4p.odshpy, 2, '0') AS ShipDate,
-                                                 Lpad(SUBSTRING(Lpad(ohp.ohreqm, 4, '0'), 1, 2), 2, '0')
-                                                     || '/' || Lpad(SUBSTRING(Lpad(ohp.ohreqm, 4, '0'), 3, 2), 2, '0')
-                                                     || '/' || '20' || Lpad(ohp.ohreqy, 2, '0') AS DueDate,
-                                                 nfterms.nfdesc AS FreightTermsDesc,
-                                                 nfcarrier.nfdesc AS CarrierDesc
-                                             FROM s107ce82.frndta032.ohp AS ohp
-                                             JOIN s107ce82.frndta032.spp AS spp
-                                               ON ohp.ohsm = spp.spsm
-                                             LEFT JOIN s107ce82.frndta032.o4p AS o4p
-                                               ON o4p.o4ord# = ohp.ohord#
-                                              AND o4p.o4sufx = ohp.ohlsuf
-                                             LEFT JOIN s107ce82.frndta032.cm1p AS cm1p
-                                               ON cm1p.c1stky = ohp.ohstky
-                                             LEFT JOIN s107ce82.frndta032.nfp AS nfterms
-                                               ON nfterms.nftyp = 'FT' AND nfterms.nfnumb = o4p.odfrtt
-                                             LEFT JOIN s107ce82.frndta032.nfp AS nfcarrier
-                                               ON nfcarrier.nftyp = 'CC' AND nfcarrier.nfnumb = o4p.odcarr
-                                             WHERE ohp.ohord# = ?
-                                               AND ohp.ohlsuf = ?
-                                             FOR FETCH ONLY                                             
-                                             """;
+                                            SELECT
+                                                spp.spname,
+                                                ohp.ohord#,
+                                                o4p.o4sufx AS ohlsuf,
+                                                ohp.ohstky,
+                                                ohp.ohspo#,
+                                                ohp.ohentm,
+                                                ohp.ohenty,
+                                                ohp.ohreqm,
+                                                ohp.ohreqy,
+                                                o4p.odinst,
+                                                o4p.o4name,
+                                                o4p.o4adr2,
+                                                o4p.o4adr3,
+                                                o4p.o4adr4,
+                                                o4p.o4city,
+                                                o4p.o4st,
+                                                o4p.o4zip,
+                                                o4p.odshpm,
+                                                o4p.odshpy,
+                                                cm1p.c1stky,
+                                                cm1p.cmname,
+                                                cm1p.cmlne1,
+                                                cm1p.cmlne2,
+                                                cm1p.cmlne3,
+                                                cm1p.cmcity,
+                                                cm1p.cmst,
+                                                cm1p.cmzip,
+                                                Lpad(SUBSTRING(Lpad(ohp.ohentm, 4, '0'), 1, 2), 2, '0')
+                                                    || '/' || Lpad(SUBSTRING(Lpad(ohp.ohentm, 4, '0'), 3, 2), 2, '0')
+                                                    || '/' || '20' || Lpad(ohp.ohenty, 2, '0') AS OrderEnteredDate,
+                                                Lpad(SUBSTRING(Lpad(o4p.odshpm, 4, '0'), 1, 2), 2, '0')
+                                                    || '/' || Lpad(SUBSTRING(Lpad(o4p.odshpm, 4, '0'), 3, 2), 2, '0')
+                                                    || '/' || '20' || Lpad(o4p.odshpy, 2, '0') AS ShipDate,
+                                                Lpad(SUBSTRING(Lpad(ohp.ohreqm, 4, '0'), 1, 2), 2, '0')
+                                                    || '/' || Lpad(SUBSTRING(Lpad(ohp.ohreqm, 4, '0'), 3, 2), 2, '0')
+                                                    || '/' || '20' || Lpad(ohp.ohreqy, 2, '0') AS DueDate,
+                                                nfterms.nfdesc AS FreightTermsDesc,
+                                                nfcarrier.nfdesc AS CarrierDesc
+                                            FROM s107ce82.frndta032.o4p AS o4p
+                                            LEFT JOIN s107ce82.frndta032.ohp AS ohp
+                                                ON o4p.o4ord# = ohp.ohord#
+                                            LEFT JOIN s107ce82.frndta032.spp AS spp
+                                                ON ohp.ohsm = spp.spsm
+                                            LEFT JOIN s107ce82.frndta032.cm1p AS cm1p
+                                                ON cm1p.c1stky = ohp.ohstky
+                                            LEFT JOIN s107ce82.frndta032.nfp AS nfterms
+                                                ON nfterms.nftyp = 'FT' AND nfterms.nfnumb = o4p.odfrtt
+                                            LEFT JOIN s107ce82.frndta032.nfp AS nfcarrier
+                                                ON nfcarrier.nftyp = 'CC' AND nfcarrier.nfnumb = o4p.odcarr
+                                            WHERE o4p.o4ord# = ?
+                                                AND o4p.o4sufx = ?
+                                            FOR FETCH ONLY
+    """;
 
     // Query for line item details
     private const string GET_LINE_ITEMS_QUERY = """
@@ -212,8 +208,8 @@ public class OdbcService : IOdbcService
         {
             int ordNum = GetSafeInt(rdr, "O4ORD#");
             int suffix = GetSafeInt(rdr, "O4SUFX");
-            var odbcService = new OdbcService();
-            var rpt = await odbcService.GetReportAsync(ordNum, suffix, ct);
+            // FIX: Call this instance's GetReportAsync method directly
+            var rpt = await GetReportAsync(ordNum, suffix, ct);
             if (rpt != null)
                 results.Add(rpt);
         }
@@ -267,6 +263,7 @@ public class OdbcService : IOdbcService
                 FreightTerms = GetSafeString(headerReader, "FreightTermsDesc"),
                 TrackingNumber = GetSafeString(headerReader, "ODINST")
             };
+        
         }
         else
         {
