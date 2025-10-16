@@ -1,3 +1,4 @@
+using GongSolutions.Wpf.DragDrop;
 using Microsoft.Data.Sqlite;
 using Serilog;
 using Shipping_Form_CreatorV1.Models;
@@ -12,10 +13,12 @@ using System.Data.Odbc;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Input;
 
 namespace Shipping_Form_CreatorV1.ViewModels;
 
-public class MainViewModel : INotifyPropertyChanged
+public class MainViewModel : INotifyPropertyChanged, IDropTarget
 {
     // -------------------------
     // Services
@@ -32,10 +35,14 @@ public class MainViewModel : INotifyPropertyChanged
         _odbcService = odbcService;
         IsDittoUser = UserGroupService.IsCurrentUserInDittoGroup();
 
+        AddHandlingUnitCommand = new RelayCommand(AddNewHandlingUnit);
+        RemoveHandlingUnitCommand = new RelayCommand(RemoveHandlingUnit);
+
         SearchByDateResults = [];
         SelectedReportsGroups = [];
         SearchByDateResults = Array.Empty<ReportModel>();
-        SelectedReport = new ReportModel
+
+        _selectedReport = new ReportModel
         {
             Header = new ReportHeader(),
             LineItems = []
@@ -51,8 +58,14 @@ public class MainViewModel : INotifyPropertyChanged
     // -------------------------
     public event PropertyChangedEventHandler? PropertyChanged;
 
-    private void OnPropertyChanged(string name) =>
+    public void OnPropertyChanged(string name) =>
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+
+    // -------------------------
+    // Commands
+    // -------------------------
+    public ICommand AddHandlingUnitCommand { get; }
+    public ICommand RemoveHandlingUnitCommand { get; }
 
     // -------------------------
     // Core Data Properties
@@ -64,8 +77,11 @@ public class MainViewModel : INotifyPropertyChanged
         set
         {
             if (_selectedReport == value) return;
+
             _selectedReport = value;
+
             OnPropertyChanged(nameof(SelectedReport));
+            OnPropertyChanged(nameof(HandlingUnits));
             OnPropertyChanged(nameof(BolSpecialInstructions));
             OnPropertyChanged(nameof(PackingListNotes));
             UpdateGroups();
@@ -74,6 +90,8 @@ public class MainViewModel : INotifyPropertyChanged
             OnPropertyChanged(nameof(BolTotalWeight));
             OnPropertyChanged(nameof(AllPiecesTotal));
             OnPropertyChanged(nameof(AllWeightTotal));
+            OnPropertyChanged(nameof(ShouldDisplayTruckNumber));
+            OnPropertyChanged(nameof(HandlingUnitPanelVisibility));
         }
     }
 
@@ -103,6 +121,8 @@ public class MainViewModel : INotifyPropertyChanged
             OnPropertyChanged(nameof(AllWeightTotal));
         }
     }
+
+    public ObservableCollection<HandlingUnit>? HandlingUnits => new ObservableCollection<HandlingUnit>(SelectedReport.HandlingUnits);
 
     // -------------------------
     // UI State & Input Properties
@@ -146,18 +166,7 @@ public class MainViewModel : INotifyPropertyChanged
         }
     }
 
-    private ObservableCollection<string> _viewOptions = [];
-    public ObservableCollection<string> ViewOptions
-    {
-        get => _viewOptions;
-        set
-        {
-            if (_viewOptions == value) return;
-            _viewOptions = value;
-            OnPropertyChanged(nameof(ViewOptions));
-            OnPropertyChanged(nameof(IsMultiTruckOrder));
-        }
-    }
+    public ObservableCollection<string> ViewOptions { get; set; } = new();
 
     private DateTime? _searchByDate = DateTime.Today.Date;
     public DateTime? SearchByDate
@@ -208,7 +217,7 @@ public class MainViewModel : INotifyPropertyChanged
         }
     }
 
-    private ObservableCollection<int> _lineNumbersForDropdown;
+    private ObservableCollection<int> _lineNumbersForDropdown = new();
     public ObservableCollection<int> LineNumbersForDropdown
     {
         get => _lineNumbersForDropdown;
@@ -222,154 +231,197 @@ public class MainViewModel : INotifyPropertyChanged
 
     public string PrintProgress { get; set; } = "";
 
-    // ------------------------------------
-    //  Dynamic Truck Dropdown Properties
-    // ------------------------------------
     public ObservableCollection<string> Trucks { get; set; }
 
     private string _selectedTruck;
+    // In MainViewModel.cs, replace the existing SelectedTruck property
     public string SelectedTruck
     {
         get => _selectedTruck;
         set
         {
             if (_selectedTruck == value) return;
-
             _selectedTruck = value;
             OnPropertyChanged(nameof(SelectedTruck));
-            UpdateTruckList();
-            //UpdateViewOptions();
+
+            // Call our new, consolidated method
+            if (int.TryParse(value?.Split(' ').Last(), out int selectedNum))
+            {
+                UpdateTrucksList(selectedNum);
+            }
         }
     }
 
-    // -------------------------
     // Computed & Derived Properties
-    // -------------------------
     public bool IsSaveEnabled => SelectedReportTitle == "PACKING LIST";
     public bool IsPrintAvailable => SelectedReportTitle != "SEARCH RESULTS";
     public string CurrentUser => Environment.UserName;
-    //public static string[] ViewOptions => Constants.ViewOptions;
     public string SearchDateString => SearchByDate?.ToShortDateString() ?? string.Empty;
     public int BolTotalPieces => SelectedReportsGroups.Sum(r => r.TotalPieces);
     public int BolTotalWeight => SelectedReportsGroups.Sum(r => r.TotalWeight);
     public int AllPiecesTotal => SelectedReportsGroups.Sum(r => r.TotalPieces);
     public int AllWeightTotal => SelectedReportsGroups.Sum(r => r.TotalWeight);
-    public bool IsMultiTruckOrder => ViewOptions != null && ViewOptions.Count > 2;
+    public bool IsMultiTruckOrder => ViewOptions.Count > 2;
+    public string HandlingUnitPanelVisibility => SelectedReport?.Header?.OrderNumber >= 1 ? "Visible" : "Collapsed";
 
-    public ObservableCollection<LineItemDetail> BolSpecialInstructions =>
-        new(SelectedReport.LineItems
-            .SelectMany(li => li.LineItemDetails)
-            .Where(detail => detail.BolFlag != null && detail.BolFlag.Equals("Y", StringComparison.InvariantCultureIgnoreCase)));
+    public bool ShouldDisplayTruckNumber =>
+        SelectedReport?.LineItems
+            .SelectMany(li => li.LineItemPackingUnits)
+            .Select(pu => pu.TruckNumber)
+            .Where(t => !string.IsNullOrEmpty(t))
+            .Distinct()
+            .Count() > 1;
+
+    public ObservableCollection<LineItemDetail> BolSpecialInstructions
+    {
+        get
+        {
+            if (SelectedReport == null)
+            {
+                return []; // Return an empty collection if the report is null
+            }
+
+            return new(SelectedReport.LineItems
+                .SelectMany(li => li.LineItemDetails)
+                .Where(detail => detail.BolFlag != null && detail.BolFlag.Equals("Y", StringComparison.InvariantCultureIgnoreCase)));
+        }
+    }
 
     public ObservableCollection<LineItemDetail>? PackingListNotes { get; set; }
+    public ObservableCollection<string> ShippingInstructions { get; set; } = [];
+    public ObservableCollection<PackingListSummaryItem> ConsolidatedSummary { get; set; } = [];
+    public ObservableCollection<TotalsItem> OverallTotals { get; set; } = [];
+
+
 
     // -------------------------
-    // Public Methods / Commands
+    // Public Methods
     // -------------------------
+    public void DragOver(IDropInfo dropInfo)
+    {
+        if (dropInfo.Data is LineItemPackingUnit && dropInfo.VisualTarget is FrameworkElement { DataContext: HandlingUnit })
+        {
+            dropInfo.DropTargetAdorner = DropTargetAdorners.Highlight;
+            dropInfo.Effects = DragDropEffects.Move;
+        }
+    }
+
+    public void Drop(IDropInfo dropInfo)
+    {
+        if (dropInfo.Data is LineItemPackingUnit packingUnit && dropInfo.VisualTarget is FrameworkElement { DataContext: HandlingUnit targetHandlingUnit })
+        {
+            var sourceLineItem = SelectedReport.LineItems.FirstOrDefault(li => li.LineItemPackingUnits.Contains(packingUnit));
+
+            if (sourceLineItem != null)
+            {
+                targetHandlingUnit.ContainedUnits.Add(packingUnit);
+                packingUnit.HandlingUnitId = targetHandlingUnit.Id;
+                LinkPackingUnitsToHandlingUnits();
+                OnPropertyChanged(nameof(SelectedReport));
+            }
+        }
+    }
+    public void UpdateOrderSummary()
+    {
+        ConsolidatedSummary.Clear();
+        ShippingInstructions.Clear();
+        OverallTotals.Clear();
+
+        if (SelectedReport == null) return;
+
+        // --- Create the structured summary list ---
+        var summaryItems = SelectedReport.LineItems
+             .Where(li => li.LineItemHeader != null &&
+                          li.LineItemHeader.PickOrShipQuantityInt > 0 &&
+                          !string.IsNullOrWhiteSpace(li.LineItemHeader.ProductDescription)) // <-- Add this line
+             .GroupBy(li => li.LineItemHeader?.ProductDescription.Trim())
+             .Select(g => new PackingListSummaryItem
+             {
+                 Description = g.Key,
+                 Quantity = g.Sum(li => li.LineItemHeader.PickOrShipQuantityInt),
+                 TotalWeight = g.SelectMany(li => li.LineItemPackingUnits).Sum(pu => pu.Weight)
+             });
+
+        foreach (var item in summaryItems)
+        {
+            ConsolidatedSummary.Add(item);
+        }
+
+        // --- Calculate the overall totals that will appear below the grid ---
+        var allPackingUnits = SelectedReport.LineItems.SelectMany(li => li.LineItemPackingUnits).ToList();
+        var totalPackages = allPackingUnits
+            .Where(pu => pu.CartonOrSkid != "PACKED WITH LINE ")
+            .GroupBy(pu => pu.CartonOrSkid)
+            .Select(g => new { Type = g.Key, Count = g.Sum(pu => pu.Quantity) });
+
+        foreach (var package in totalPackages)
+        {
+            OverallTotals.Add(new TotalsItem { Label = $"Total {package.Type} Count:", Value = package.Count.ToString() });
+        }
+        var totalWeight = allPackingUnits.Sum(pu => pu.Weight);
+        OverallTotals.Add(new TotalsItem { Label = "Total Shipment Weight:", Value = $"{totalWeight} Lbs" });
+
+        // --- Populate Shipping Instructions ---
+        if (PackingListNotes != null)
+        {
+            foreach (var note in PackingListNotes)
+            {
+                ShippingInstructions.Add(note.NoteText);
+            }
+        }
+    }
+
     public async Task LoadDocumentAsync(string orderNumberInput, string suffix, CancellationToken ct = default)
     {
         Log.Information($"User {CurrentUser} is attempting to load Sales Order {orderNumberInput}-{suffix}");
 
-        SelectedReport = new ReportModel
-        {
-            Header = new ReportHeader(),
-            LineItems = []
-        };
-        await Task.Yield();
         if (string.IsNullOrWhiteSpace(orderNumberInput)) return;
         if (string.IsNullOrWhiteSpace(suffix)) suffix = "00";
 
-        if (!TryGetOrderNumber(orderNumberInput, out var orderNumber))
+        if (!TryGetOrderNumber(orderNumberInput, out var orderNumber) || !int.TryParse(suffix, out var suffixNumber))
         {
-            DialogService.ShowErrorDialog("Invalid Sales Order Number. Please enter a valid number.");
-            return;
-        }
-
-        if (!int.TryParse(suffix, out var suffixNumber) || suffixNumber < 0 || suffixNumber > 99)
-        {
-            DialogService.ShowErrorDialog("Invalid Suffix. Please enter a number between 00 and 99.");
+            DialogService.ShowErrorDialog("Invalid Sales Order Number or Suffix.");
             return;
         }
 
         IsBusy = true;
-        await Task.Delay(1, ct);
         try
         {
+            // Step 1: Always fetch the latest data from the ERP. This is now our source of truth.
             var erpDocument = await _odbcService.GetReportAsync(orderNumber, suffixNumber, ct);
+            if (erpDocument == null)
+            {
+                DialogService.ShowErrorDialog($"Could not find Sales Order {orderNumber}-{suffix} in the ERP.");
+                return;
+            }
+
+            // Step 2: Check for a locally saved version to retrieve packing units.
             var cachedDocument = await _sqliteService.GetReportAsync(orderNumber, suffixNumber, ct);
 
-            switch (erpDocument)
+            // Step 3: If a cached version exists, merge its packing units into the fresh ERP data.
+            if (cachedDocument != null)
             {
-                case null when cachedDocument is null:
-                    DialogService.ShowErrorDialog(
-                        $"Frontier has not created a packing list for Sales Order {orderNumber}-{suffix}.");
-                    return;
-                case null:
-                    SelectedReport = cachedDocument!;
-                    return;
-            }
-
-            if (cachedDocument is not null)
-            {
-                erpDocument.Id = cachedDocument.Id;
+                erpDocument.Id = cachedDocument.Id; // Preserve the database ID
                 erpDocument.Header.Id = cachedDocument.Header.Id;
-                var erpHeader = erpDocument.Header;
-                var cacheHeader = cachedDocument.Header;
-                erpHeader.LogoImagePath = !string.IsNullOrWhiteSpace(erpHeader.LogoImagePath) ? erpHeader.LogoImagePath : cacheHeader.LogoImagePath;
-                erpHeader.OrderNumber = erpHeader.OrderNumber != 0 ? erpHeader.OrderNumber : cacheHeader.OrderNumber;
-                erpHeader.Suffix = erpHeader.Suffix != 0 ? erpHeader.Suffix : cacheHeader.Suffix;
-                erpHeader.PageCount = erpHeader.PageCount != 0 ? erpHeader.PageCount : cacheHeader.PageCount;
-                erpHeader.OrdEnterDate = !string.IsNullOrWhiteSpace(erpHeader.OrdEnterDate) ? erpHeader.OrdEnterDate : cacheHeader.OrdEnterDate;
-                erpHeader.ShipDate = !string.IsNullOrWhiteSpace(erpHeader.ShipDate) ? erpHeader.ShipDate : cacheHeader.ShipDate;
-                erpHeader.SoldToCustNumber = !string.IsNullOrWhiteSpace(erpHeader.SoldToCustNumber) ? erpHeader.SoldToCustNumber : cacheHeader.SoldToCustNumber;
-                erpHeader.ShipToCustNumber = !string.IsNullOrWhiteSpace(erpHeader.ShipToCustNumber) ? erpHeader.ShipToCustNumber : cacheHeader.ShipToCustNumber;
-                erpHeader.SoldToName = !string.IsNullOrWhiteSpace(erpHeader.SoldToName) ? erpHeader.SoldToName : cacheHeader.SoldToName;
-                erpHeader.SoldToCustAddressLine1 = !string.IsNullOrWhiteSpace(erpHeader.SoldToCustAddressLine1) ? erpHeader.SoldToCustAddressLine1 : cacheHeader.SoldToCustAddressLine1;
-                erpHeader.SoldToCustAddressLine2 = !string.IsNullOrWhiteSpace(erpHeader.SoldToCustAddressLine2) ? erpHeader.SoldToCustAddressLine2 : cacheHeader.SoldToCustAddressLine2;
-                erpHeader.SoldToCustAddressLine3 = !string.IsNullOrWhiteSpace(erpHeader.SoldToCustAddressLine3) ? erpHeader.SoldToCustAddressLine3 : cacheHeader.SoldToCustAddressLine3;
-                erpHeader.SoldToCity = !string.IsNullOrWhiteSpace(erpHeader.SoldToCity) ? erpHeader.SoldToCity : cacheHeader.SoldToCity;
-                erpHeader.SoldToSt = !string.IsNullOrWhiteSpace(erpHeader.SoldToSt) ? erpHeader.SoldToSt : cacheHeader.SoldToSt;
-                erpHeader.SoldToZipCode = !string.IsNullOrWhiteSpace(erpHeader.SoldToZipCode) ? erpHeader.SoldToZipCode : cacheHeader.SoldToZipCode;
-                erpHeader.ShipToName = !string.IsNullOrWhiteSpace(erpHeader.ShipToName) ? erpHeader.ShipToName : cacheHeader.ShipToName;
-                erpHeader.ShipToCustAddressLine1 = !string.IsNullOrWhiteSpace(erpHeader.ShipToCustAddressLine1) ? erpHeader.ShipToCustAddressLine1 : cacheHeader.ShipToCustAddressLine1;
-                erpHeader.ShipToCustAddressLine2 = !string.IsNullOrWhiteSpace(erpHeader.ShipToCustAddressLine2) ? erpHeader.ShipToCustAddressLine2 : cacheHeader.ShipToCustAddressLine2;
-                erpHeader.ShipToCustAddressLine3 = !string.IsNullOrWhiteSpace(erpHeader.ShipToCustAddressLine3) ? erpHeader.ShipToCustAddressLine3 : cacheHeader.ShipToCustAddressLine3;
-                erpHeader.ShipToCity = !string.IsNullOrWhiteSpace(erpHeader.ShipToCity) ? erpHeader.ShipToCity : cacheHeader.ShipToCity;
-                erpHeader.ShipToSt = !string.IsNullOrWhiteSpace(erpHeader.ShipToSt) ? erpHeader.ShipToSt : cacheHeader.ShipToSt;
-                erpHeader.ShipToZipCode = !string.IsNullOrWhiteSpace(erpHeader.ShipToZipCode) ? erpHeader.ShipToZipCode : cacheHeader.ShipToZipCode;
-                erpHeader.CustomerPONumber = !string.IsNullOrWhiteSpace(erpHeader.CustomerPONumber) ? erpHeader.CustomerPONumber : cacheHeader.CustomerPONumber;
-                erpHeader.DueDate = !string.IsNullOrWhiteSpace(erpHeader.DueDate) ? erpHeader.DueDate : cacheHeader.DueDate;
-                erpHeader.SalesPerson = !string.IsNullOrWhiteSpace(erpHeader.SalesPerson) ? erpHeader.SalesPerson : cacheHeader.SalesPerson;
-                erpHeader.CarrierName = !string.IsNullOrWhiteSpace(erpHeader.CarrierName) ? erpHeader.CarrierName : cacheHeader.CarrierName;
-                erpHeader.TrackingNumber = !string.IsNullOrWhiteSpace(erpHeader.TrackingNumber) ? erpHeader.TrackingNumber : cacheHeader.TrackingNumber;
-                if (string.IsNullOrWhiteSpace(erpHeader.FreightTerms))
-                {
-                    erpHeader.FreightTerms = cacheHeader.FreightTerms;
-                }
 
-                foreach (var erpLine in erpDocument.LineItems)
+                foreach (var erpLineItem in erpDocument.LineItems)
                 {
-                    var cachedLine = cachedDocument.LineItems
-                        .FirstOrDefault(li =>
-                            li.LineItemHeader?.LineItemNumber == erpLine.LineItemHeader?.LineItemNumber);
-                    if (cachedLine is null) continue;
-                    erpLine.Id = cachedLine.Id;
-                    if (erpLine.LineItemPackingUnits.Count == 0)
-                        erpLine.LineItemPackingUnits = cachedLine.LineItemPackingUnits;
+                    // Find the matching line item in the cached document
+                    var cachedLineItem = cachedDocument.LineItems.FirstOrDefault(li =>
+                        li.LineItemHeader?.LineItemNumber == erpLineItem.LineItemHeader?.LineItemNumber);
+
+                    if (cachedLineItem != null)
+                    {
+                        erpLineItem.Id = cachedLineItem.Id; // Preserve the line item ID
+                                                            // This is the key: we copy the user's work into the fresh data.
+                        erpLineItem.LineItemPackingUnits = cachedLineItem.LineItemPackingUnits;
+                    }
                 }
             }
 
-            SelectedReport = erpDocument;
+            SelectedReport = erpDocument; // The final, merged report is now set.
             UpdateLineNumbers();
-        }
-        catch (OperationCanceledException) { }
-        catch (OdbcException ex)
-        {
-            DialogService.ShowErrorDialog("ODBC connection error: " + ex.Message);
-        }
-        catch (SqliteException ex)
-        {
-            DialogService.ShowErrorDialog("Sqlite database error: " + ex.Message);
+            LinkPackingUnitsToHandlingUnits();
         }
         catch (Exception ex)
         {
@@ -414,7 +466,7 @@ public class MainViewModel : INotifyPropertyChanged
                         if (cachedLine == null) continue;
                         erpLine.Id = cachedLine.Id;
 
-                        if (erpLine.LineItemPackingUnits.Count == 0)
+                        if (!erpLine.LineItemPackingUnits.Any())
                         {
                             erpLine.LineItemPackingUnits = cachedLine.LineItemPackingUnits;
                         }
@@ -466,7 +518,7 @@ public class MainViewModel : INotifyPropertyChanged
                     if (cachedLine == null) continue;
                     erpLine.Id = cachedLine.Id;
 
-                    if (erpLine.LineItemPackingUnits.Count == 0)
+                    if (!erpLine.LineItemPackingUnits.Any())
                     {
                         erpLine.LineItemPackingUnits = cachedLine.LineItemPackingUnits;
                     }
@@ -495,20 +547,93 @@ public class MainViewModel : INotifyPropertyChanged
     // -------------------------
     // Private Helper Methods
     // -------------------------
+
+    private void LinkPackingUnitsToHandlingUnits()
+    {
+        if (SelectedReport == null) return;
+
+        // This safely creates an empty dictionary if HandlingUnits is null or empty.
+        var handlingUnitsById = SelectedReport.HandlingUnits?.ToDictionary(h => h.Id)
+                                  ?? new Dictionary<int, HandlingUnit>();
+
+        var allPackingUnits = SelectedReport.LineItems?.SelectMany(li => li.LineItemPackingUnits)
+                               ?? Enumerable.Empty<LineItemPackingUnit>();
+
+        foreach (var packingUnit in allPackingUnits)
+        {
+            if (packingUnit.HandlingUnitId.HasValue &&
+                handlingUnitsById.TryGetValue(packingUnit.HandlingUnitId.Value, out var handlingUnit))
+            {
+                packingUnit.HandlingUnit = handlingUnit;
+            }
+            else
+            {
+                // This now correctly clears the reference if the pallet was deleted.
+                packingUnit.HandlingUnit = null;
+            }
+        }
+
+        // Notify the UI to refresh the packing unit list with the updated links.
+        OnPropertyChanged(nameof(SelectedReport));
+    }
+    private void AddNewHandlingUnit(object? obj)
+    {
+        if (SelectedReport?.HandlingUnits == null) return;
+
+        // --- NEW NAMING LOGIC ---
+        // 1. Find the highest number used in the names of existing pallets.
+        var highestPalletNumber = SelectedReport.HandlingUnits
+            .Select(h => h.Description)
+            .Where(d => d.StartsWith("Pallet "))
+            .Select(d => int.TryParse(d.Replace("Pallet ", ""), out int num) ? num : 0)
+            .DefaultIfEmpty(0)
+            .Max();
+
+        // 2. The new pallet's number will be one higher than the current max.
+        var newDescription = $"Pallet {highestPalletNumber + 1}";
+
+        // The ID logic for the database can remain the same.
+        var newId = SelectedReport.HandlingUnits.Any()
+                        ? SelectedReport.HandlingUnits.Max(h => h.Id) + 1
+                        : 1;
+
+        var newHandlingUnit = new HandlingUnit
+        {
+            Id = newId,
+            Description = newDescription, // Use our new, sequential name
+            ReportModelId = SelectedReport.Id
+        };
+
+        SelectedReport.HandlingUnits.Add(newHandlingUnit);
+        OnPropertyChanged(nameof(SelectedReport));
+    }
+
+    private void RemoveHandlingUnit(object? obj)
+    {
+        if (obj is not HandlingUnit handlingUnit || SelectedReport?.HandlingUnits == null) return;
+        if(handlingUnit.ContainedUnits.Count > 0)
+        {
+            var messageBoxAnswer = MessageBox.Show("Are you sure you want to remove this handling unit? This will unassign all contained packing units.", "Confirm Removal", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+            if (messageBoxAnswer != MessageBoxResult.Yes) return;
+
+            foreach (var unit in handlingUnit.ContainedUnits)
+            {
+                unit.HandlingUnitId = null;
+            }
+            
+        }
+        SelectedReport.HandlingUnits.Remove(handlingUnit);
+        OnPropertyChanged(nameof(SelectedReport));
+        LinkPackingUnitsToHandlingUnits();
+    }
+
     private void UpdateLineNumbers()
     {
-        {
-            var numbers = SelectedReport.LineItems
-                .Where(li => li.LineItemHeader?.LineItemNumber is < 900 && !string.IsNullOrWhiteSpace(li.LineItemHeader.ProductDescription))
-                .Select(li =>
-                {
-                    if (li.LineItemHeader != null) return (int)li.LineItemHeader.LineItemNumber;
-                    return 0;
-                })
-                .ToList();
-
-            LineNumbersForDropdown = new ObservableCollection<int>(numbers);
-        }
+        var numbers = SelectedReport.LineItems
+            .Where(li => li.LineItemHeader?.LineItemNumber is < 900 && !string.IsNullOrWhiteSpace(li.LineItemHeader.ProductDescription))
+            .Select(li => (int)(li.LineItemHeader?.LineItemNumber ?? 0))
+            .ToList();
+        LineNumbersForDropdown = new ObservableCollection<int>(numbers);
     }
 
     private void UpdateGroups()
@@ -524,11 +649,7 @@ public class MainViewModel : INotifyPropertyChanged
             .ToList();
 
         var summary = units
-            .GroupBy(u => new
-            {
-                TypeOfUnit = NormalizeUnitType(u.TypeOfUnit),
-                CartonOrSkid = string.IsNullOrWhiteSpace(u.CartonOrSkid) ? "Unknown" : u.CartonOrSkid
-            })
+            .GroupBy(u => new { TypeOfUnit = NormalizeUnitType(u.TypeOfUnit), CartonOrSkid = string.IsNullOrWhiteSpace(u.CartonOrSkid) ? "Unknown" : u.CartonOrSkid })
             .Select(g => new BolSummaryRow
             {
                 TypeOfUnit = g.Key.TypeOfUnit,
@@ -587,47 +708,50 @@ public class MainViewModel : INotifyPropertyChanged
         SelectedReportsGroups = new ObservableCollection<BolSummaryRow>(summary);
     }
 
-    private void UpdateTruckList()
+    private void UpdateTrucksList(int? newlySelectedNumber = null)
     {
-        if (string.IsNullOrEmpty(SelectedTruck)) return;
+        if(SelectedReport == null) return;
+        // 1. Find the highest truck number currently used in the report's data.
+        var maxTruckNumberInData = SelectedReport.LineItems
+            .SelectMany(li => li.LineItemPackingUnits)
+            .Select(pu => pu.TruckNumber)
+            .Where(t => !string.IsNullOrEmpty(t))
+            .Select(t => int.TryParse(t.Split(' ').Last(), out int num) ? num : 0)
+            .DefaultIfEmpty(1)
+            .Max();
 
-        string numberPart = SelectedTruck.Split(' ').Last();
-        if (int.TryParse(numberPart, out int selectedNumber))
+        // 2. Consider the newly selected number if it was provided.
+        var requiredMax = Math.Max(maxTruckNumberInData, newlySelectedNumber ?? 1);
+
+        // 3. Generate the definitive list that is required.
+        var requiredTruckList = GenerateTruckList(requiredMax);
+
+        // 4. FIX: Instead of clearing the list, just add the missing items.
+        // This is not destructive and won't cause the UI to reset its selection.
+        var itemsToAdd = requiredTruckList.Except(Trucks).ToList();
+        foreach (var truck in itemsToAdd)
         {
-            var newTruckList = GenerateTruckList(selectedNumber);
-
-            var itemsToRemove = Trucks.Except(newTruckList).ToList();
-            var itemsToAdd = newTruckList.Except(Trucks).ToList();
-
-            foreach (var item in itemsToRemove) Trucks.Remove(item);
-            foreach (var item in itemsToAdd) Trucks.Add(item);
+            Trucks.Add(truck);
         }
     }
 
     public void UpdateViewOptions()
     {
-        // Start with a fresh, empty list
+        // Call our new method to ensure the editor's ItemsSource is up-to-date
+        UpdateTrucksList();
+
         ViewOptions.Clear();
-        // Always add "ALL" as the first option
         ViewOptions.Add("ALL");
 
         if (SelectedReport?.LineItems != null)
         {
-            // Go through every line item and every packing unit,
-            // find all the unique truck numbers that are being used.
             var usedTrucks = SelectedReport.LineItems
                 .SelectMany(li => li.LineItemPackingUnits)
                 .Select(pu => pu.TruckNumber)
                 .Where(t => !string.IsNullOrEmpty(t))
                 .Distinct()
-                .OrderBy(t =>
-                {
-                    // This helps sort "TRUCK 1", "TRUCK 2", "TRUCK 10" correctly
-                    int.TryParse(t.Split(' ').Last(), out int num);
-                    return num;
-                });
+                .OrderBy(t => { _ = int.TryParse(t.Split(' ').Last(), out int num); return num; });
 
-            // Add each of the used trucks to our list
             foreach (var truck in usedTrucks)
             {
                 ViewOptions.Add(truck);
@@ -639,21 +763,18 @@ public class MainViewModel : INotifyPropertyChanged
             SelectedReportView = "ALL";
         }
         OnPropertyChanged(nameof(IsMultiTruckOrder));
+        OnPropertyChanged(nameof(ShouldDisplayTruckNumber));
     }
 
     private List<string> GenerateTruckList(int selectedTruckNumber)
     {
         int totalTrucks = Math.Max(10, selectedTruckNumber + 5);
-        return Enumerable.Range(1, totalTrucks)
-            .Select(i => $"TRUCK {i}")
-            .ToList();
+        return [.. Enumerable.Range(1, totalTrucks).Select(i => $"TRUCK {i}")];
     }
 
     private static string NormalizeUnitType(string? typeOfUnit)
     {
-        if (string.IsNullOrWhiteSpace(typeOfUnit))
-            return "Unknown";
-
+        if (string.IsNullOrWhiteSpace(typeOfUnit)) return "Unknown";
         return typeOfUnit.ToUpperInvariant() switch
         {
             "CHAIRS" or "CURVARE" or "IMMIX" or "OH!" or "OLLIE" => "CHAIRS",

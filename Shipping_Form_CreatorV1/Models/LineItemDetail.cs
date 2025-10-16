@@ -1,7 +1,10 @@
-﻿    namespace Shipping_Form_CreatorV1.Models;
+﻿using System.ComponentModel.DataAnnotations.Schema;
+
+namespace Shipping_Form_CreatorV1.Models;
 
 public class LineItemDetail
 {
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)] // <-- VERIFY THIS EXISTS
     public int Id { get; set; }
     public decimal ModelItem { get; set; }
     public decimal NoteSequenceNumber { get; set; }

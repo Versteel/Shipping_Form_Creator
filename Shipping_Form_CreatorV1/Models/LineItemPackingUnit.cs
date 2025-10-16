@@ -1,10 +1,12 @@
 ﻿using Shipping_Form_CreatorV1.Utilities;
 using System.ComponentModel;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Shipping_Form_CreatorV1.Models;
 
 public class LineItemPackingUnit
 {
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public int Id { get; set; }
     public int Quantity { get; set; }
     public string? CartonOrSkid { get; set; }
@@ -14,9 +16,25 @@ public class LineItemPackingUnit
     public int Weight { get; set; }
     public string TruckNumber { get; set; } = Constants.TruckNumbers[0];
     public int LineItemId { get; set; }
-
+    public int? HandlingUnitId { get; set; }
+    public virtual HandlingUnit? HandlingUnit { get; set; }
     [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
     public LineItem LineItem { get; set; } = null!;
+    [NotMapped]
+    public string DisplayTypeOfUnit
+    {
+        get
+        {
+            if (string.IsNullOrWhiteSpace(TypeOfUnit)) return "";
+            return TypeOfUnit.ToUpperInvariant() switch
+            {
+                "CHAIRS" or "CURVARE" or "IMMIX" or "OH!" or "OLLIE" => "CHAIRS",
+                "TABLE LEGS, TUBULAR STL EXC 1 QTR DIAMETER, N-G-T 2 INCH DIAMETER" => "TABLE LEGS",
+                "PACKED WITH LINE " => CartonOrSkidContents,
+                _ => TypeOfUnit.ToUpperInvariant()
+            };
+        }
+    }
 
     // Default constructor
     public LineItemPackingUnit() { }
@@ -28,7 +46,6 @@ public class LineItemPackingUnit
     /// <param name="original">The object to copy.</param>
     public LineItemPackingUnit(LineItemPackingUnit original)
     {
-        // Copy all data properties from the original object.
         this.Id = original.Id;
         this.Quantity = original.Quantity;
         this.CartonOrSkid = original.CartonOrSkid;
@@ -38,6 +55,6 @@ public class LineItemPackingUnit
         this.Weight = original.Weight;
         this.TruckNumber = original.TruckNumber;
         this.LineItemId = original.LineItemId;
-        // NOTE: We intentionally do not copy the 'LineItem' parent reference.
+        this.HandlingUnitId = original.HandlingUnitId;
     }
 }

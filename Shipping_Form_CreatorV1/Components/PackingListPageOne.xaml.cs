@@ -77,52 +77,71 @@ namespace Shipping_Form_CreatorV1.Components
 
         public ICommand AddPackUnitCommand => new RelayCommand(param =>
         {
-            Debug.WriteLine($"[DEBUG] Received CommandParameter of type: {param?.GetType().Name}");
-
-            if (param is not LineItem lineItem)
+            // The parameter is the temporary LineItem copy from the UI
+            if (param is not LineItem lineItemCopy)
             {
-                MessageBox.Show("LineItem not passed to AddPackUnitCommand");
                 return;
             }
 
-            // Get the MainViewModel
             if (Application.Current.MainWindow?.DataContext is not MainViewModel viewModel) return;
 
+            // Find the original LineItem in the master data source using the ID from the copy
+            var originalLineItem = viewModel.SelectedReport.LineItems
+                .FirstOrDefault(li => li.Id == lineItemCopy.Id);
+
+            if (originalLineItem == null)
+            {
+                return;
+            }
+
+            // This is the corrected part:
             var newPackingUnit = new LineItemPackingUnit
             {
-                // Use the first truck from the dynamic list as the default
+                Id = 0, // Use 0 to indicate a new entity. The database will generate the real ID.
                 TruckNumber = viewModel.Trucks.FirstOrDefault() ?? "TRUCK 1",
                 Quantity = 1,
                 CartonOrSkid = CartonOrSkidOptions.FirstOrDefault() ?? "BOX",
                 TypeOfUnit = string.Empty,
                 Weight = 0,
-                LineItem = lineItem,
-                LineItemId = lineItem.Id
+                LineItem = originalLineItem,
+                LineItemId = originalLineItem.Id
             };
 
-            if (lineItem.LineItemPackingUnits is { } observable)
+            // Add the new unit to the ORIGINAL LineItem's collection
+            if (originalLineItem.LineItemPackingUnits is { } observable)
             {
                 observable.Add(newPackingUnit);
             }
             else
             {
-                lineItem.LineItemPackingUnits = [newPackingUnit];
+                originalLineItem.LineItemPackingUnits = [newPackingUnit];
             }
 
             viewModel.UpdateViewOptions();
-
-            Debug.WriteLine($"[Add] Added new packing unit to LineItem {lineItem.Id}");
         });
 
-        public ICommand RemovePackUnitCommand => new RelayCommand(pu =>
+        public ICommand RemovePackUnitCommand => new RelayCommand(param =>
         {
-            if (pu is not LineItemPackingUnit packUnit || LineItem == null) return;
-            LineItem.LineItemPackingUnits.Remove(packUnit);
+            if (param is not LineItemPackingUnit unitToRemove) return;
 
-            // Get the MainViewModel and tell it to update the list
-            if (Application.Current.MainWindow?.DataContext is MainViewModel viewModel)
+            if (Application.Current.MainWindow?.DataContext is not MainViewModel viewModel) return;
+
+            // Get the master report from the ViewModel (the single source of truth)
+            var masterReport = viewModel.SelectedReport;
+            if (masterReport == null) return;
+
+            // Find the line item in the MASTER list that contains the unit and remove it
+            foreach (var lineItem in masterReport.LineItems)
             {
-                viewModel.UpdateViewOptions();
+                if (lineItem.LineItemPackingUnits.Contains(unitToRemove))
+                {
+                    // This modifies the original collection
+                    lineItem.LineItemPackingUnits.Remove(unitToRemove);
+
+                    // Now, tell the ViewModel to update everything, which will trigger the refresh
+                    viewModel.UpdateViewOptions();
+                    break; // Exit loop once the item is found and removed
+                }
             }
         });
 
@@ -152,14 +171,28 @@ namespace Shipping_Form_CreatorV1.Components
 
         private void TruckComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            // Get the MainViewModel from the application's main window
-            if (Application.Current.MainWindow?.DataContext is not MainViewModel viewModel) return;
-
-            // If a truck was selected, tell the view model
-            if (sender is ComboBoxAdv comboBox && comboBox.SelectedItem is string selectedTruck)
+            // Ensure we have a view model and something was actually selected
+            if (Application.Current.MainWindow?.DataContext is not MainViewModel viewModel || e.AddedItems.Count == 0)
             {
-                viewModel.SelectedTruck = selectedTruck;
+                return;
             }
+
+            // Get the newly selected truck value from the event arguments
+            if (e.AddedItems[0] is not string selectedTruck) return;
+
+            // Get the ComboBox and its DataContext (the specific LineItemPackingUnit copy)
+            if (sender is not FrameworkElement comboBox || comboBox.DataContext is not LineItemPackingUnit unitCopy)
+            {
+                return;
+            }
+
+            var originalLineItem = viewModel.SelectedReport.LineItems
+                .FirstOrDefault(li => li.Id == unitCopy.LineItemId);
+
+            if (originalLineItem == null) return;
+
+            
+            viewModel.SelectedTruck = selectedTruck;
         }
     }
 }

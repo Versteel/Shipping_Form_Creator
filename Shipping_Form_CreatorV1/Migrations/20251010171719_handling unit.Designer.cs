@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Shipping_Form_CreatorV1.Data;
 
@@ -10,9 +11,11 @@ using Shipping_Form_CreatorV1.Data;
 namespace Shipping_Form_CreatorV1.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251010171719_handling unit")]
+    partial class handlingunit
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -20,28 +23,6 @@ namespace Shipping_Form_CreatorV1.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
-
-            modelBuilder.Entity("Shipping_Form_CreatorV1.Models.HandlingUnit", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("ReportModelId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ReportModelId");
-
-                    b.ToTable("HandlingUnit");
-                });
 
             modelBuilder.Entity("Shipping_Form_CreatorV1.Models.LineItem", b =>
                 {
@@ -170,8 +151,6 @@ namespace Shipping_Form_CreatorV1.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("HandlingUnitId");
 
                     b.HasIndex("LineItemId");
 
@@ -318,17 +297,6 @@ namespace Shipping_Form_CreatorV1.Migrations
                     b.ToTable("ReportModels");
                 });
 
-            modelBuilder.Entity("Shipping_Form_CreatorV1.Models.HandlingUnit", b =>
-                {
-                    b.HasOne("Shipping_Form_CreatorV1.Models.ReportModel", "ReportModel")
-                        .WithMany("HandlingUnits")
-                        .HasForeignKey("ReportModelId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("ReportModel");
-                });
-
             modelBuilder.Entity("Shipping_Form_CreatorV1.Models.LineItem", b =>
                 {
                     b.HasOne("Shipping_Form_CreatorV1.Models.LineItemHeader", "LineItemHeader")
@@ -361,17 +329,11 @@ namespace Shipping_Form_CreatorV1.Migrations
 
             modelBuilder.Entity("Shipping_Form_CreatorV1.Models.LineItemPackingUnit", b =>
                 {
-                    b.HasOne("Shipping_Form_CreatorV1.Models.HandlingUnit", "HandlingUnit")
-                        .WithMany("ContainedUnits")
-                        .HasForeignKey("HandlingUnitId");
-
                     b.HasOne("Shipping_Form_CreatorV1.Models.LineItem", "LineItem")
                         .WithMany("LineItemPackingUnits")
                         .HasForeignKey("LineItemId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("HandlingUnit");
 
                     b.Navigation("LineItem");
                 });
@@ -385,11 +347,6 @@ namespace Shipping_Form_CreatorV1.Migrations
                         .IsRequired();
 
                     b.Navigation("ReportModel");
-                });
-
-            modelBuilder.Entity("Shipping_Form_CreatorV1.Models.HandlingUnit", b =>
-                {
-                    b.Navigation("ContainedUnits");
                 });
 
             modelBuilder.Entity("Shipping_Form_CreatorV1.Models.LineItem", b =>
@@ -407,8 +364,6 @@ namespace Shipping_Form_CreatorV1.Migrations
 
             modelBuilder.Entity("Shipping_Form_CreatorV1.Models.ReportModel", b =>
                 {
-                    b.Navigation("HandlingUnits");
-
                     b.Navigation("Header")
                         .IsRequired();
 

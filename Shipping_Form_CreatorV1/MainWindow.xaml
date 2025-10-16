@@ -16,7 +16,16 @@
     ResizeMode="CanResize"
     WindowState="Maximized"
     mc:Ignorable="d">
-
+    <Window.Resources>
+        <Style x:Key="RedDatePickerStyle" TargetType="DatePicker">
+            <Setter Property="Foreground" Value="Black" />
+            <Setter Property="BorderBrush" Value="#e31f26" />
+            <Setter Property="BorderThickness" Value="1.5" />
+            <Style.Resources>
+                <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}" Color="#e31f26" />
+            </Style.Resources>
+        </Style>
+    </Window.Resources>
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
