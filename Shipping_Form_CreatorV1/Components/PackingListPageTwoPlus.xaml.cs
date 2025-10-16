@@ -109,6 +109,15 @@ namespace Shipping_Form_CreatorV1.Components
             {
                 if (lineItem.LineItemPackingUnits.Contains(unitToRemove))
                 {
+
+                    if(unitToRemove.HandlingUnitId.HasValue && unitToRemove.HandlingUnit is not null)
+                    {
+                        // If the packing unit is associated with a handling unit, remove that association
+                        unitToRemove.HandlingUnit.ContainedUnits.Remove(unitToRemove);
+                        unitToRemove.HandlingUnitId = null;
+                        unitToRemove.HandlingUnit = null;
+                    }
+
                     // This modifies the original collection
                     lineItem.LineItemPackingUnits.Remove(unitToRemove);
 
