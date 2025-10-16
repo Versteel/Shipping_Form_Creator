@@ -27,125 +27,287 @@
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
-                <Grid Grid.Row="0">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition />
-                        <ColumnDefinition />
-                        <ColumnDefinition />
-                    </Grid.ColumnDefinitions>
-                    <StackPanel Grid.Column="0" Orientation="Vertical">
-                        <Image
-                            Width="150"
-                            Height="Auto"
-                            HorizontalAlignment="Left"
-                            Source="{Binding Header.LogoImagePath, RelativeSource={RelativeSource AncestorType=UserControl}}" />
-                        <TextBlock FontSize="14" Text="2332 Cathy Lane" />
-                        <TextBlock FontSize="14" Text="Jasper, Indiana  47546" />
-                        <TextBlock FontSize="14" Text="800.876.2120" />
-                        <TextBlock FontSize="14" Text="versteel.com" />
-                    </StackPanel>
-                    <StackPanel Grid.Column="1" Orientation="Vertical">
-                        <TextBlock
-                            HorizontalAlignment="Center"
-                            FontSize="25"
-                            FontWeight="Bold"
-                            Text="Packing List" />
-                        <StackPanel HorizontalAlignment="Center" Orientation="Horizontal">
-                            <TextBlock
-                                FontSize="18"
-                                FontWeight="Bold"
-                                Text="Order Number: " />
-                            <TextBlock
-                                FontSize="18"
-                                FontWeight="Bold"
-                                Text="{Binding Header.OrderNumber, RelativeSource={RelativeSource AncestorType=UserControl}}" />
-                        </StackPanel>
-                    </StackPanel>
-                    <StackPanel Grid.Column="2" Orientation="Vertical">
-                        <TextBlock
-                            HorizontalAlignment="Right"
-                            FontSize="14"
-                            Text="{Binding PageNumberText, RelativeSource={RelativeSource AncestorType=UserControl}}" />
-                        <Grid
-                            Width="150"
-                            Margin="0,10"
-                            HorizontalAlignment="Right">
-                            <Grid.RowDefinitions>
-                                <RowDefinition />
-                                <RowDefinition />
-                            </Grid.RowDefinitions>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition />
-                                <ColumnDefinition />
-                            </Grid.ColumnDefinitions>
 
-                            <Border
-                                Grid.Row="0"
-                                Grid.Column="0"
-                                Background="#cccccc"
-                                BorderBrush="#000"
-                                BorderThickness="1">
-                                <TextBlock
-                                    Margin="5"
-                                    FontWeight="Bold"
-                                    Text="Order Date:" />
-                            </Border>
-                            <Border
-                                Grid.Row="0"
-                                Grid.Column="1"
-                                BorderBrush="#000"
-                                BorderThickness="0,1,1,1">
-                                <TextBlock Margin="5" Text="{Binding Header.OrdEnterDate, RelativeSource={RelativeSource AncestorType=UserControl}}" />
-                            </Border>
+                <local:ReportHeaderControl
+                    Grid.Row="0"
+                    Header="{Binding Header, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                    PageNumberText="{Binding PageNumberText, RelativeSource={RelativeSource AncestorType=UserControl}}" />
 
-                            <Border
-                                Grid.Row="1"
-                                Grid.Column="0"
-                                Background="#cccccc"
-                                BorderBrush="#000"
-                                BorderThickness="1,0,1,1">
-                                <TextBlock
-                                    Margin="5"
-                                    FontWeight="Bold"
-                                    Text="Ship Date:" />
-                            </Border>
-                            <Border
-                                Grid.Row="1"
-                                Grid.Column="1"
-                                BorderBrush="#000"
-                                BorderThickness="0,0,1,1">
-                                <TextBlock Margin="5" Text="{Binding Header.ShipDate, RelativeSource={RelativeSource AncestorType=UserControl}}" />
-                            </Border>
-                        </Grid>
-                    </StackPanel>
-                </Grid>
-                <TextBlock
+                <ScrollViewer
                     Grid.Row="1"
-                    Width="768"
-                    Background="#cccccc"
-                    FontSize="25"
-                    FontWeight="Bold"
-                    Text="Notes"
-                    TextAlignment="Center" />
-                <ItemsControl
+                    Margin="0,20,0,0"
+                    VerticalScrollBarVisibility="Auto">
+                    <StackPanel>
+                        <TextBlock
+                            Padding="5"
+                            Background="#e6e6e6"
+                            FontSize="22"
+                            FontWeight="Bold"
+                            Text="Shipping Instructions &amp; Notifications"
+                            TextAlignment="Center" />
+                        <ItemsControl Margin="0,10,0,15" ItemsSource="{Binding ShippingInstructions, RelativeSource={RelativeSource AncestorType=UserControl}}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock
+                                        Margin="0,0,0,5"
+                                        FontSize="14"
+                                        Foreground="#000"
+                                        Text="{Binding}"
+                                        TextWrapping="Wrap" />
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                        <TextBlock
+                            Padding="5"
+                            Background="#e6e6e6"
+                            FontSize="22"
+                            FontWeight="Bold"
+                            Text="Consolidated Shipment Summary"
+                            TextAlignment="Center" />
+                        <Grid Margin="0,10,0,0">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
+
+                            <Border
+                                Grid.Row="0"
+                                Background="#e6e6e6"
+                                BorderBrush="Black"
+                                BorderThickness="1">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="450" />
+                                        <ColumnDefinition Width="100" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <Border
+                                        Grid.Column="0"
+                                        BorderBrush="Black"
+                                        BorderThickness="0,0,1,0">
+                                        <TextBlock
+                                            Padding="5"
+                                            FontWeight="Bold"
+                                            Text="Item Description" />
+                                    </Border>
+                                    <Border
+                                        Grid.Column="1"
+                                        BorderBrush="Black"
+                                        BorderThickness="0,0,1,0">
+                                        <TextBlock
+                                            Padding="5"
+                                            HorizontalAlignment="Center"
+                                            FontWeight="Bold"
+                                            Foreground="#000"
+                                            Text="Qty" />
+                                    </Border>
+                                    <Border Grid.Column="2">
+                                        <TextBlock
+                                            Padding="5"
+                                            HorizontalAlignment="Right"
+                                            FontWeight="Bold"
+                                            Text="Total Weight (Lbs)" />
+                                    </Border>
+                                </Grid>
+                            </Border>
+
+                            <ItemsControl Grid.Row="1" ItemsSource="{Binding ConsolidatedSummary, RelativeSource={RelativeSource AncestorType=UserControl}}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="451" />
+                                                <ColumnDefinition Width="100" />
+                                                <ColumnDefinition Width="*" />
+                                            </Grid.ColumnDefinitions>
+
+                                            <Border
+                                                Grid.Column="0"
+                                                BorderBrush="Black"
+                                                BorderThickness="1,0,1,1">
+                                                <TextBlock
+                                                    Padding="5"
+                                                    Foreground="#000"
+                                                    Text="{Binding Description}"
+                                                    TextWrapping="Wrap" />
+                                            </Border>
+
+                                            <Border
+                                                Grid.Column="1"
+                                                BorderBrush="Black"
+                                                BorderThickness="0,0,1,1">
+                                                <TextBlock
+                                                    Padding="5"
+                                                    HorizontalAlignment="Center"
+                                                    Foreground="#000"
+                                                    Text="{Binding Quantity}" />
+                                            </Border>
+
+                                            <Border
+                                                Grid.Column="2"
+                                                BorderBrush="Black"
+                                                BorderThickness="0,0,1,1">
+                                                <TextBlock
+                                                    Padding="5"
+                                                    HorizontalAlignment="Right"
+                                                    Foreground="#000"
+                                                    Text="{Binding TotalWeight}" />
+                                            </Border>
+                                        </Grid>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </Grid>
+
+                        <Border
+                            Margin="0,10"
+                            HorizontalAlignment="Left"
+                            BorderBrush="Black"
+                            BorderThickness="1,1,1,0">
+                            <ItemsControl ItemsSource="{Binding OverallTotals, RelativeSource={RelativeSource AncestorType=UserControl}}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="80" />
+                                            </Grid.ColumnDefinitions>
+
+                                            <Border
+                                                Grid.Column="0"
+                                                Background="#e6e6e6"
+                                                BorderBrush="Black"
+                                                BorderThickness="0,0,1,1">
+                                                <TextBlock
+                                                    Padding="5"
+                                                    HorizontalAlignment="Left"
+                                                    FontWeight="SemiBold"
+                                                    Foreground="#000"
+                                                    Text="{Binding Label}" />
+                                            </Border>
+
+                                            <Border
+                                                Grid.Column="1"
+                                                BorderBrush="Black"
+                                                BorderThickness="0,0,0,1">
+                                                <TextBlock
+                                                    Padding="5"
+                                                    FontWeight="SemiBold"
+                                                    Foreground="#000"
+                                                    Text="{Binding Value}" />
+                                            </Border>
+
+                                        </Grid>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </Border>
+
+                        <!--<TextBlock
+                            Padding="5"
+                            Background="#e6e6e6"
+                            FontSize="22"
+                            FontWeight="Bold"
+                            Text="Pallet/Handling Unit Manifest"
+                            TextAlignment="Center" />
+                        <ItemsControl Margin="0,10" ItemsSource="{Binding HandlingUnits, RelativeSource={RelativeSource AncestorType=UserControl}}">
+
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <UniformGrid Columns="2" />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border
+                                        Margin="5"
+                                        Padding="10"
+                                        BorderBrush="LightGray"
+                                        BorderThickness="1">
+                                        <Grid>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto" />
+                                                <RowDefinition Height="*" />
+                                                <RowDefinition Height="Auto" />
+                                            </Grid.RowDefinitions>
+
+                                            <TextBlock
+                                                Grid.Row="0"
+                                                FontSize="16"
+                                                FontWeight="Bold"
+                                                Foreground="#000"
+                                                Text="{Binding Description}" />
+
+                                            <ItemsControl
+                                                Grid.Row="1"
+                                                Margin="15,5,0,0"
+                                                ItemsSource="{Binding ContainedUnits}">
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <TextBlock FontStyle="Italic" Foreground="#333">
+                                                            <TextBlock.Style>
+                                                                <Style TargetType="TextBlock">
+                                                                    <Setter Property="Text">
+                                                                        <Setter.Value>
+                                                                            <MultiBinding StringFormat="{}{0} x {1} - {2} (Line {3})">
+                                                                                <Binding Path="Quantity" />
+                                                                                <Binding Path="CartonOrSkid" />
+                                                                                <Binding Path="DisplayTypeOfUnit" />
+                                                                                <Binding Path="LineItem.LineItemHeader.LineItemNumber" />
+                                                                            </MultiBinding>
+                                                                        </Setter.Value>
+                                                                    </Setter>
+                                                                    <Style.Triggers>
+                                                                        <DataTrigger Binding="{Binding CartonOrSkid}" Value="PACKED WITH LINE ">
+                                                                            <Setter Property="Text">
+                                                                                <Setter.Value>
+                                                                                    <MultiBinding StringFormat="{}{0} {1} (Packed with Line {2})">
+                                                                                        <Binding Path="Quantity" />
+                                                                                        <Binding Path="CartonOrSkidContents" />
+                                                                                        <Binding Path="LineNumber" />
+                                                                                    </MultiBinding>
+                                                                                </Setter.Value>
+                                                                            </Setter>
+                                                                        </DataTrigger>
+                                                                    </Style.Triggers>
+                                                                </Style>
+                                                            </TextBlock.Style>
+                                                        </TextBlock>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+
+                                            <TextBlock
+                                                Grid.Row="2"
+                                                Margin="0,5,0,0"
+                                                HorizontalAlignment="Right"
+                                                FontWeight="SemiBold"
+                                                Foreground="#000"
+                                                Text="{Binding TotalWeight, StringFormat='Pallet Weight: {0} Lbs'}" />
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>-->
+                    </StackPanel>
+                </ScrollViewer>
+
+                <StackPanel
                     Grid.Row="2"
-                    Margin="0,10"
-                    ItemsSource="{Binding Details, RelativeSource={RelativeSource AncestorType=UserControl}}">
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate>
-                            <TextBlock
-                                Margin="0,0,0,10"
-                                FontSize="16"
-                                Foreground="#000"
-                                Text="{Binding NoteText}"
-                                TextWrapping="Wrap" />
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
+                    VerticalAlignment="Bottom"
+                    Orientation="Vertical">
+                    <TextBlock
+                        Margin="0,10"
+                        FontWeight="Bold"
+                        Text="Your signature acknowledges that this order was delivered complete, or otherwise noted."
+                        TextAlignment="Center" />
+                    <TextBlock Text="X____________________________________________________ DATE________________________" TextAlignment="Center" />
+                </StackPanel>
             </Grid>
         </Border>
     </Border>

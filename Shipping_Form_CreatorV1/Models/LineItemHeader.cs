@@ -4,6 +4,7 @@ namespace Shipping_Form_CreatorV1.Models;
 
 public class LineItemHeader
 {
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)] // <-- VERIFY THIS EXISTS
     public int Id { get; set; }
     public decimal LineItemNumber { get; set; }
     public string ProductNumber { get; set; }

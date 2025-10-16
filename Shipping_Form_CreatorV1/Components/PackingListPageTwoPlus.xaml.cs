@@ -6,6 +6,7 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using static iTextSharp.text.pdf.AcroFields;
 
 namespace Shipping_Form_CreatorV1.Components
 {
@@ -61,68 +62,87 @@ namespace Shipping_Form_CreatorV1.Components
 
         public ICommand AddPackUnitCommand => new RelayCommand(param =>
         {
-            System.Diagnostics.Debug.WriteLine($"[DEBUG] Received CommandParameter of type: {param?.GetType().Name}");
-
-            if (param is not LineItem lineItem)
-            {
-                MessageBox.Show("LineItem not passed to AddPackUnitCommand");
-                return;
-            }
-
+            if (param is not LineItem lineItemCopy) return;
             if (Application.Current.MainWindow?.DataContext is not MainViewModel viewModel) return;
+
+            // --- THIS IS THE CRITICAL LINE ---
+            // Look up the original item using the unique LineItemNumber, NOT the Id.
+            var originalLineItem = viewModel.SelectedReport.LineItems
+                .FirstOrDefault(li => li.LineItemHeader?.LineItemNumber == lineItemCopy.LineItemHeader?.LineItemNumber);
+
+            // If the lookup fails for any reason, stop here.
+            if (originalLineItem == null) return;
 
             var newPackingUnit = new LineItemPackingUnit
             {
+                Id = 0, // Mark as a new record for the database
                 TruckNumber = viewModel.Trucks.FirstOrDefault() ?? "TRUCK 1",
                 Quantity = 1,
-                CartonOrSkid = CartonOrSkidOptions.FirstOrDefault() ?? "Carton",
+                CartonOrSkid = CartonOrSkidOptions.FirstOrDefault() ?? "BOX",
                 TypeOfUnit = string.Empty,
                 Weight = 0,
-                LineItem = lineItem,
-                LineItemId = lineItem.Id
+                LineItem = originalLineItem,
+                LineItemId = originalLineItem.Id
             };
 
-            if (lineItem.LineItemPackingUnits is { } observable)
-            {
-                observable.Add(newPackingUnit);
-            }
-            else
-            {
-                lineItem.LineItemPackingUnits = [newPackingUnit];
-            }
+            // Add to the master list (for saving)
+            originalLineItem.LineItemPackingUnits.Add(newPackingUnit);
+
+            // Add to the UI's list (for immediate visual update)
+            lineItemCopy.LineItemPackingUnits.Add(newPackingUnit);
 
             viewModel.UpdateViewOptions();
-
-            System.Diagnostics.Debug.WriteLine($"[Add] Added new packing unit to LineItem {lineItem.Id}");
         });
 
         public ICommand RemovePackUnitCommand => new RelayCommand(param =>
         {
-            if (param is not LineItemPackingUnit unit) return;
+            if (param is not LineItemPackingUnit unitToRemove) return;
 
-            foreach (var lineItem in this.Items ?? [])
+            if (Application.Current.MainWindow?.DataContext is not MainViewModel viewModel) return;
+
+            // Get the master report from the ViewModel (the single source of truth)
+            var masterReport = viewModel.SelectedReport;
+            if (masterReport == null) return;
+
+            // Find the line item in the MASTER list that contains the unit and remove it
+            foreach (var lineItem in masterReport.LineItems)
             {
-                if (lineItem.LineItemPackingUnits.Contains(unit))
+                if (lineItem.LineItemPackingUnits.Contains(unitToRemove))
                 {
-                    lineItem.LineItemPackingUnits.Remove(unit);
+                    // This modifies the original collection
+                    lineItem.LineItemPackingUnits.Remove(unitToRemove);
 
-                    if (Application.Current.MainWindow?.DataContext is MainViewModel viewModel)
-                    {
-                        viewModel.UpdateViewOptions();
-                    }
-                    break;
+                    // Now, tell the ViewModel to update everything, which will trigger the refresh
+                    viewModel.UpdateViewOptions();
+                    break; // Exit loop once the item is found and removed
                 }
             }
         });
 
         private void TruckComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (Application.Current.MainWindow?.DataContext is not MainViewModel viewModel) return;
-
-            if (sender is ComboBox comboBox && comboBox.SelectedItem is string selectedTruck)
+            // Ensure we have a view model and something was actually selected
+            if (Application.Current.MainWindow?.DataContext is not MainViewModel viewModel || e.AddedItems.Count == 0)
             {
-                viewModel.SelectedTruck = selectedTruck;
+                return;
             }
+
+            // Get the newly selected truck value from the event arguments
+            if (e.AddedItems[0] is not string selectedTruck) return;
+
+            // Get the ComboBox and its DataContext (the specific LineItemPackingUnit copy)
+            if (sender is not FrameworkElement comboBox || comboBox.DataContext is not LineItemPackingUnit unitCopy)
+            {
+                return;
+            }
+
+            var originalLineItem = viewModel.SelectedReport.LineItems
+                .FirstOrDefault(li => li.Id == unitCopy.LineItemId);
+
+            if (originalLineItem == null) return;
+
+
+            viewModel.SelectedTruck = selectedTruck;
         }
     }
 }
