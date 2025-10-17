@@ -40,11 +40,11 @@ public class Constants
     ];
 
     public static readonly string[] CartonOrSkidOptions =
-    [
-        "SINGLE PACK",
-        "BOX",
+    [   
         "SKID",
-        "PACKED WITH LINE "
+        "BOX",
+        "PACKED WITH LINE ",
+        "SINGLE PACK",
     ];
 
     public static readonly string[] PackingUnitCategories =

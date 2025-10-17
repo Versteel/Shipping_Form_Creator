@@ -65,17 +65,14 @@ namespace Shipping_Form_CreatorV1.Components
             if (param is not LineItem lineItemCopy) return;
             if (Application.Current.MainWindow?.DataContext is not MainViewModel viewModel) return;
 
-            // --- THIS IS THE CRITICAL LINE ---
-            // Look up the original item using the unique LineItemNumber, NOT the Id.
             var originalLineItem = viewModel.SelectedReport.LineItems
                 .FirstOrDefault(li => li.LineItemHeader?.LineItemNumber == lineItemCopy.LineItemHeader?.LineItemNumber);
 
-            // If the lookup fails for any reason, stop here.
             if (originalLineItem == null) return;
 
             var newPackingUnit = new LineItemPackingUnit
             {
-                Id = 0, // Mark as a new record for the database
+                Id = 0, 
                 TruckNumber = viewModel.Trucks.FirstOrDefault() ?? "TRUCK 1",
                 Quantity = 1,
                 CartonOrSkid = CartonOrSkidOptions.FirstOrDefault() ?? "BOX",
@@ -85,10 +82,8 @@ namespace Shipping_Form_CreatorV1.Components
                 LineItemId = originalLineItem.Id
             };
 
-            // Add to the master list (for saving)
             originalLineItem.LineItemPackingUnits.Add(newPackingUnit);
 
-            // Add to the UI's list (for immediate visual update)
             lineItemCopy.LineItemPackingUnits.Add(newPackingUnit);
 
             viewModel.UpdateViewOptions();
@@ -100,30 +95,25 @@ namespace Shipping_Form_CreatorV1.Components
 
             if (Application.Current.MainWindow?.DataContext is not MainViewModel viewModel) return;
 
-            // Get the master report from the ViewModel (the single source of truth)
             var masterReport = viewModel.SelectedReport;
             if (masterReport == null) return;
 
-            // Find the line item in the MASTER list that contains the unit and remove it
             foreach (var lineItem in masterReport.LineItems)
             {
                 if (lineItem.LineItemPackingUnits.Contains(unitToRemove))
                 {
-
-                    if(unitToRemove.HandlingUnitId.HasValue && unitToRemove.HandlingUnit is not null)
+                    if (unitToRemove.HandlingUnitId.HasValue && unitToRemove.HandlingUnit is not null)
                     {
-                        // If the packing unit is associated with a handling unit, remove that association
                         unitToRemove.HandlingUnit.ContainedUnits.Remove(unitToRemove);
                         unitToRemove.HandlingUnitId = null;
                         unitToRemove.HandlingUnit = null;
                     }
-
-                    // This modifies the original collection
+                    
                     lineItem.LineItemPackingUnits.Remove(unitToRemove);
+                    viewModel.OnPropertyChanged(nameof(MainViewModel.SelectedReport));
 
-                    // Now, tell the ViewModel to update everything, which will trigger the refresh
                     viewModel.UpdateViewOptions();
-                    break; // Exit loop once the item is found and removed
+                    break; 
                 }
             }
         });

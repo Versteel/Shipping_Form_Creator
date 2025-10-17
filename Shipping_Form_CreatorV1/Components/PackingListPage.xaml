@@ -110,12 +110,12 @@
                             Margin="0,0,0,10"
                             FontSize="20"
                             Foreground="#000"
-                            Text="Handling Units" />
+                            Text="Bulk-Packed Units" />
                         <Button
                             Margin="0,0,0,10"
                             Background="#e41f28"
                             Command="{Binding AddHandlingUnitCommand}"
-                            Content="Add New Handling Unit"
+                            Content="Add New Unit"
                             Cursor="Hand"
                             Foreground="#FFF" />
 
