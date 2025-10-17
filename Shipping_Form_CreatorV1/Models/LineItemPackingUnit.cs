@@ -20,30 +20,60 @@ public class LineItemPackingUnit
     public virtual HandlingUnit? HandlingUnit { get; set; }
     [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
     public LineItem LineItem { get; set; } = null!;
+
+
+    private const string PackedWithLineIdentifier = "PACKED WITH LINE ";
     [NotMapped]
-    public string DisplayTypeOfUnit
+    public string DisplayTypeOfUnit =>
+        CartonOrSkid == PackedWithLineIdentifier
+            ? CartonOrSkidContents ?? string.Empty
+            : GetNormalizedTypeOfUnit();
+
+    [NotMapped] 
+    public string PackingUnitSummary
     {
         get
         {
-            if (string.IsNullOrWhiteSpace(TypeOfUnit)) return "";
-            return TypeOfUnit.ToUpperInvariant() switch
+            // Safely get the line item number, providing a fallback if it's null
+            string lineNum = LineItem?.LineItemHeader?.LineItemNumber.ToString() ?? "N/A";
+
+            // Check the condition just like in your DisplayTypeOfUnit property
+            if (CartonOrSkid == PackedWithLineIdentifier)
             {
-                "CHAIRS" or "CURVARE" or "IMMIX" or "OH!" or "OLLIE" => "CHAIRS",
-                "TABLE LEGS, TUBULAR STL EXC 1 QTR DIAMETER, N-G-T 2 INCH DIAMETER" => "TABLE LEGS",
-                "PACKED WITH LINE " => CartonOrSkidContents,
-                _ => TypeOfUnit.ToUpperInvariant()
-            };
+                // Case 1: "PACKED WITH LINE" -> Omit the CartonOrSkid part
+                return $"{Quantity} x {DisplayTypeOfUnit} (Line {lineNum})";
+            }
+            else
+            {
+                // Case 2: Standard item -> Include all parts
+                return $"{Quantity} x {CartonOrSkid} {DisplayTypeOfUnit} (Line {lineNum})";
+            }
         }
     }
 
-    // Default constructor
+    private string GetNormalizedTypeOfUnit()
+    {
+        // Handle the null or empty case first.
+        if (string.IsNullOrWhiteSpace(TypeOfUnit))
+        {
+            return string.Empty;
+        }
+
+        // Convert to uppercase once to avoid repeating the call.
+        var upperTypeOfUnit = TypeOfUnit.ToUpperInvariant();
+
+        // The switch expression is already clean and efficient.
+        return upperTypeOfUnit switch
+        {
+            "CHAIRS" or "CURVARE" or "IMMIX" or "OH!" or "OLLIE" => "CHAIRS",
+            "TABLE LEGS, TUBULAR STL EXC 1 QTR DIAMETER, N-G-T 2 INCH DIAMETER" => "TABLE LEGS",
+            _ => upperTypeOfUnit
+        };
+    }
+
     public LineItemPackingUnit() { }
 
-    // --- ADD THIS NEW CONSTRUCTOR ---
-    /// <summary>
-    /// Creates a copy of a LineItemPackingUnit instance.
-    /// </summary>
-    /// <param name="original">The object to copy.</param>
+    
     public LineItemPackingUnit(LineItemPackingUnit original)
     {
         this.Id = original.Id;

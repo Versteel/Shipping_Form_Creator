@@ -105,14 +105,13 @@ public class SqliteService(IDbContextFactory<AppDbContext> dbContext) : ISqliteS
         UpdateHandlingUnits(db, existingReport, report.HandlingUnits);
     }
     private static void UpdateHandlingUnits(DbContext db, ReportModel existingReport, ICollection<HandlingUnit> updatedHandlingUnits)
-    {
-        var updatedIds = updatedHandlingUnits.Select(h => h.Id).ToHashSet();
+    {       
+        var validUpdatedUnits = updatedHandlingUnits.Where(h => h.ContainedUnits.Any()).ToList();
+        var validUpdatedIds = validUpdatedUnits.Select(h => h.Id).ToHashSet();
 
-        // 1. Handle Deletions: Find units in the DB that are not in the UI's list and remove them.
-        var unitsToRemove = existingReport.HandlingUnits.Where(h => !updatedIds.Contains(h.Id)).ToList();
+        var unitsToRemove = existingReport.HandlingUnits.Where(h => !validUpdatedIds.Contains(h.Id)).ToList();
         foreach (var unit in unitsToRemove)
         {
-            // Un-assign all children before deleting the parent pallet.
             foreach (var contained in unit.ContainedUnits.ToList())
             {
                 unit.ContainedUnits.Remove(contained);
@@ -121,46 +120,35 @@ public class SqliteService(IDbContextFactory<AppDbContext> dbContext) : ISqliteS
             db.Set<HandlingUnit>().Remove(unit);
         }
 
-        // Create a lookup for all packing units currently tracked by Entity Framework for this report.
         var allTrackedPackingUnits = existingReport.LineItems
             .SelectMany(li => li.LineItemPackingUnits)
             .Where(pu => pu.Id > 0)
             .ToDictionary(pu => pu.Id);
 
-
-        // 2. Handle Additions and Updates for each pallet from the UI.
-        foreach (var updatedUnit in updatedHandlingUnits)
+        foreach (var updatedUnit in validUpdatedUnits)
         {
-            // Try to find the corresponding unit that EF is tracking.
             var existingUnit = existingReport.HandlingUnits.FirstOrDefault(h => h.Id == updatedUnit.Id);
 
             if (existingUnit == null)
             {
-                // This is a NEW handling unit. Create it and add it to the report.
                 existingUnit = new HandlingUnit { ReportModelId = existingReport.Id };
                 existingReport.HandlingUnits.Add(existingUnit);
             }
 
-            // Update properties from the UI object to the tracked entity.
             existingUnit.Description = updatedUnit.Description;
 
-            // Now, reconcile the children (the items dragged onto the pallet).
             var uiContainedUnitIds = updatedUnit.ContainedUnits.Select(cu => cu.Id).ToHashSet();
 
-            // Remove children that are no longer on this pallet.
             var childrenToRemove = existingUnit.ContainedUnits.Where(cu => !uiContainedUnitIds.Contains(cu.Id)).ToList();
             foreach (var child in childrenToRemove)
             {
                 existingUnit.ContainedUnits.Remove(child);
             }
 
-            // Add children that were newly dragged onto this pallet.
             foreach (var uiChild in updatedUnit.ContainedUnits)
             {
-                // Check if the existing pallet already contains this child.
                 if (!existingUnit.ContainedUnits.Any(c => c.Id == uiChild.Id))
                 {
-                    // Find the EF-tracked version of this child from our lookup and add it.
                     if (allTrackedPackingUnits.TryGetValue(uiChild.Id, out var trackedChild))
                     {
                         existingUnit.ContainedUnits.Add(trackedChild);
@@ -169,6 +157,7 @@ public class SqliteService(IDbContextFactory<AppDbContext> dbContext) : ISqliteS
             }
         }
     }
+
     private static void UpdateReportHeader(ReportHeader existing, ReportHeader updated)
     {
         existing.LogoImagePath = updated.LogoImagePath;

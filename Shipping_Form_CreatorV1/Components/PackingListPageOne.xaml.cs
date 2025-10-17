@@ -57,8 +57,6 @@ namespace Shipping_Form_CreatorV1.Components
         public string TypeOfUnit { get; set; } = string.Empty;
         public string TruckNumber { get; set; } = Constants.TruckNumbers[0];
         public int Weight { get; set; }
-
-        public string UomText => string.Equals(CartonOrSkid?.Trim(), Constants.CartonOrSkidOptions[2], StringComparison.OrdinalIgnoreCase) ? string.Empty : "Lbs";
         public static string[] CartonOrSkidOptions => Constants.CartonOrSkidOptions;
         public static string[] PackingUnitCategories => Constants.PackingUnitCategories;
         public static string[] TruckNumbers => Constants.TruckNumbers;
@@ -77,7 +75,6 @@ namespace Shipping_Form_CreatorV1.Components
 
         public ICommand AddPackUnitCommand => new RelayCommand(param =>
         {
-            // The parameter is the temporary LineItem copy from the UI
             if (param is not LineItem lineItemCopy)
             {
                 return;
@@ -85,7 +82,6 @@ namespace Shipping_Form_CreatorV1.Components
 
             if (Application.Current.MainWindow?.DataContext is not MainViewModel viewModel) return;
 
-            // Find the original LineItem in the master data source using the ID from the copy
             var originalLineItem = viewModel.SelectedReport.LineItems
                 .FirstOrDefault(li => li.Id == lineItemCopy.Id);
 
@@ -94,10 +90,9 @@ namespace Shipping_Form_CreatorV1.Components
                 return;
             }
 
-            // This is the corrected part:
             var newPackingUnit = new LineItemPackingUnit
             {
-                Id = 0, // Use 0 to indicate a new entity. The database will generate the real ID.
+                Id = 0, 
                 TruckNumber = viewModel.Trucks.FirstOrDefault() ?? "TRUCK 1",
                 Quantity = 1,
                 CartonOrSkid = CartonOrSkidOptions.FirstOrDefault() ?? "BOX",
@@ -107,7 +102,6 @@ namespace Shipping_Form_CreatorV1.Components
                 LineItemId = originalLineItem.Id
             };
 
-            // Add the new unit to the ORIGINAL LineItem's collection
             if (originalLineItem.LineItemPackingUnits is { } observable)
             {
                 observable.Add(newPackingUnit);
@@ -126,21 +120,25 @@ namespace Shipping_Form_CreatorV1.Components
 
             if (Application.Current.MainWindow?.DataContext is not MainViewModel viewModel) return;
 
-            // Get the master report from the ViewModel (the single source of truth)
             var masterReport = viewModel.SelectedReport;
             if (masterReport == null) return;
 
-            // Find the line item in the MASTER list that contains the unit and remove it
             foreach (var lineItem in masterReport.LineItems)
             {
                 if (lineItem.LineItemPackingUnits.Contains(unitToRemove))
                 {
-                    // This modifies the original collection
-                    lineItem.LineItemPackingUnits.Remove(unitToRemove);
+                    if (unitToRemove.HandlingUnitId.HasValue && unitToRemove.HandlingUnit is not null)
+                    {
+                        unitToRemove.HandlingUnit.ContainedUnits.Remove(unitToRemove);
+                        unitToRemove.HandlingUnitId = null;
+                        unitToRemove.HandlingUnit = null;
+                    }
 
-                    // Now, tell the ViewModel to update everything, which will trigger the refresh
+                    lineItem.LineItemPackingUnits.Remove(unitToRemove);
+                    viewModel.OnPropertyChanged(nameof(MainViewModel.SelectedReport));
+
                     viewModel.UpdateViewOptions();
-                    break; // Exit loop once the item is found and removed
+                    break;
                 }
             }
         });
