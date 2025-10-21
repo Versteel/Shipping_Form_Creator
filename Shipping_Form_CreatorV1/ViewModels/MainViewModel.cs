@@ -278,7 +278,7 @@ public class MainViewModel : INotifyPropertyChanged, IDropTarget
         {
             if (SelectedReport == null)
             {
-                return []; // Return an empty collection if the report is null
+                return [];
             }
 
             return new(SelectedReport.LineItems
@@ -329,7 +329,6 @@ public class MainViewModel : INotifyPropertyChanged, IDropTarget
 
         if (SelectedReport == null) return;
 
-        // --- Create the structured summary list ---
         var summaryItems = SelectedReport.LineItems
              .Where(li => li.LineItemHeader != null &&
                           li.LineItemHeader.PickOrShipQuantityInt > 0 &&
@@ -347,7 +346,6 @@ public class MainViewModel : INotifyPropertyChanged, IDropTarget
             ConsolidatedSummary.Add(item);
         }
 
-        // --- Calculate the overall totals that will appear below the grid ---
         var allPackingUnits = SelectedReport.LineItems.SelectMany(li => li.LineItemPackingUnits).ToList();
         var totalPackages = allPackingUnits
             .Where(pu => pu.CartonOrSkid != "PACKED WITH LINE ")
@@ -361,12 +359,16 @@ public class MainViewModel : INotifyPropertyChanged, IDropTarget
         var totalWeight = allPackingUnits.Sum(pu => pu.Weight);
         OverallTotals.Add(new TotalsItem { Label = "Total Shipment Weight:", Value = $"{totalWeight} Lbs" });
 
-        // --- Populate Shipping Instructions ---
         if (PackingListNotes != null)
         {
-            foreach (var note in PackingListNotes)
+            var instructions = PackingListNotes
+                .Select(note => note?.NoteText)
+                .Where(text => !string.IsNullOrWhiteSpace(text))
+                .Select(text => text!);
+
+            foreach (var text in instructions)
             {
-                ShippingInstructions.Add(note.NoteText);
+                ShippingInstructions.Add(text);
             }
         }
     }
@@ -387,7 +389,6 @@ public class MainViewModel : INotifyPropertyChanged, IDropTarget
         IsBusy = true;
         try
         {
-            // Step 1: Always fetch the latest data from the ERP. This is now our source of truth.
             var erpDocument = await _odbcService.GetReportAsync(orderNumber, suffixNumber, ct);
             if (erpDocument == null)
             {
@@ -395,14 +396,13 @@ public class MainViewModel : INotifyPropertyChanged, IDropTarget
                 return;
             }
 
-            // Step 2: Check for a locally saved version to retrieve packing units.
             var cachedDocument = await _sqliteService.GetReportAsync(orderNumber, suffixNumber, ct);
 
-            // Step 3: If a cached version exists, merge its packing units into the fresh ERP data.
             if (cachedDocument != null)
             {
                 erpDocument.Id = cachedDocument.Id; // Preserve the database ID
                 erpDocument.Header.Id = cachedDocument.Header.Id;
+                erpDocument.HandlingUnits = cachedDocument.HandlingUnits;
 
                 foreach (var erpLineItem in erpDocument.LineItems)
                 {
@@ -552,12 +552,11 @@ public class MainViewModel : INotifyPropertyChanged, IDropTarget
     {
         if (SelectedReport == null) return;
 
-        // This safely creates an empty dictionary if HandlingUnits is null or empty.
         var handlingUnitsById = SelectedReport.HandlingUnits?.ToDictionary(h => h.Id)
-                                  ?? new Dictionary<int, HandlingUnit>();
+                                  ?? [];
 
         var allPackingUnits = SelectedReport.LineItems?.SelectMany(li => li.LineItemPackingUnits)
-                               ?? Enumerable.Empty<LineItemPackingUnit>();
+                               ?? [];
 
         foreach (var packingUnit in allPackingUnits)
         {
@@ -568,31 +567,25 @@ public class MainViewModel : INotifyPropertyChanged, IDropTarget
             }
             else
             {
-                // This now correctly clears the reference if the pallet was deleted.
                 packingUnit.HandlingUnit = null;
             }
         }
 
-        // Notify the UI to refresh the packing unit list with the updated links.
         OnPropertyChanged(nameof(SelectedReport));
     }
     private void AddNewHandlingUnit(object? obj)
     {
         if (SelectedReport?.HandlingUnits == null) return;
 
-        // --- NEW NAMING LOGIC ---
-        // 1. Find the highest number used in the names of existing pallets.
         var highestPalletNumber = SelectedReport.HandlingUnits
             .Select(h => h.Description)
-            .Where(d => d.StartsWith("Pallet "))
-            .Select(d => int.TryParse(d.Replace("Pallet ", ""), out int num) ? num : 0)
+            .Where(d => d.StartsWith("Unit "))
+            .Select(d => int.TryParse(d.Replace("Unit ", ""), out int num) ? num : 0)
             .DefaultIfEmpty(0)
             .Max();
 
-        // 2. The new pallet's number will be one higher than the current max.
-        var newDescription = $"Pallet {highestPalletNumber + 1}";
+        var newDescription = $"Unit {highestPalletNumber + 1}";
 
-        // The ID logic for the database can remain the same.
         var newId = SelectedReport.HandlingUnits.Any()
                         ? SelectedReport.HandlingUnits.Max(h => h.Id) + 1
                         : 1;
@@ -600,7 +593,7 @@ public class MainViewModel : INotifyPropertyChanged, IDropTarget
         var newHandlingUnit = new HandlingUnit
         {
             Id = newId,
-            Description = newDescription, // Use our new, sequential name
+            Description = newDescription,
             ReportModelId = SelectedReport.Id
         };
 
@@ -712,7 +705,6 @@ public class MainViewModel : INotifyPropertyChanged, IDropTarget
     private void UpdateTrucksList(int? newlySelectedNumber = null)
     {
         if(SelectedReport == null) return;
-        // 1. Find the highest truck number currently used in the report's data.
         var maxTruckNumberInData = SelectedReport.LineItems
             .SelectMany(li => li.LineItemPackingUnits)
             .Select(pu => pu.TruckNumber)
@@ -721,14 +713,10 @@ public class MainViewModel : INotifyPropertyChanged, IDropTarget
             .DefaultIfEmpty(1)
             .Max();
 
-        // 2. Consider the newly selected number if it was provided.
         var requiredMax = Math.Max(maxTruckNumberInData, newlySelectedNumber ?? 1);
 
-        // 3. Generate the definitive list that is required.
         var requiredTruckList = GenerateTruckList(requiredMax);
 
-        // 4. FIX: Instead of clearing the list, just add the missing items.
-        // This is not destructive and won't cause the UI to reset its selection.
         var itemsToAdd = requiredTruckList.Except(Trucks).ToList();
         foreach (var truck in itemsToAdd)
         {
@@ -738,7 +726,6 @@ public class MainViewModel : INotifyPropertyChanged, IDropTarget
 
     public void UpdateViewOptions()
     {
-        // Call our new method to ensure the editor's ItemsSource is up-to-date
         UpdateTrucksList();
 
         ViewOptions.Clear();

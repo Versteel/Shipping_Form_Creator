@@ -207,12 +207,12 @@
                             </ItemsControl>
                         </Border>
 
-                        <!--<TextBlock
+                        <TextBlock
                             Padding="5"
                             Background="#e6e6e6"
                             FontSize="22"
                             FontWeight="Bold"
-                            Text="Pallet/Handling Unit Manifest"
+                            Text="Handling Unit Manifest"
                             TextAlignment="Center" />
                         <ItemsControl Margin="0,10" ItemsSource="{Binding HandlingUnits, RelativeSource={RelativeSource AncestorType=UserControl}}">
 
@@ -288,12 +288,12 @@
                                                 HorizontalAlignment="Right"
                                                 FontWeight="SemiBold"
                                                 Foreground="#000"
-                                                Text="{Binding TotalWeight, StringFormat='Pallet Weight: {0} Lbs'}" />
+                                                Text="{Binding TotalWeight, StringFormat='Total Weight: {0} Lbs'}" />
                                         </Grid>
                                     </Border>
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
-                        </ItemsControl>-->
+                        </ItemsControl>
                     </StackPanel>
                 </ScrollViewer>
 

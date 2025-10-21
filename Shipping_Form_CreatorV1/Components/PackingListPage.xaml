@@ -99,7 +99,7 @@
                     VerticalScrollBarVisibility="Auto">
                     <StackPanel x:Name="PageContainer" />
                 </ScrollViewer>
-                <!--<Border
+                <Border
                     Grid.Column="1"
                     MinWidth="250"
                     Padding="10"
@@ -110,87 +110,82 @@
                             Margin="0,0,0,10"
                             FontSize="20"
                             Foreground="#000"
-                            Text="Handling Units" />
+                            Text="Bulk-Packed Units" />
                         <Button
                             Margin="0,0,0,10"
                             Background="#e41f28"
                             Command="{Binding AddHandlingUnitCommand}"
-                            Content="Add New Pallet"
+                            Content="Add New Unit"
                             Cursor="Hand"
                             Foreground="#FFF" />
-
-                        <ItemsControl ItemsSource="{Binding SelectedReport.HandlingUnits}">
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                    <Border
-                                        Margin="0,0,0,8"
-                                        Padding="8"
-                                        dd:DragDrop.DropHandler="{Binding DataContext, ElementName=PLPage}"
-                                        dd:DragDrop.IsDropTarget="True"
-                                        BorderBrush="DarkGray"
-                                        BorderThickness="1"
-                                        CornerRadius="4">
-                                        <StackPanel>
-                                            <Grid>
-                                                <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition Width="*" />
-                                                    <ColumnDefinition Width="Auto" />
-                                                </Grid.ColumnDefinitions>
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" MaxHeight="800">
+                            <ItemsControl ItemsSource="{Binding SelectedReport.HandlingUnits}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border
+                                            Margin="0,0,0,8"
+                                            Padding="8"
+                                            dd:DragDrop.DropHandler="{Binding DataContext, ElementName=PLPage}"
+                                            dd:DragDrop.IsDropTarget="True"
+                                            BorderBrush="DarkGray"
+                                            BorderThickness="1"
+                                            CornerRadius="4">
+                                            <StackPanel>
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*" />
+                                                        <ColumnDefinition Width="Auto" />
+                                                    </Grid.ColumnDefinitions>
+                                                    <TextBlock
+                                                        Grid.Column="0"
+                                                        Margin="0,0,0,5"
+                                                        FontWeight="Bold"
+                                                        Foreground="#000"
+                                                        Text="{Binding Description}" />
+                                                    <syncfusion:ButtonAdv
+                                                        Width="20"
+                                                        Height="20"
+                                                        Margin="0,-5,0,5"
+                                                        HorizontalAlignment="Right"
+                                                        Background="Transparent"
+                                                        BorderThickness="0"
+                                                        Command="{Binding DataContext.RemoveHandlingUnitCommand, RelativeSource={RelativeSource AncestorType={x:Type local:PackingListPage}}}"
+                                                        CommandParameter="{Binding}"
+                                                        Cursor="Hand"
+                                                        Label=""
+                                                        SmallIcon="/delete.png" />
+                                                </Grid>
+                                                <Border
+                                                    MinHeight="50"
+                                                    Background="Ivory"
+                                                    BorderBrush="Khaki"
+                                                    BorderThickness="2">
+                                                    <ItemsControl ItemsSource="{Binding ContainedUnits}">
+                                                        <ItemsControl.ItemTemplate>
+                                                            <DataTemplate>
+                                                                <TextBlock
+                                                                    Margin="2"
+                                                                    FontStyle="Italic"
+                                                                    Foreground="#000"
+                                                                    Text="{Binding PackingUnitSummary, Mode=OneWay}" />
+                                                            </DataTemplate>
+                                                        </ItemsControl.ItemTemplate>
+                                                    </ItemsControl>
+                                                </Border>
                                                 <TextBlock
-                                                    Grid.Column="0"
-                                                    Margin="0,0,0,5"
-                                                    FontWeight="Bold"
-                                                    Foreground="#000"
-                                                    Text="{Binding Description}" />
-                                                <syncfusion:ButtonAdv
-                                                    Width="20"
-                                                    Height="20"
-                                                    Margin="0,-5,0,5"
+                                                    Margin="0,4,0,0"
                                                     HorizontalAlignment="Right"
-                                                    Background="Transparent"
-                                                    BorderThickness="0"
-                                                    Command="{Binding DataContext.RemoveHandlingUnitCommand, RelativeSource={RelativeSource AncestorType={x:Type local:PackingListPage}}}"
-                                                    CommandParameter="{Binding}"
-                                                    Cursor="Hand"
-                                                    Label=""
-                                                    SmallIcon="/delete.png" />
-                                            </Grid>
-
-
-                                            <Border
-                                                MinHeight="50"
-                                                Background="Ivory"
-                                                BorderBrush="Khaki"
-                                                BorderThickness="2">
-                                                <ItemsControl ItemsSource="{Binding ContainedUnits}">
-                                                    <ItemsControl.ItemTemplate>
-                                                        <DataTemplate>
-                                                            <TextBlock
-                                                                Margin="2"
-                                                                FontStyle="Italic"
-                                                                Foreground="#000">
-                                                                <Run Text="{Binding Quantity}" />
-                                                                x<Run Text="{Binding CartonOrSkid}" />
-                                                                <Run Text="{Binding DisplayTypeOfUnit, Mode=OneWay}" />
-                                                                (Line<Run Text="{Binding LineItem.LineItemHeader.LineItemNumber}" />
-                                                                )</TextBlock>
-                                                        </DataTemplate>
-                                                    </ItemsControl.ItemTemplate>
-                                                </ItemsControl>
-                                            </Border>
-                                            <TextBlock
-                                                Margin="0,4,0,0"
-                                                HorizontalAlignment="Right"
-                                                FontSize="14"
-                                                Foreground="#000"
-                                                Text="{Binding TotalWeight, StringFormat='Total Weight: {0} Lbs'}" />
-                                        </StackPanel>
-                                    </Border>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
+                                                    FontSize="14"
+                                                    Foreground="#000"
+                                                    Text="{Binding TotalWeight, StringFormat='Total Weight: {0} Lbs'}" />
+                                            </StackPanel>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
                     </StackPanel>
-                </Border>-->
+                </Border>
 
 
             </Grid>
