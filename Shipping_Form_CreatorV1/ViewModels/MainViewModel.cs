@@ -645,6 +645,7 @@ public class MainViewModel : INotifyPropertyChanged, IDropTarget
         var units = items
             .SelectMany(li => li.LineItemPackingUnits ?? Enumerable.Empty<LineItemPackingUnit>())
             .Where(pu => !string.IsNullOrWhiteSpace(pu.TypeOfUnit))
+            .Where(pu => pu.CartonOrSkid != "PACKED WITH LINE ") // <-- ADD THIS LINE
             .Where(pu => isAllView || string.Equals(pu.TruckNumber, selectedView, StringComparison.OrdinalIgnoreCase))
             .ToList();
 
