@@ -155,8 +155,6 @@
                                                         Label=""
                                                         SmallIcon="/delete.png" />
                                                 </Grid>
-
-
                                                 <Border
                                                     MinHeight="50"
                                                     Background="Ivory"
