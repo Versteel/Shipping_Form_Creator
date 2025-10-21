@@ -7,7 +7,7 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<UseWPF>true</UseWPF>
 		<ApplicationIcon>icon.ico</ApplicationIcon>
-		<AssemblyName>Shipping Form Creator</AssemblyName>
+		<AssemblyName>TEST - Shipping Form Creator</AssemblyName>
 	</PropertyGroup>
 
 
