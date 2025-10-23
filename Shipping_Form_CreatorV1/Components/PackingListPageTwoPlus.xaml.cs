@@ -7,6 +7,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using static iTextSharp.text.pdf.AcroFields;
+using System;
 
 namespace Shipping_Form_CreatorV1.Components
 {
@@ -59,7 +60,7 @@ namespace Shipping_Form_CreatorV1.Components
 
         public static string[] CartonOrSkidOptions => Constants.CartonOrSkidOptions;
         public static string[] PackingUnitCategories => Constants.PackingUnitCategories;
-
+                
         public ICommand AddPackUnitCommand => new RelayCommand(param =>
         {
             if (param is not LineItem lineItemCopy) return;
@@ -72,7 +73,7 @@ namespace Shipping_Form_CreatorV1.Components
 
             var newPackingUnit = new LineItemPackingUnit
             {
-                Id = 0, 
+                Id = 0,
                 TruckNumber = viewModel.Trucks.FirstOrDefault() ?? "TRUCK 1",
                 Quantity = 1,
                 CartonOrSkid = CartonOrSkidOptions.FirstOrDefault() ?? "BOX",
@@ -83,9 +84,8 @@ namespace Shipping_Form_CreatorV1.Components
             };
 
             originalLineItem.LineItemPackingUnits.Add(newPackingUnit);
-
             lineItemCopy.LineItemPackingUnits.Add(newPackingUnit);
-
+            
             viewModel.UpdateViewOptions();
         });
 
@@ -108,19 +108,18 @@ namespace Shipping_Form_CreatorV1.Components
                         unitToRemove.HandlingUnitId = null;
                         unitToRemove.HandlingUnit = null;
                     }
-                    
+
                     lineItem.LineItemPackingUnits.Remove(unitToRemove);
                     viewModel.OnPropertyChanged(nameof(MainViewModel.SelectedReport));
-
+                   
                     viewModel.UpdateViewOptions();
-                    break; 
+                    break;
                 }
             }
         });
 
         private void TruckComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            // Ensure we have a view model and something was actually selected
             if (Application.Current.MainWindow?.DataContext is not MainViewModel viewModel || e.AddedItems.Count == 0)
             {
                 return;

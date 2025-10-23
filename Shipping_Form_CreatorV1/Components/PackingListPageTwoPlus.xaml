@@ -15,6 +15,252 @@
     d:DesignWidth="900"
     mc:Ignorable="d">
     <UserControl.Resources>
+        <SolidColorBrush x:Key="StandardBorderBrush" Color="#888" />
+        <SolidColorBrush x:Key="StandardBackgroundBrush" Color="Black" />
+        <SolidColorBrush x:Key="HoverBorderBrush" Color="#DDD" />
+        <SolidColorBrush x:Key="SelectedBackgroundBrush" Color="Gray" />
+        <SolidColorBrush x:Key="SelectedForegroundBrush" Color="White" />
+        <SolidColorBrush x:Key="DisabledForegroundBrush" Color="#888" />
+        <SolidColorBrush x:Key="GlyphBrush" Color="#444" />
+        <SolidColorBrush x:Key="NormalBrush" Color="#888" />
+        <SolidColorBrush x:Key="NormalBorderBrush" Color="#888" />
+        <SolidColorBrush x:Key="HorizontalNormalBrush" Color="#FF686868" />
+        <SolidColorBrush x:Key="HorizontalNormalBorderBrush" Color="#888" />
+
+        <LinearGradientBrush x:Key="ListBoxBackgroundBrush" StartPoint="0,0" EndPoint="1,0.001">
+            <GradientBrush.GradientStops>
+                <GradientStopCollection>
+                    <GradientStop Offset="0.0" Color="White" />
+                    <GradientStop Offset="0.6" Color="White" />
+                    <GradientStop Offset="1.2" Color="#DDDDDD" />
+                </GradientStopCollection>
+            </GradientBrush.GradientStops>
+        </LinearGradientBrush>
+        <LinearGradientBrush x:Key="StandardBrush" StartPoint="0,0" EndPoint="0,1">
+            <GradientBrush.GradientStops>
+                <GradientStopCollection>
+                    <GradientStop Offset="0.0" Color="#FFF" />
+                    <GradientStop Offset="1.0" Color="#CCC" />
+                </GradientStopCollection>
+            </GradientBrush.GradientStops>
+        </LinearGradientBrush>
+        <LinearGradientBrush x:Key="PressedBrush" StartPoint="0,0" EndPoint="0,1">
+            <GradientBrush.GradientStops>
+                <GradientStopCollection>
+                    <GradientStop Offset="0.0" Color="#BBB" />
+                    <GradientStop Offset="0.1" Color="#EEE" />
+                    <GradientStop Offset="0.9" Color="#EEE" />
+                    <GradientStop Offset="1.0" Color="#FFF" />
+                </GradientStopCollection>
+            </GradientBrush.GradientStops>
+        </LinearGradientBrush>
+
+        <Style x:Key="ScrollBarLineButton" TargetType="{x:Type RepeatButton}">
+            <Setter Property="Visibility" Value="Hidden" />
+            <Setter Property="SnapsToDevicePixels" Value="True" />
+            <Setter Property="OverridesDefaultStyle" Value="true" />
+            <Setter Property="Focusable" Value="false" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type RepeatButton}">
+                        <Border
+                            Name="Border"
+                            Margin="1"
+                            Background="{StaticResource NormalBrush}"
+                            BorderBrush="{StaticResource NormalBorderBrush}"
+                            BorderThickness="1"
+                            CornerRadius="2">
+                            <Path
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                Data="{Binding Path=Content, RelativeSource={RelativeSource TemplatedParent}}"
+                                Fill="{StaticResource GlyphBrush}" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsPressed" Value="true">
+                                <Setter TargetName="Border" Property="Background" Value="{StaticResource PressedBrush}" />
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="false">
+                                <Setter Property="Foreground" Value="{StaticResource DisabledForegroundBrush}" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="ScrollBarPageButton" TargetType="{x:Type RepeatButton}">
+            <Setter Property="Visibility" Value="Hidden" />
+            <Setter Property="SnapsToDevicePixels" Value="True" />
+            <Setter Property="OverridesDefaultStyle" Value="true" />
+            <Setter Property="IsTabStop" Value="false" />
+            <Setter Property="Focusable" Value="false" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type RepeatButton}">
+                        <Border Background="Black" />
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="ScrollBarThumb" TargetType="{x:Type Thumb}">
+            <Setter Property="SnapsToDevicePixels" Value="True" />
+            <Setter Property="OverridesDefaultStyle" Value="true" />
+            <Setter Property="IsTabStop" Value="false" />
+            <Setter Property="Focusable" Value="false" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type Thumb}">
+                        <Border
+                            Width="8"
+                            Margin="8,0,-2,0"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="0"
+                            CornerRadius="4" />
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <ControlTemplate x:Key="VerticalScrollBar" TargetType="{x:Type ScrollBar}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition MaxHeight="0" />
+                    <RowDefinition Height="0.00001*" />
+                    <RowDefinition MaxHeight="0" />
+                </Grid.RowDefinitions>
+                <Border
+                    Grid.RowSpan="3"
+                    Background="Transparent"
+                    CornerRadius="2" />
+                <RepeatButton
+                    Grid.Row="0"
+                    Height="18"
+                    Command="ScrollBar.LineUpCommand"
+                    Content="M 0 4 L 8 4 L 4 0 Z"
+                    Style="{StaticResource ScrollBarLineButton}" />
+                <Track
+                    Name="PART_Track"
+                    Grid.Row="1"
+                    IsDirectionReversed="true">
+                    <Track.DecreaseRepeatButton>
+                        <RepeatButton Command="ScrollBar.PageUpCommand" Style="{StaticResource ScrollBarPageButton}" />
+                    </Track.DecreaseRepeatButton>
+                    <Track.Thumb>
+                        <Thumb
+                            Margin="1,0,1,0"
+                            Background="Red"
+                            BorderBrush="{StaticResource HorizontalNormalBorderBrush}"
+                            Style="{StaticResource ScrollBarThumb}" />
+                    </Track.Thumb>
+                    <Track.IncreaseRepeatButton>
+                        <RepeatButton Command="ScrollBar.PageDownCommand" Style="{StaticResource ScrollBarPageButton}" />
+                    </Track.IncreaseRepeatButton>
+                </Track>
+                <RepeatButton
+                    Grid.Row="3"
+                    Height="18"
+                    Command="ScrollBar.LineDownCommand"
+                    Content="M 0 0 L 4 4 L 8 0 Z"
+                    Style="{StaticResource ScrollBarLineButton}" />
+            </Grid>
+        </ControlTemplate>
+        <ControlTemplate x:Key="HorizontalScrollBar" TargetType="{x:Type ScrollBar}">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition MaxWidth="18" />
+                    <ColumnDefinition Width="0.00001*" />
+                    <ColumnDefinition MaxWidth="18" />
+                </Grid.ColumnDefinitions>
+                <Border
+                    Grid.ColumnSpan="3"
+                    Background="#F0F0F0"
+                    CornerRadius="2" />
+                <RepeatButton
+                    Grid.Column="0"
+                    Width="18"
+                    Command="ScrollBar.LineLeftCommand"
+                    Content="M 4 0 L 4 8 L 0 4 Z"
+                    Style="{StaticResource ScrollBarLineButton}" />
+                <Track
+                    Name="PART_Track"
+                    Grid.Column="1"
+                    IsDirectionReversed="False">
+                    <Track.DecreaseRepeatButton>
+                        <RepeatButton Command="ScrollBar.PageLeftCommand" Style="{StaticResource ScrollBarPageButton}" />
+                    </Track.DecreaseRepeatButton>
+                    <Track.Thumb>
+                        <Thumb
+                            Margin="1,0,1,0"
+                            Background="Red"
+                            BorderBrush="{StaticResource HorizontalNormalBorderBrush}"
+                            Style="{StaticResource ScrollBarThumb}" />
+                    </Track.Thumb>
+                    <Track.IncreaseRepeatButton>
+                        <RepeatButton Command="ScrollBar.PageRightCommand" Style="{StaticResource ScrollBarPageButton}" />
+                    </Track.IncreaseRepeatButton>
+                </Track>
+                <RepeatButton
+                    Grid.Column="3"
+                    Width="18"
+                    Command="ScrollBar.LineRightCommand"
+                    Content="M 0 0 L 4 4 L 0 8 Z"
+                    Style="{StaticResource ScrollBarLineButton}" />
+            </Grid>
+        </ControlTemplate>
+        <Style x:Key="{x:Type ScrollBar}" TargetType="{x:Type ScrollBar}">
+            <Setter Property="SnapsToDevicePixels" Value="True" />
+            <Setter Property="OverridesDefaultStyle" Value="true" />
+            <Style.Triggers>
+                <Trigger Property="Orientation" Value="Horizontal">
+                    <Setter Property="Width" Value="Auto" />
+                    <Setter Property="Height" Value="18" />
+                    <Setter Property="Template" Value="{StaticResource HorizontalScrollBar}" />
+                </Trigger>
+                <Trigger Property="Orientation" Value="Vertical">
+                    <Setter Property="Width" Value="18" />
+                    <Setter Property="Height" Value="Auto" />
+                    <Setter Property="Template" Value="{StaticResource VerticalScrollBar}" />
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="FavsScrollViewer" TargetType="{x:Type ScrollViewer}">
+            <Setter Property="OverridesDefaultStyle" Value="True" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type ScrollViewer}">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <ScrollContentPresenter Grid.Column="1" />
+                            <ScrollBar
+                                Name="PART_VerticalScrollBar"
+                                Maximum="{TemplateBinding ScrollableHeight}"
+                                ViewportSize="{TemplateBinding ViewportHeight}"
+                                Visibility="{TemplateBinding ComputedVerticalScrollBarVisibility}"
+                                Value="{TemplateBinding VerticalOffset}" />
+                            <ScrollBar
+                                Name="PART_HorizontalScrollBar"
+                                Grid.Row="1"
+                                Grid.Column="1"
+                                Maximum="{TemplateBinding ScrollableWidth}"
+                                Orientation="Horizontal"
+                                ViewportSize="{TemplateBinding ViewportWidth}"
+                                Visibility="{TemplateBinding ComputedHorizontalScrollBarVisibility}"
+                                Value="{TemplateBinding HorizontalOffset}" />
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
         <utils:InverseBooleanToVisibilityConverter x:Key="InverseBoolToVis" />
         <BooleanToVisibilityConverter x:Key="BoolToVis" />
         <Style TargetType="TextBlock">
@@ -50,443 +296,443 @@
                     Margin="0,10,0,0"
                     BorderBrush="#000"
                     BorderThickness="1">
-                    <StackPanel Orientation="Vertical">
-                        <ItemsControl ItemsSource="{Binding Items, RelativeSource={RelativeSource AncestorType=UserControl}}">
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                    <StackPanel>
+                    <ItemsControl ItemsSource="{Binding Items, RelativeSource={RelativeSource AncestorType=UserControl}}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="1*" />
+                                        <ColumnDefinition Width="3*" />
+                                        <ColumnDefinition Width="1*" />
+                                        <ColumnDefinition Width="1*" />
+                                        <ColumnDefinition Width="1*" />
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="*" />
+                                    </Grid.RowDefinitions>
+
+                                    <!--  Column headers  -->
+                                    <Grid
+                                        Grid.Row="0"
+                                        Grid.ColumnSpan="6"
+                                        Background="#e6e6e6">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="1*" />
+                                            <ColumnDefinition Width="3*" />
+                                            <ColumnDefinition Width="1*" />
+                                            <ColumnDefinition Width="1*" />
+                                            <ColumnDefinition Width="1*" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock
+                                            Grid.Column="0"
+                                            Margin="5"
+                                            FontWeight="Bold"
+                                            Foreground="#000"
+                                            Text="Line" />
+                                        <TextBlock
+                                            Grid.Column="1"
+                                            Margin="5"
+                                            FontWeight="Bold"
+                                            Foreground="#000"
+                                            Text="Product" />
+                                        <TextBlock
+                                            Grid.Column="2"
+                                            Margin="5"
+                                            FontWeight="Bold"
+                                            Foreground="#000"
+                                            Text="Description" />
+                                        <TextBlock
+                                            Grid.Column="3"
+                                            Margin="5"
+                                            FontWeight="Bold"
+                                            Foreground="#000"
+                                            Text="Ordered" />
+                                        <TextBlock
+                                            Grid.Column="4"
+                                            Margin="5"
+                                            FontWeight="Bold"
+                                            Foreground="#000"
+                                            Text="Shipped" />
+                                        <TextBlock
+                                            Grid.Column="5"
+                                            Margin="5"
+                                            FontWeight="Bold"
+                                            Foreground="#000"
+                                            Text="Backorder" />
+                                    </Grid>
+
+                                    <!--  Line header values  -->
+                                    <TextBlock
+                                        Grid.Row="1"
+                                        Grid.Column="0"
+                                        Margin="5"
+                                        Foreground="#000"
+                                        Text="{Binding LineItemHeader.LineItemNumber}" />
+                                    <TextBlock
+                                        Grid.Row="1"
+                                        Grid.Column="1"
+                                        Margin="5"
+                                        Foreground="#000"
+                                        Text="{Binding LineItemHeader.ProductNumber}" />
+                                    <TextBlock
+                                        Grid.Row="1"
+                                        Grid.Column="2"
+                                        Margin="5"
+                                        Foreground="#000"
+                                        Text="{Binding LineItemHeader.ProductDescription}" />
+                                    <TextBlock
+                                        Grid.Row="1"
+                                        Grid.Column="3"
+                                        Margin="5"
+                                        Foreground="#000"
+                                        Text="{Binding LineItemHeader.OrderedQuantityInt}" />
+                                    <TextBlock
+                                        Grid.Row="1"
+                                        Grid.Column="4"
+                                        Margin="5"
+                                        Foreground="#000"
+                                        Text="{Binding LineItemHeader.PickOrShipQuantityInt}" />
+                                    <TextBlock
+                                        Grid.Row="1"
+                                        Grid.Column="5"
+                                        Margin="5"
+                                        Foreground="#000"
+                                        Text="{Binding LineItemHeader.BackOrderQuantityInt}" />
+
+                                    <!--  Details + Packing Units  -->
+                                    <Border
+                                        Grid.Row="2"
+                                        Grid.Column="0"
+                                        Grid.ColumnSpan="6">
                                         <Grid>
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="Auto" />
-                                                <ColumnDefinition Width="1*" />
-                                                <ColumnDefinition Width="3*" />
-                                                <ColumnDefinition Width="1*" />
-                                                <ColumnDefinition Width="1*" />
-                                                <ColumnDefinition Width="1*" />
+                                                <ColumnDefinition Width="*" />
                                             </Grid.ColumnDefinitions>
-                                            <Grid.RowDefinitions>
-                                                <RowDefinition Height="Auto" />
-                                                <RowDefinition Height="Auto" />
-                                                <RowDefinition Height="*" />
-                                            </Grid.RowDefinitions>
 
-                                            <!--  Column headers  -->
-                                            <Grid
-                                                Grid.Row="0"
-                                                Grid.ColumnSpan="6"
-                                                Background="#e6e6e6">
-                                                <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition Width="Auto" />
-                                                    <ColumnDefinition Width="1*" />
-                                                    <ColumnDefinition Width="3*" />
-                                                    <ColumnDefinition Width="1*" />
-                                                    <ColumnDefinition Width="1*" />
-                                                    <ColumnDefinition Width="1*" />
-                                                </Grid.ColumnDefinitions>
-                                                <TextBlock
-                                                    Grid.Column="0"
-                                                    Margin="5"
-                                                    FontWeight="Bold"
-                                                    Foreground="#000"
-                                                    Text="Line" />
-                                                <TextBlock
-                                                    Grid.Column="1"
-                                                    Margin="5"
-                                                    FontWeight="Bold"
-                                                    Foreground="#000"
-                                                    Text="Product" />
-                                                <TextBlock
-                                                    Grid.Column="2"
-                                                    Margin="5"
-                                                    FontWeight="Bold"
-                                                    Foreground="#000"
-                                                    Text="Description" />
-                                                <TextBlock
-                                                    Grid.Column="3"
-                                                    Margin="5"
-                                                    FontWeight="Bold"
-                                                    Foreground="#000"
-                                                    Text="Ordered" />
-                                                <TextBlock
-                                                    Grid.Column="4"
-                                                    Margin="5"
-                                                    FontWeight="Bold"
-                                                    Foreground="#000"
-                                                    Text="Shipped" />
-                                                <TextBlock
-                                                    Grid.Column="5"
-                                                    Margin="5"
-                                                    FontWeight="Bold"
-                                                    Foreground="#000"
-                                                    Text="Backorder" />
-                                            </Grid>
-
-                                            <!--  Line header values  -->
-                                            <TextBlock
-                                                Grid.Row="1"
+                                            <!--  Notes  -->
+                                            <ItemsControl
                                                 Grid.Column="0"
-                                                Margin="5"
-                                                Foreground="#000"
-                                                Text="{Binding LineItemHeader.LineItemNumber}" />
-                                            <TextBlock
-                                                Grid.Row="1"
-                                                Grid.Column="1"
-                                                Margin="5"
-                                                Foreground="#000"
-                                                Text="{Binding LineItemHeader.ProductNumber}" />
-                                            <TextBlock
-                                                Grid.Row="1"
-                                                Grid.Column="2"
-                                                Margin="5"
-                                                Foreground="#000"
-                                                Text="{Binding LineItemHeader.ProductDescription}" />
-                                            <TextBlock
-                                                Grid.Row="1"
-                                                Grid.Column="3"
-                                                Margin="5"
-                                                Foreground="#000"
-                                                Text="{Binding LineItemHeader.OrderedQuantityInt}" />
-                                            <TextBlock
-                                                Grid.Row="1"
-                                                Grid.Column="4"
-                                                Margin="5"
-                                                Foreground="#000"
-                                                Text="{Binding LineItemHeader.PickOrShipQuantityInt}" />
-                                            <TextBlock
-                                                Grid.Row="1"
-                                                Grid.Column="5"
-                                                Margin="5"
-                                                Foreground="#000"
-                                                Text="{Binding LineItemHeader.BackOrderQuantityInt}" />
+                                                Margin="43,0,0,0"
+                                                ItemsSource="{Binding LineItemDetails}">
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <TextBlock
+                                                            Foreground="#000"
+                                                            Text="{Binding NoteText}"
+                                                            TextWrapping="Wrap" />
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
 
-                                            <!--  Details + Packing Units  -->
-                                            <Border
-                                                Grid.Row="2"
-                                                Grid.Column="0"
-                                                Grid.ColumnSpan="6">
+                                            <!--  Packing units editor/print  -->
+                                            <Border Grid.Column="1" HorizontalAlignment="Right">
                                                 <Grid>
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="Auto" />
-                                                        <ColumnDefinition Width="*" />
-                                                    </Grid.ColumnDefinitions>
+                                                    <!--  EDIT MODE  -->
+                                                    <Grid Visibility="{Binding IsPrinting, RelativeSource={RelativeSource AncestorType={x:Type local:PackingListPageTwoPlus}}, Converter={StaticResource InverseBoolToVis}}">
+                                                        <Grid.RowDefinitions>
+                                                            <RowDefinition Height="Auto" />
+                                                            <RowDefinition Height="Auto" />
+                                                        </Grid.RowDefinitions>
 
-                                                    <!--  Notes  -->
-                                                    <ItemsControl
-                                                        Grid.Column="0"
-                                                        Margin="43,0,0,0"
-                                                        ItemsSource="{Binding LineItemDetails}">
-                                                        <ItemsControl.ItemTemplate>
-                                                            <DataTemplate>
-                                                                <TextBlock
-                                                                    Foreground="#000"
-                                                                    Text="{Binding NoteText}"
-                                                                    TextWrapping="Wrap" />
-                                                            </DataTemplate>
-                                                        </ItemsControl.ItemTemplate>
-                                                    </ItemsControl>
+                                                        <ui:HyperlinkButton
+                                                            Grid.Row="0"
+                                                            HorizontalAlignment="Left"
+                                                            Command="{Binding AddPackUnitCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                            CommandParameter="{Binding}"
+                                                            Content="Add New Packing Unit" />
 
-                                                    <!--  Packing units editor/print  -->
-                                                    <Border Grid.Column="1" HorizontalAlignment="Right">
-                                                        <Grid>
-                                                            <!--  EDIT MODE (unchanged)  -->
-                                                            <StackPanel
-                                                                x:Name="PackingUnitsDropDownStackPanel"
-                                                                Orientation="Vertical"
-                                                                Visibility="{Binding IsPrinting, RelativeSource={RelativeSource AncestorType={x:Type local:PackingListPageTwoPlus}}, Converter={StaticResource InverseBoolToVis}}">
+                                                        <ScrollViewer
+                                                            Grid.Row="1"
+                                                            Height="{Binding PackingUnitHeight}"
+                                                            MinWidth="380"
+                                                            HorizontalScrollBarVisibility="Disabled"
+                                                            VerticalScrollBarVisibility="Auto">
+                                                            <ItemsControl ItemsSource="{Binding LineItemPackingUnits}">
+                                                                <ItemsControl.Style>
+                                                                    <Style TargetType="ItemsControl">
+                                                                        <Setter Property="Visibility" Value="Collapsed" />
+                                                                        <Style.Triggers>
+                                                                            <Trigger Property="HasItems" Value="True">
+                                                                                <Setter Property="Visibility" Value="Visible" />
+                                                                            </Trigger>
+                                                                        </Style.Triggers>
+                                                                    </Style>
+                                                                </ItemsControl.Style>
 
-                                                                <ui:HyperlinkButton
-                                                                    HorizontalAlignment="Left"
-                                                                    Command="{Binding AddPackUnitCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                                                    CommandParameter="{Binding}"
-                                                                    Content="Add New Packing Unit" />
-
-                                                                <ScrollViewer
-                                                                    MaxHeight="175"
-                                                                    MinWidth="300"
-                                                                    HorizontalScrollBarVisibility="Disabled"
-                                                                    VerticalScrollBarVisibility="Auto">
-                                                                    <ItemsControl ItemsSource="{Binding LineItemPackingUnits}">
-                                                                        <ItemsControl.Style>
-                                                                            <Style TargetType="ItemsControl">
-                                                                                <Setter Property="Visibility" Value="Collapsed" />
-                                                                                <Style.Triggers>
-                                                                                    <Trigger Property="HasItems" Value="True">
-                                                                                        <Setter Property="Visibility" Value="Visible" />
-                                                                                    </Trigger>
-                                                                                </Style.Triggers>
-                                                                            </Style>
-                                                                        </ItemsControl.Style>
-
-                                                                        <ItemsControl.ItemTemplate>
-                                                                            <DataTemplate>
-                                                                                <Grid>
-                                                                                    <Border
-                                                                                        Margin="0,5,10,5"
-                                                                                        Padding="3,0,3,3"
-                                                                                        dd:DragDrop.IsDragSource="True"
-                                                                                        Background="#fffff0"
-                                                                                        BorderBrush="Black"
-                                                                                        BorderThickness="1"
-                                                                                        CornerRadius="5">
-                                                                                        <StackPanel Margin="0,4,0,0" Orientation="Horizontal">
-                                                                                            <syncfusion:ButtonAdv
-                                                                                                Width="20"
-                                                                                                Height="20"
-                                                                                                Margin="0,10,0,0"
-                                                                                                VerticalAlignment="Center"
-                                                                                                VerticalContentAlignment="Center"
-                                                                                                Background="Transparent"
-                                                                                                BorderThickness="0"
-                                                                                                Command="{Binding RemovePackUnitCommand, RelativeSource={RelativeSource AncestorType={x:Type local:PackingListPageTwoPlus}}}"
-                                                                                                CommandParameter="{Binding}"
-                                                                                                Cursor="Hand"
-                                                                                                Label=""
-                                                                                                SmallIcon="/delete.png" />
-
-                                                                                            <StackPanel x:Name="sfQty" Orientation="Vertical">
-                                                                                                <TextBlock
-                                                                                                    FontSize="10"
-                                                                                                    Foreground="#000"
-                                                                                                    Text="Qty" />
-                                                                                                <syncfusion:IntegerTextBox Width="25" Value="{Binding Quantity, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                                                                                            </StackPanel>
-                                                                                            <StackPanel
-                                                                                                x:Name="spCartonOrSkidContents"
-                                                                                                Orientation="Vertical"
-                                                                                                Visibility="Collapsed">
-                                                                                                <TextBlock
-                                                                                                    FontSize="10"
-                                                                                                    Foreground="#000"
-                                                                                                    Text="Contents" />
-                                                                                                <syncfusion:ComboBoxAdv
-                                                                                                    Width="100"
-                                                                                                    Height="20"
-                                                                                                    ItemsSource="{x:Static local:PackingListPageOne.PackingUnitCategories}"
-                                                                                                    SelectedItem="{Binding CartonOrSkidContents, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                                                                                            </StackPanel>
-                                                                                            <StackPanel Orientation="Vertical">
-                                                                                                <TextBlock
-                                                                                                    FontSize="10"
-                                                                                                    Foreground="#000"
-                                                                                                    Text="Unit Type" />
-                                                                                                <syncfusion:ComboBoxAdv
-                                                                                                    Width="100"
-                                                                                                    Height="20"
-                                                                                                    ItemsSource="{x:Static local:PackingListPageOne.CartonOrSkidOptions}"
-                                                                                                    SelectedItem="{Binding CartonOrSkid, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                                                                                            </StackPanel>
-
-                                                                                            <StackPanel x:Name="spTypeOfUnit" Orientation="Vertical">
-                                                                                                <TextBlock
-                                                                                                    FontSize="10"
-                                                                                                    Foreground="#000"
-                                                                                                    Text="Contents" />
-                                                                                                <syncfusion:ComboBoxAdv
-                                                                                                    Width="100"
-                                                                                                    Height="20"
-                                                                                                    ItemsSource="{x:Static local:PackingListPageOne.PackingUnitCategories}"
-                                                                                                    SelectedItem="{Binding TypeOfUnit, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                                                                                            </StackPanel>
-
-                                                                                            <StackPanel
-                                                                                                x:Name="spLineNumber"
-                                                                                                Orientation="Vertical"
-                                                                                                Visibility="Collapsed">
-                                                                                                <TextBlock
-                                                                                                    FontSize="10"
-                                                                                                    Foreground="#000"
-                                                                                                    Text="Line" />
-                                                                                                <syncfusion:ComboBoxAdv
-                                                                                                    Width="50"
-                                                                                                    Height="20"
-                                                                                                    ItemsSource="{Binding DataContext.LineNumbersForDropdown, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                                                                                    SelectedItem="{Binding LineNumber, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                                                                                            </StackPanel>
-
-                                                                                            <StackPanel
-                                                                                                x:Name="spWeight"
-                                                                                                HorizontalAlignment="Center"
-                                                                                                Orientation="Vertical">
-                                                                                                <TextBlock
-                                                                                                    FontSize="10"
-                                                                                                    Foreground="#000"
-                                                                                                    Text="Wgt" />
-                                                                                                <syncfusion:IntegerTextBox Width="35" Value="{Binding Weight, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                                                                                            </StackPanel>
-
-                                                                                            <StackPanel x:Name="spTruckNumber" Orientation="Vertical">
-                                                                                                <TextBlock
-                                                                                                    FontSize="10"
-                                                                                                    Foreground="#000"
-                                                                                                    Text="Truck" />
-                                                                                                <syncfusion:ComboBoxAdv
-                                                                                                    Width="80"
-                                                                                                    Height="20"
-                                                                                                    ItemsSource="{Binding DataContext.Trucks, RelativeSource={RelativeSource AncestorType=Page}}"
-                                                                                                    SelectedItem="{Binding TruckNumber, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                                                                                    SelectionChanged="TruckComboBox_SelectionChanged" />
-                                                                                            </StackPanel>
-                                                                                        </StackPanel>
-                                                                                    </Border>
-                                                                                    <Border
-                                                                                        Margin="0,0,15,0"
-                                                                                        Padding="5,0"
-                                                                                        HorizontalAlignment="Right"
-                                                                                        VerticalAlignment="Top"
-                                                                                        Background="#FFF"
-                                                                                        BorderBrush="Black"
-                                                                                        BorderThickness="1"
-                                                                                        CornerRadius="5">
-                                                                                        <TextBlock
-                                                                                            FontWeight="Bold"
-                                                                                            Foreground="Red"
-                                                                                            Text="{Binding HandlingUnit.Description}" />
-                                                                                        <Border.Style>
-                                                                                            <Style TargetType="Border">
-                                                                                                <Setter Property="Visibility" Value="Visible" />
-                                                                                                <Style.Triggers>
-                                                                                                    <DataTrigger Binding="{Binding HandlingUnit.Description}" Value="{x:Null}">
-                                                                                                        <Setter Property="Visibility" Value="Collapsed" />
-                                                                                                    </DataTrigger>
-                                                                                                    <DataTrigger Binding="{Binding HandlingUnit.Description}" Value="">
-                                                                                                        <Setter Property="Visibility" Value="Collapsed" />
-                                                                                                    </DataTrigger>
-                                                                                                </Style.Triggers>
-                                                                                            </Style>
-                                                                                        </Border.Style>
-                                                                                    </Border>
-
-                                                                                </Grid>
-                                                                                <DataTemplate.Triggers>
-                                                                                    <DataTrigger Binding="{Binding CartonOrSkid}" Value="PACKED WITH LINE ">
-                                                                                        <Setter TargetName="spTypeOfUnit" Property="UIElement.Visibility" Value="Collapsed" />
-                                                                                        <Setter TargetName="spLineNumber" Property="UIElement.Visibility" Value="Visible" />
-                                                                                        <Setter TargetName="spCartonOrSkidContents" Property="UIElement.Visibility" Value="Visible" />
-                                                                                        <Setter TargetName="spWeight" Property="UIElement.Visibility" Value="Collapsed" />
-                                                                                        <Setter TargetName="sfQty" Property="UIElement.Visibility" Value="Collapsed" />
-                                                                                    </DataTrigger>
-                                                                                </DataTemplate.Triggers>
-                                                                            </DataTemplate>
-                                                                        </ItemsControl.ItemTemplate>
-                                                                    </ItemsControl>
-                                                                </ScrollViewer>
-                                                            </StackPanel>
-
-                                                            <!--  PRINT MODE (text-only list)  -->
-                                                            <ItemsControl
-                                                                Margin="0,4,0,0"
-                                                                ItemsSource="{Binding LineItemPackingUnits}"
-                                                                Visibility="{Binding IsPrinting, RelativeSource={RelativeSource AncestorType={x:Type local:PackingListPageTwoPlus}}, Converter={StaticResource BoolToVis}}">
                                                                 <ItemsControl.ItemTemplate>
                                                                     <DataTemplate>
-                                                                        <StackPanel Margin="0,2,0,2" Orientation="Horizontal">
+                                                                        <Grid>
+                                                                            <Border
+                                                                                Margin="0,0,10,5"
+                                                                                Padding="3,0,3,3"
+                                                                                dd:DragDrop.IsDragSource="True"
+                                                                                Background="#fffff0"
+                                                                                BorderBrush="Black"
+                                                                                BorderThickness="1"
+                                                                                CornerRadius="5">
+                                                                                <StackPanel Margin="0,4,0,0" Orientation="Horizontal">
+                                                                                    <syncfusion:ButtonAdv
+                                                                                        Width="20"
+                                                                                        Height="20"
+                                                                                        Margin="0,10,0,0"
+                                                                                        VerticalAlignment="Center"
+                                                                                        VerticalContentAlignment="Center"
+                                                                                        Background="Transparent"
+                                                                                        BorderThickness="0"
+                                                                                        Command="{Binding RemovePackUnitCommand, RelativeSource={RelativeSource AncestorType={x:Type local:PackingListPageTwoPlus}}}"
+                                                                                        CommandParameter="{Binding}"
+                                                                                        Cursor="Hand"
+                                                                                        Label=""
+                                                                                        SmallIcon="/delete.png" />
 
-                                                                            <TextBlock Text="{Binding Quantity}">
-                                                                                <TextBlock.Style>
-                                                                                    <Style TargetType="TextBlock">
+                                                                                    <StackPanel x:Name="sfQty" Orientation="Vertical">
+                                                                                        <TextBlock
+                                                                                            FontSize="10"
+                                                                                            Foreground="#000"
+                                                                                            Text="Qty" />
+                                                                                        <syncfusion:IntegerTextBox Width="25" Value="{Binding Quantity, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                                                                    </StackPanel>
+                                                                                    <StackPanel
+                                                                                        x:Name="spCartonOrSkidContents"
+                                                                                        Orientation="Vertical"
+                                                                                        Visibility="Collapsed">
+                                                                                        <TextBlock
+                                                                                            FontSize="10"
+                                                                                            Foreground="#000"
+                                                                                            Text="Contents" />
+                                                                                        <syncfusion:ComboBoxAdv
+                                                                                            Width="100"
+                                                                                            Height="20"
+                                                                                            ItemsSource="{x:Static local:PackingListPageOne.PackingUnitCategories}"
+                                                                                            SelectedItem="{Binding CartonOrSkidContents, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                                                                    </StackPanel>
+                                                                                    <StackPanel Orientation="Vertical">
+                                                                                        <TextBlock
+                                                                                            FontSize="10"
+                                                                                            Foreground="#000"
+                                                                                            Text="Unit Type" />
+                                                                                        <syncfusion:ComboBoxAdv
+                                                                                            Width="100"
+                                                                                            Height="20"
+                                                                                            ItemsSource="{x:Static local:PackingListPageOne.CartonOrSkidOptions}"
+                                                                                            SelectedItem="{Binding CartonOrSkid, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                                                                    </StackPanel>
+
+                                                                                    <StackPanel x:Name="spTypeOfUnit" Orientation="Vertical">
+                                                                                        <TextBlock
+                                                                                            FontSize="10"
+                                                                                            Foreground="#000"
+                                                                                            Text="Contents" />
+                                                                                        <syncfusion:ComboBoxAdv
+                                                                                            Width="100"
+                                                                                            Height="20"
+                                                                                            ItemsSource="{x:Static local:PackingListPageOne.PackingUnitCategories}"
+                                                                                            SelectedItem="{Binding TypeOfUnit, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                                                                    </StackPanel>
+
+                                                                                    <StackPanel
+                                                                                        x:Name="spLineNumber"
+                                                                                        Orientation="Vertical"
+                                                                                        Visibility="Collapsed">
+                                                                                        <TextBlock
+                                                                                            FontSize="10"
+                                                                                            Foreground="#000"
+                                                                                            Text="Line" />
+                                                                                        <syncfusion:ComboBoxAdv
+                                                                                            Width="50"
+                                                                                            Height="20"
+                                                                                            ItemsSource="{Binding DataContext.LineNumbersForDropdown, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                                                            SelectedItem="{Binding LineNumber, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                                                                    </StackPanel>
+
+                                                                                    <StackPanel
+                                                                                        x:Name="spWeight"
+                                                                                        HorizontalAlignment="Center"
+                                                                                        Orientation="Vertical">
+                                                                                        <TextBlock
+                                                                                            FontSize="10"
+                                                                                            Foreground="#000"
+                                                                                            Text="Wgt" />
+                                                                                        <syncfusion:IntegerTextBox Width="35" Value="{Binding Weight, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                                                                    </StackPanel>
+
+                                                                                    <StackPanel x:Name="spTruckNumber" Orientation="Vertical">
+                                                                                        <TextBlock
+                                                                                            FontSize="10"
+                                                                                            Foreground="#000"
+                                                                                            Text="Truck" />
+                                                                                        <syncfusion:ComboBoxAdv
+                                                                                            Width="80"
+                                                                                            Height="20"
+                                                                                            ItemsSource="{Binding DataContext.Trucks, RelativeSource={RelativeSource AncestorType=Page}}"
+                                                                                            SelectedItem="{Binding TruckNumber, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                                                            SelectionChanged="TruckComboBox_SelectionChanged" />
+                                                                                    </StackPanel>
+                                                                                </StackPanel>
+                                                                            </Border>
+                                                                            <Border
+                                                                                Margin="0,0,10,0"
+                                                                                Padding="5,0"
+                                                                                HorizontalAlignment="Right"
+                                                                                VerticalAlignment="Top"
+                                                                                BorderBrush="Black"
+                                                                                CornerRadius="5">
+                                                                                <TextBlock
+                                                                                    FontWeight="Bold"
+                                                                                    Foreground="Red"
+                                                                                    Text="{Binding HandlingUnit.Description}" />
+                                                                                <Border.Style>
+                                                                                    <Style TargetType="Border">
                                                                                         <Setter Property="Visibility" Value="Visible" />
                                                                                         <Style.Triggers>
-                                                                                            <DataTrigger Binding="{Binding CartonOrSkid}" Value="PACKED WITH LINE ">
+                                                                                            <DataTrigger Binding="{Binding HandlingUnit.Description}" Value="{x:Null}">
+                                                                                                <Setter Property="Visibility" Value="Collapsed" />
+                                                                                            </DataTrigger>
+                                                                                            <DataTrigger Binding="{Binding HandlingUnit.Description}" Value="">
                                                                                                 <Setter Property="Visibility" Value="Collapsed" />
                                                                                             </DataTrigger>
                                                                                         </Style.Triggers>
                                                                                     </Style>
-                                                                                </TextBlock.Style>
-                                                                            </TextBlock>
-                                                                            <TextBlock Margin="8,0,0,0" Text="{Binding CartonOrSkid}">
-                                                                                <TextBlock.Style>
-                                                                                    <Style TargetType="TextBlock">
-                                                                                        <Setter Property="Visibility" Value="Visible" />
-                                                                                        <Style.Triggers>
-                                                                                            <DataTrigger Binding="{Binding CartonOrSkid}" Value="PACKED WITH LINE ">
-                                                                                                <Setter Property="Visibility" Value="Collapsed" />
-                                                                                            </DataTrigger>
-                                                                                        </Style.Triggers>
-                                                                                    </Style>
-                                                                                </TextBlock.Style>
-                                                                            </TextBlock>
+                                                                                </Border.Style>
+                                                                            </Border>
 
-                                                                            <TextBlock Margin="8,0,0,0" Text="{Binding TypeOfUnit}">
-                                                                                <TextBlock.Style>
-                                                                                    <Style TargetType="TextBlock">
-                                                                                        <Setter Property="Visibility" Value="Visible" />
-                                                                                        <Style.Triggers>
-                                                                                            <DataTrigger Binding="{Binding CartonOrSkid}" Value="PACKED WITH LINE ">
-                                                                                                <Setter Property="Visibility" Value="Collapsed" />
-                                                                                            </DataTrigger>
-                                                                                        </Style.Triggers>
-                                                                                    </Style>
-                                                                                </TextBlock.Style>
-                                                                            </TextBlock>
-
-                                                                            <!--  Packed with line display  -->
-                                                                            <StackPanel
-                                                                                Width="250"
-                                                                                Margin="8,0,0,0"
-                                                                                Orientation="Horizontal">
-                                                                                <StackPanel.Style>
-                                                                                    <Style TargetType="StackPanel">
-                                                                                        <Setter Property="Visibility" Value="Collapsed" />
-                                                                                        <Style.Triggers>
-                                                                                            <DataTrigger Binding="{Binding CartonOrSkid}" Value="PACKED WITH LINE ">
-                                                                                                <Setter Property="Visibility" Value="Visible" />
-                                                                                            </DataTrigger>
-                                                                                        </Style.Triggers>
-                                                                                    </Style>
-                                                                                </StackPanel.Style>
-                                                                                <TextBlock Text="{Binding CartonOrSkidContents}" />
-                                                                                <TextBlock Text=" PACKED WITH LINE " />
-                                                                                <TextBlock Text="{Binding LineNumber}" />
-                                                                                <TextBlock Text=" " />
-                                                                                <TextBlock Text="{Binding TruckNumber}" />
-
-                                                                            </StackPanel>
-
-                                                                            <!--  Weight  -->
-                                                                            <TextBlock Margin="8,0,0,0" TextAlignment="Right">
-                                                                                <TextBlock.Style>
-                                                                                    <Style TargetType="TextBlock">
-                                                                                        <Setter Property="Text">
-                                                                                            <Setter.Value>
-                                                                                                <MultiBinding StringFormat="{}{0} Lbs.">
-                                                                                                    <Binding Path="Weight" />
-                                                                                                </MultiBinding>
-                                                                                            </Setter.Value>
-                                                                                        </Setter>
-                                                                                        <Style.Triggers>
-                                                                                            <DataTrigger Binding="{Binding CartonOrSkid}" Value="PACKED WITH LINE ">
-                                                                                                <Setter Property="Visibility" Value="Collapsed" />
-                                                                                            </DataTrigger>
-                                                                                        </Style.Triggers>
-                                                                                    </Style>
-                                                                                </TextBlock.Style>
-                                                                            </TextBlock>
-                                                                            <TextBlock Margin="8,0,0,0" Text="{Binding TruckNumber}">
-                                                                                <TextBlock.Style>
-                                                                                    <Style TargetType="TextBlock">
-                                                                                        <Setter Property="Visibility" Value="Visible" />
-                                                                                        <Style.Triggers>
-                                                                                            <DataTrigger Binding="{Binding CartonOrSkid}" Value="PACKED WITH LINE ">
-                                                                                                <Setter Property="Visibility" Value="Collapsed" />
-                                                                                            </DataTrigger>
-                                                                                        </Style.Triggers>
-                                                                                    </Style>
-                                                                                </TextBlock.Style>
-                                                                            </TextBlock>
-                                                                        </StackPanel>
+                                                                        </Grid>
+                                                                        <DataTemplate.Triggers>
+                                                                            <DataTrigger Binding="{Binding CartonOrSkid}" Value="PACKED WITH LINE ">
+                                                                                <Setter TargetName="spTypeOfUnit" Property="UIElement.Visibility" Value="Collapsed" />
+                                                                                <Setter TargetName="spLineNumber" Property="UIElement.Visibility" Value="Visible" />
+                                                                                <Setter TargetName="spCartonOrSkidContents" Property="UIElement.Visibility" Value="Visible" />
+                                                                                <Setter TargetName="spWeight" Property="UIElement.Visibility" Value="Collapsed" />
+                                                                                <Setter TargetName="sfQty" Property="UIElement.Visibility" Value="Collapsed" />
+                                                                            </DataTrigger>
+                                                                        </DataTemplate.Triggers>
                                                                     </DataTemplate>
                                                                 </ItemsControl.ItemTemplate>
                                                             </ItemsControl>
-                                                        </Grid>
-                                                    </Border>
+                                                        </ScrollViewer>
+                                                    </Grid>
+
+                                                    <!--  PRINT MODE (text-only list)  -->
+                                                    <ItemsControl
+                                                        HorizontalAlignment="Center"
+                                                        HorizontalContentAlignment="Center"
+                                                        MinWidth="380"
+                                                        Margin="0,4,0,0"
+                                                        ItemsSource="{Binding LineItemPackingUnits}"
+                                                        Visibility="{Binding IsPrinting, RelativeSource={RelativeSource AncestorType={x:Type local:PackingListPageTwoPlus}}, Converter={StaticResource BoolToVis}}">
+                                                        <ItemsControl.ItemTemplate>
+                                                            <DataTemplate>
+                                                                <StackPanel Margin="0,2,0,2" Orientation="Horizontal">
+
+                                                                    <TextBlock Text="{Binding Quantity}">
+                                                                        <TextBlock.Style>
+                                                                            <Style TargetType="TextBlock">
+                                                                                <Setter Property="Visibility" Value="Visible" />
+                                                                                <Style.Triggers>
+                                                                                    <DataTrigger Binding="{Binding CartonOrSkid}" Value="PACKED WITH LINE ">
+                                                                                        <Setter Property="Visibility" Value="Collapsed" />
+                                                                                    </DataTrigger>
+                                                                                </Style.Triggers>
+                                                                            </Style>
+                                                                        </TextBlock.Style>
+                                                                    </TextBlock>
+                                                                    <TextBlock Margin="8,0,0,0" Text="{Binding CartonOrSkid}">
+                                                                        <TextBlock.Style>
+                                                                            <Style TargetType="TextBlock">
+                                                                                <Setter Property="Visibility" Value="Visible" />
+                                                                                <Style.Triggers>
+                                                                                    <DataTrigger Binding="{Binding CartonOrSkid}" Value="PACKED WITH LINE ">
+                                                                                        <Setter Property="Visibility" Value="Collapsed" />
+                                                                                    </DataTrigger>
+                                                                                </Style.Triggers>
+                                                                            </Style>
+                                                                        </TextBlock.Style>
+                                                                    </TextBlock>
+
+                                                                    <TextBlock Margin="8,0,0,0" Text="{Binding TypeOfUnit}">
+                                                                        <TextBlock.Style>
+                                                                            <Style TargetType="TextBlock">
+                                                                                <Setter Property="Visibility" Value="Visible" />
+                                                                                <Style.Triggers>
+                                                                                    <DataTrigger Binding="{Binding CartonOrSkid}" Value="PACKED WITH LINE ">
+                                                                                        <Setter Property="Visibility" Value="Collapsed" />
+                                                                                    </DataTrigger>
+                                                                                </Style.Triggers>
+                                                                            </Style>
+                                                                        </TextBlock.Style>
+                                                                    </TextBlock>
+
+                                                                    <!--  Packed with line display  -->
+                                                                    <StackPanel
+                                                                        Width="250"
+                                                                        Margin="8,0,0,0"
+                                                                        Orientation="Horizontal">
+                                                                        <StackPanel.Style>
+                                                                            <Style TargetType="StackPanel">
+                                                                                <Setter Property="Visibility" Value="Collapsed" />
+                                                                                <Style.Triggers>
+                                                                                    <DataTrigger Binding="{Binding CartonOrSkid}" Value="PACKED WITH LINE ">
+                                                                                        <Setter Property="Visibility" Value="Visible" />
+                                                                                    </DataTrigger>
+                                                                                </Style.Triggers>
+                                                                            </Style>
+                                                                        </StackPanel.Style>
+                                                                        <TextBlock Text="{Binding CartonOrSkidContents}" />
+                                                                        <TextBlock Text=" PACKED WITH LINE " />
+                                                                        <TextBlock Text="{Binding LineNumber}" />
+                                                                        <TextBlock Text=" " />
+                                                                        <TextBlock Text="{Binding TruckNumber}" />
+
+                                                                    </StackPanel>
+
+                                                                    <!--  Weight  -->
+                                                                    <TextBlock Margin="8,0,0,0" TextAlignment="Right">
+                                                                        <TextBlock.Style>
+                                                                            <Style TargetType="TextBlock">
+                                                                                <Setter Property="Text">
+                                                                                    <Setter.Value>
+                                                                                        <MultiBinding StringFormat="{}{0} Lbs.">
+                                                                                            <Binding Path="Weight" />
+                                                                                        </MultiBinding>
+                                                                                    </Setter.Value>
+                                                                                </Setter>
+                                                                                <Style.Triggers>
+                                                                                    <DataTrigger Binding="{Binding CartonOrSkid}" Value="PACKED WITH LINE ">
+                                                                                        <Setter Property="Visibility" Value="Collapsed" />
+                                                                                    </DataTrigger>
+                                                                                </Style.Triggers>
+                                                                            </Style>
+                                                                        </TextBlock.Style>
+                                                                    </TextBlock>
+                                                                    <TextBlock Margin="8,0,0,0" Text="{Binding TruckNumber}">
+                                                                        <TextBlock.Style>
+                                                                            <Style TargetType="TextBlock">
+                                                                                <Setter Property="Visibility" Value="Visible" />
+                                                                                <Style.Triggers>
+                                                                                    <DataTrigger Binding="{Binding CartonOrSkid}" Value="PACKED WITH LINE ">
+                                                                                        <Setter Property="Visibility" Value="Collapsed" />
+                                                                                    </DataTrigger>
+                                                                                </Style.Triggers>
+                                                                            </Style>
+                                                                        </TextBlock.Style>
+                                                                    </TextBlock>
+                                                                </StackPanel>
+                                                            </DataTemplate>
+                                                        </ItemsControl.ItemTemplate>
+                                                    </ItemsControl>
                                                 </Grid>
                                             </Border>
                                         </Grid>
-                                    </StackPanel>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-                    </StackPanel>
+                                    </Border>
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
                 </Border>
 
                 <!--  Footer  -->
@@ -505,3 +751,4 @@
         </Border>
     </Border>
 </UserControl>
+

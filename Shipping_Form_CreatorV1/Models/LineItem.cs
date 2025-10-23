@@ -1,13 +1,15 @@
 ﻿using Shipping_Form_CreatorV1.Utilities;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Linq; // You'll need this for ToList() or similar if used elsewhere
+using System.Linq;
+using System.Runtime.CompilerServices; // You'll need this for ToList() or similar if used elsewhere
 
 namespace Shipping_Form_CreatorV1.Models;
 
-public class LineItem
+public class LineItem : INotifyPropertyChanged
 {
-    [DatabaseGenerated(DatabaseGeneratedOption.Identity)] // <-- ADD THIS ATTRIBUTE
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public int Id { get; set; }
 
     public int LineItemHeaderId { get; set; }
@@ -19,6 +21,14 @@ public class LineItem
 
     public int ReportModelId { get; set; }
     public ReportModel ReportModel { get; set; } = null!;
+
+    private double _packingUnitHeight = 60;
+    [NotMapped]
+    public double PackingUnitHeight
+    {
+        get => _packingUnitHeight;
+        set => SetField(ref _packingUnitHeight, value);
+    }
 
     // ------------------------------------------------------------------
     // NEW: Copy Constructor for Print Filtering
@@ -32,18 +42,30 @@ public class LineItem
     /// <param name="newPackingUnits">The (already filtered) collection of Packing Units to use.</param>
     public LineItem(LineItem original, ObservableCollection<LineItemPackingUnit> newPackingUnits)
     {
-        // Copy simple value types and references
         Id = original.Id;
         LineItemHeaderId = original.LineItemHeaderId;
         LineItemHeader = original.LineItemHeader; // Copying reference is fine for immutable headers
         ReportModelId = original.ReportModelId;
         ReportModel = original.ReportModel;
 
-        // Copy collections (shallow copy of items is usually fine, unless Details are modified)
         LineItemDetails = new ObservableCollection<LineItemDetail>(original.LineItemDetails);
 
-        // Assign the NEW (filtered) collection
         LineItemPackingUnits = newPackingUnits;
+        PackingUnitHeight = original.PackingUnitHeight;
+    }
+    public event PropertyChangedEventHandler? PropertyChanged;
+
+    protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+    {
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }
+
+    protected bool SetField<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
+    {
+        if (EqualityComparer<T>.Default.Equals(field, value)) return false;
+        field = value;
+        OnPropertyChanged(propertyName);
+        return true;
     }
 }
 

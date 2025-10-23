@@ -13,6 +13,7 @@
         <Style TargetType="TextBlock">
             <Setter Property="Foreground" Value="Black" />
         </Style>
+        <BooleanToVisibilityConverter x:Key="BoolToVis" />
     </UserControl.Resources>
     <Border Padding="20" Background="#e6e6e6">
         <Border
@@ -36,10 +37,7 @@
                     Header="{Binding Header, RelativeSource={RelativeSource AncestorType=UserControl}}"
                     PageNumberText="{Binding PageNumberText, RelativeSource={RelativeSource AncestorType=UserControl}}" />
 
-                <ScrollViewer
-                    Grid.Row="1"
-                    Margin="0,20,0,0"
-                    VerticalScrollBarVisibility="Auto">
+                <Grid Grid.Row="1">
                     <StackPanel>
                         <TextBlock
                             Padding="5"
@@ -48,12 +46,12 @@
                             FontWeight="Bold"
                             Text="Shipping Instructions &amp; Notifications"
                             TextAlignment="Center" />
-                        <ItemsControl Margin="0,10,0,15" ItemsSource="{Binding ShippingInstructions, RelativeSource={RelativeSource AncestorType=UserControl}}">
+                        <ItemsControl ItemsSource="{Binding ShippingInstructions, RelativeSource={RelativeSource AncestorType=UserControl}}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
                                     <TextBlock
-                                        Margin="0,0,0,5"
-                                        FontSize="14"
+                                        Margin="0,0,0,3"
+                                        FontSize="12"
                                         Foreground="#000"
                                         Text="{Binding}"
                                         TextWrapping="Wrap" />
@@ -68,7 +66,7 @@
                             FontWeight="Bold"
                             Text="Consolidated Shipment Summary"
                             TextAlignment="Center" />
-                        <Grid Margin="0,10,0,0">
+                        <Grid>
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto" />
                                 <RowDefinition Height="*" />
@@ -76,6 +74,7 @@
 
                             <Border
                                 Grid.Row="0"
+                                Margin="0,5,0,0"
                                 Background="#e6e6e6"
                                 BorderBrush="Black"
                                 BorderThickness="1">
@@ -164,7 +163,7 @@
                         </Grid>
 
                         <Border
-                            Margin="0,10"
+                            Margin="0,3"
                             HorizontalAlignment="Left"
                             BorderBrush="Black"
                             BorderThickness="1,1,1,0">
@@ -207,26 +206,37 @@
                             </ItemsControl>
                         </Border>
 
-                        <TextBlock
-                            Padding="5"
-                            Background="#e6e6e6"
-                            FontSize="22"
-                            FontWeight="Bold"
-                            Text="Handling Unit Manifest"
-                            TextAlignment="Center" />
-                        <ItemsControl Margin="0,10" ItemsSource="{Binding HandlingUnits, RelativeSource={RelativeSource AncestorType=UserControl}}">
+                        <TextBlock Padding="5"
+                                   Background="#e6e6e6"
+                                   FontSize="22"
+                                   FontWeight="Bold"
+                                   Text="Handling Unit Manifest"
+                                   TextAlignment="Center">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                    <Setter Property="Foreground" Value="Black" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding HasItems, ElementName=HandlingUnitsControl}" Value="False">
+                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                        <ItemsControl x:Name="HandlingUnitsControl" Margin="0" ItemsSource="{Binding HandlingUnits, RelativeSource={RelativeSource AncestorType=UserControl}}">
 
                             <ItemsControl.ItemsPanel>
                                 <ItemsPanelTemplate>
-                                    <UniformGrid Columns="2" />
+                                    <UniformGrid Columns="3" />
                                 </ItemsPanelTemplate>
                             </ItemsControl.ItemsPanel>
 
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
                                     <Border
-                                        Margin="5"
-                                        Padding="10"
+                                        Margin="3"
+                                        Padding="5"
                                         BorderBrush="LightGray"
                                         BorderThickness="1">
                                         <Grid>
@@ -238,7 +248,7 @@
 
                                             <TextBlock
                                                 Grid.Row="0"
-                                                FontSize="16"
+                                                FontSize="14"
                                                 FontWeight="Bold"
                                                 Foreground="#000"
                                                 Text="{Binding Description}" />
@@ -281,21 +291,13 @@
                                                     </DataTemplate>
                                                 </ItemsControl.ItemTemplate>
                                             </ItemsControl>
-
-                                            <TextBlock
-                                                Grid.Row="2"
-                                                Margin="0,5,0,0"
-                                                HorizontalAlignment="Right"
-                                                FontWeight="SemiBold"
-                                                Foreground="#000"
-                                                Text="{Binding TotalWeight, StringFormat='Total Weight: {0} Lbs'}" />
                                         </Grid>
                                     </Border>
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
                     </StackPanel>
-                </ScrollViewer>
+                </Grid>
 
                 <StackPanel
                     Grid.Row="2"
