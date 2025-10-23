@@ -121,8 +121,8 @@ public partial class PackingListPage
             {
                 var currentPageItems = new List<LineItem>();
                 var currentDetailsOnPage = 0;
-                const int maxDetailsPerPage = 75;
-                const double basePackingUnitHeight = 75;
+                const int maxDetailsPerPage = 55;
+                const double basePackingUnitHeight = 50;
                 const double heightIncreasePerUnit = 50;
                 const double detailsPerBlock = 3;
                 const double maxPackingUnitHeight = 450;
