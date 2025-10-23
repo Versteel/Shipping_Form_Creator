@@ -99,7 +99,7 @@
                     VerticalScrollBarVisibility="Auto">
                     <StackPanel x:Name="PageContainer" />
                 </ScrollViewer>
-                <Border
+                <!--<Border
                     Grid.Column="1"
                     MinWidth="250"
                     Padding="10"
@@ -186,7 +186,7 @@
                             </ItemsControl>
                         </ScrollViewer>
                     </StackPanel>
-                </Border>
+                </Border>-->
 
 
             </Grid>
