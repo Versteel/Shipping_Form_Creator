@@ -3,10 +3,6 @@ using Shipping_Form_CreatorV1.ViewModels;
 using Shipping_Form_CreatorV1.Utilities;
 using System.Collections.ObjectModel;
 using System.Windows;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Windows.Controls;
 
 namespace Shipping_Form_CreatorV1.Components;
 
