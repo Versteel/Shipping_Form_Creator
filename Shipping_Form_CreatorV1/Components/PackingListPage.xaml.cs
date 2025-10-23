@@ -72,7 +72,6 @@ public partial class PackingListPage
             .ToList();
         _viewModel.PackingListNotes = new ObservableCollection<LineItemDetail>(trailerNotes);
 
-        // --- NEW LOGIC: This list will only contain LineItems that have "loose" packing units. ---
         var displayItems = new List<LineItem>();
         var selectedView = _viewModel.SelectedReportView;
         var isAllView = selectedView == "ALL";
@@ -84,13 +83,11 @@ public partial class PackingListPage
 
         foreach (var originalItem in allPhysicalLineItems)
         {
-            // This part is correct: It gets only the packing units that match the selected truck.
             var filteredPackingUnits = new ObservableCollection<LineItemPackingUnit>(
                 originalItem.LineItemPackingUnits.Where(pu =>
                     isAllView || string.Equals(pu.TruckNumber, selectedView, StringComparison.OrdinalIgnoreCase))
             );
 
-            // FIX: Show the line item if it has no packing units OR if it has matching packing units.
             if (!originalItem.LineItemPackingUnits.Any() || filteredPackingUnits.Any())
             {
                 var itemCopy = new LineItem(originalItem, filteredPackingUnits);
@@ -99,7 +96,6 @@ public partial class PackingListPage
         }
 
 
-        // --- PAGINATION LOGIC (Now operates on the 'displayItems' list of loose items) ---
         if (displayItems.Count == 0)
         {
             var emptyPage = new PackingListPageOne { DataContext = _viewModel, Header = header, PageNumberText = "Page 1 of 1" };
@@ -108,7 +104,7 @@ public partial class PackingListPage
         }
         else
         {
-            // The first page is special and can only hold the first item.
+            // Page 1: Handle the FIRST item separately
             var firstItem = displayItems.First();
             var pageOne = new PackingListPageOne
             {
@@ -119,17 +115,37 @@ public partial class PackingListPage
             };
             PageContainer.Children.Add(pageOne);
 
-            // Now, handle all REMAINING items for subsequent pages.
+            // Handle all REMAINING items for subsequent pages.
             var remainingItems = displayItems.Skip(1).ToList();
             if (remainingItems.Count != 0)
             {
                 var currentPageItems = new List<LineItem>();
                 var currentDetailsOnPage = 0;
-                const int maxDetailsPerPage = 35; // your requirement
+                const int maxDetailsPerPage = 75;
+                const double basePackingUnitHeight = 75;
+                const double heightIncreasePerUnit = 50;
+                const double detailsPerBlock = 3;
+                const double maxPackingUnitHeight = 450;
 
                 foreach (var item in remainingItems)
                 {
                     var itemDetailsCount = GetDetailsFor(item).Count;
+                    var detailsBlocks = itemDetailsCount / detailsPerBlock;
+                    var calculatedHeight = basePackingUnitHeight + (detailsBlocks * heightIncreasePerUnit);
+
+                    var lastItem = remainingItems.Last();
+
+                    if (item == lastItem && currentDetailsOnPage + itemDetailsCount <= maxDetailsPerPage)
+                    {
+                        var remainingSpace = maxDetailsPerPage - currentDetailsOnPage;
+                        var remainingBlocks = remainingSpace / detailsPerBlock;
+                        var adjustedHeight = basePackingUnitHeight + (remainingBlocks * heightIncreasePerUnit);
+                        item.PackingUnitHeight = Math.Min(maxPackingUnitHeight, Math.Min(calculatedHeight, adjustedHeight));
+                    }
+                    else
+                    {
+                        item.PackingUnitHeight = Math.Min(calculatedHeight, maxPackingUnitHeight);
+                    }
 
                     // If adding this item would exceed the max, start a new page
                     if (currentDetailsOnPage + itemDetailsCount > maxDetailsPerPage && currentPageItems.Count != 0)
@@ -142,7 +158,7 @@ public partial class PackingListPage
                         };
                         PageContainer.Children.Add(nextPage);
 
-                        currentPageItems = new List<LineItem>();
+                        currentPageItems = [];
                         currentDetailsOnPage = 0;
                     }
 
@@ -210,4 +226,5 @@ public partial class PackingListPage
                .OrderBy(d => d.NoteSequenceNumber)
         ];
     }
+
 }

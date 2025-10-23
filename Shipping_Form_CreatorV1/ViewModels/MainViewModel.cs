@@ -92,6 +92,7 @@ public class MainViewModel : INotifyPropertyChanged, IDropTarget
             OnPropertyChanged(nameof(AllWeightTotal));
             OnPropertyChanged(nameof(ShouldDisplayTruckNumber));
             OnPropertyChanged(nameof(HandlingUnitPanelVisibility));
+            OnPropertyChanged(nameof(HandlingUnitCount));
         }
     }
 
@@ -263,6 +264,7 @@ public class MainViewModel : INotifyPropertyChanged, IDropTarget
     public int AllWeightTotal => SelectedReportsGroups.Sum(r => r.TotalWeight);
     public bool IsMultiTruckOrder => ViewOptions.Count > 2;
     public string HandlingUnitPanelVisibility => SelectedReport?.Header?.OrderNumber >= 1 ? "Visible" : "Collapsed";
+    public string HandlingUnitCount => $"({SelectedReport?.HandlingUnits?.Count})";
 
     public bool ShouldDisplayTruckNumber =>
         SelectedReport?.LineItems
@@ -599,6 +601,7 @@ public class MainViewModel : INotifyPropertyChanged, IDropTarget
 
         SelectedReport.HandlingUnits.Add(newHandlingUnit);
         OnPropertyChanged(nameof(SelectedReport));
+        OnPropertyChanged(nameof(HandlingUnitCount));
     }
 
     private void RemoveHandlingUnit(object? obj)
@@ -617,6 +620,7 @@ public class MainViewModel : INotifyPropertyChanged, IDropTarget
         }
         SelectedReport.HandlingUnits.Remove(handlingUnit);
         OnPropertyChanged(nameof(SelectedReport));
+        OnPropertyChanged(nameof(HandlingUnitCount));
         LinkPackingUnitsToHandlingUnits();
     }
 

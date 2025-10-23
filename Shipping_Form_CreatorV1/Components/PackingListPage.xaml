@@ -106,11 +106,18 @@
                     Background="WhiteSmoke"
                     Visibility="{Binding HandlingUnitPanelVisibility}">
                     <StackPanel>
-                        <TextBlock
-                            Margin="0,0,0,10"
-                            FontSize="20"
-                            Foreground="#000"
-                            Text="Bulk-Packed Units" />
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock
+                                Margin="0,0,0,10"
+                                FontSize="20"
+                                Foreground="#000"
+                                Text="Bulk-Packed Units" />
+                            <TextBlock
+                                Margin="3,0,0,10"
+                                FontSize="20"
+                                Foreground="#000"
+                                Text="{Binding HandlingUnitCount}" />
+                        </StackPanel>
                         <Button
                             Margin="0,0,0,10"
                             Background="#e41f28"
@@ -118,7 +125,7 @@
                             Content="Add New Unit"
                             Cursor="Hand"
                             Foreground="#FFF" />
-                        <ScrollViewer VerticalScrollBarVisibility="Auto" MaxHeight="800">
+                        <ScrollViewer MaxHeight="800" VerticalScrollBarVisibility="Auto">
                             <ItemsControl ItemsSource="{Binding SelectedReport.HandlingUnits}">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
@@ -172,12 +179,6 @@
                                                         </ItemsControl.ItemTemplate>
                                                     </ItemsControl>
                                                 </Border>
-                                                <TextBlock
-                                                    Margin="0,4,0,0"
-                                                    HorizontalAlignment="Right"
-                                                    FontSize="14"
-                                                    Foreground="#000"
-                                                    Text="{Binding TotalWeight, StringFormat='Total Weight: {0} Lbs'}" />
                                             </StackPanel>
                                         </Border>
                                     </DataTemplate>
