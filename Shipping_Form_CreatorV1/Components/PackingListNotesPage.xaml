@@ -13,6 +13,7 @@
         <Style TargetType="TextBlock">
             <Setter Property="Foreground" Value="Black" />
         </Style>
+        <BooleanToVisibilityConverter x:Key="BoolToVis" />
     </UserControl.Resources>
     <Border Padding="20" Background="#e6e6e6">
         <Border
@@ -205,14 +206,25 @@
                             </ItemsControl>
                         </Border>
 
-                        <TextBlock
-                            Padding="5"
-                            Background="#e6e6e6"
-                            FontSize="22"
-                            FontWeight="Bold"
-                            Text="Handling Unit Manifest"
-                            TextAlignment="Center" />
-                        <ItemsControl Margin="0" ItemsSource="{Binding HandlingUnits, RelativeSource={RelativeSource AncestorType=UserControl}}">
+                        <TextBlock Padding="5"
+                                   Background="#e6e6e6"
+                                   FontSize="22"
+                                   FontWeight="Bold"
+                                   Text="Handling Unit Manifest"
+                                   TextAlignment="Center">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                    <Setter Property="Foreground" Value="Black" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding HasItems, ElementName=HandlingUnitsControl}" Value="False">
+                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                        <ItemsControl x:Name="HandlingUnitsControl" Margin="0" ItemsSource="{Binding HandlingUnits, RelativeSource={RelativeSource AncestorType=UserControl}}">
 
                             <ItemsControl.ItemsPanel>
                                 <ItemsPanelTemplate>

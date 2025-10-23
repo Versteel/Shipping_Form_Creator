@@ -81,7 +81,7 @@ public class PrintService
             bool onlyDefaultTruckUsed = rawLineItems
                 .SelectMany(item => item.LineItemPackingUnits)
                 .All(pu => pu.TruckNumber == Constants.TruckNumbers[0] || string.IsNullOrEmpty(pu.TruckNumber));
-            
+
             if (onlyDefaultTruckUsed)
             {
                 foreach (var item in rawLineItems)
@@ -102,33 +102,32 @@ public class PrintService
 
 
             // 3. FILTER AND CLONE LINE ITEMS TO ONLY INCLUDE SELECTED PACKING UNITS
-            var filteredLineItems = new List<LineItem>();
-            foreach (var li in rawLineItems)
+            var lineItemsForPrinting = new List<LineItem>(); // Renamed for clarity
+            foreach (var li in rawLineItems)
             {
-                var filteredPackingUnits = li.LineItemPackingUnits
-                    .Where(pu => isAllView || string.Equals(pu.TruckNumber, selectedView, StringComparison.OrdinalIgnoreCase))
-                    .ToList();
+                // Filter packing units based on the selected view
+                var filteredPackingUnits = li.LineItemPackingUnits
+                  .Where(pu => isAllView || string.Equals(pu.TruckNumber, selectedView, StringComparison.OrdinalIgnoreCase))
+                  .ToList();
 
-                // Only include the line item if it has matching packing units
-                if (filteredPackingUnits.Count > 0)
-                {
-                    // **ACTUAL CLONING LOGIC** using the new copy constructor!
-                    var lineItemCopy = new LineItem(
-                        original: li,
-                        newPackingUnits: new ObservableCollection<LineItemPackingUnit>(filteredPackingUnits)
-                    );
+                // Create a copy of the line item, including its original details,
+                // but using the *filtered* list of packing units (which might be empty).
+                var lineItemCopy = new LineItem(
+                  original: li,
+                  newPackingUnits: new ObservableCollection<LineItemPackingUnit>(filteredPackingUnits)
+                );
 
-                    filteredLineItems.Add(lineItemCopy);
-                }
+                // Add every line item copy to the list for printing.
+                lineItemsForPrinting.Add(lineItemCopy);
             }
-            // Use the new filtered list for the rest of the page building logic
-            var lineItems = filteredLineItems;
+            // Use this list for the rest of the page building logic
+            var lineItems = lineItemsForPrinting;
 
 
             if (lineItems.Count > 0)
             {
                 UpdateLoadingMessage("Creating page 1...");
-                var firstLineItem = lineItems[0]; 
+                var firstLineItem = lineItems[0];
 
                 var pageOne = new PackingListPageOne
                 {

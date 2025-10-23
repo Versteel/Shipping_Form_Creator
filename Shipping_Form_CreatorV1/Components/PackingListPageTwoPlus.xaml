@@ -619,6 +619,9 @@
 
                                                     <!--  PRINT MODE (text-only list)  -->
                                                     <ItemsControl
+                                                        HorizontalAlignment="Center"
+                                                        HorizontalContentAlignment="Center"
+                                                        MinWidth="380"
                                                         Margin="0,4,0,0"
                                                         ItemsSource="{Binding LineItemPackingUnits}"
                                                         Visibility="{Binding IsPrinting, RelativeSource={RelativeSource AncestorType={x:Type local:PackingListPageTwoPlus}}, Converter={StaticResource BoolToVis}}">
