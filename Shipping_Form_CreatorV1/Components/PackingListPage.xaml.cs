@@ -117,33 +117,23 @@ public partial class PackingListPage
             {
                 var currentPageItems = new List<LineItem>();
                 var currentDetailsOnPage = 0;
-                const int maxDetailsPerPage = 55;
+                const int maxDetailsPerPage = 35;
                 const double basePackingUnitHeight = 50;
-                const double heightIncreasePerUnit = 50;
-                const double detailsPerBlock = 3;
+                const double heightIncreasePerUnit = 20;
+                const double detailsPerBlock = 2;
                 const double maxPackingUnitHeight = 450;
 
                 foreach (var item in remainingItems)
                 {
                     var itemDetailsCount = GetDetailsFor(item).Count;
                     var detailsBlocks = itemDetailsCount / detailsPerBlock;
+
+                    // Simplified: Calculate height and cap it, removing the special 'lastItem' logic
                     var calculatedHeight = basePackingUnitHeight + (detailsBlocks * heightIncreasePerUnit);
-
-                    var lastItem = remainingItems.Last();
-
-                    if (item == lastItem && currentDetailsOnPage + itemDetailsCount <= maxDetailsPerPage)
-                    {
-                        var remainingSpace = maxDetailsPerPage - currentDetailsOnPage;
-                        var remainingBlocks = remainingSpace / detailsPerBlock;
-                        var adjustedHeight = basePackingUnitHeight + (remainingBlocks * heightIncreasePerUnit);
-                        item.PackingUnitHeight = Math.Min(maxPackingUnitHeight, Math.Min(calculatedHeight, adjustedHeight));
-                    }
-                    else
-                    {
-                        item.PackingUnitHeight = Math.Min(calculatedHeight, maxPackingUnitHeight);
-                    }
+                    item.PackingUnitHeight = Math.Min(calculatedHeight, maxPackingUnitHeight);
 
                     // If adding this item would exceed the max, start a new page
+                    // **This is your primary page break condition.**
                     if (currentDetailsOnPage + itemDetailsCount > maxDetailsPerPage && currentPageItems.Count != 0)
                     {
                         var nextPage = new PackingListPageTwoPlus

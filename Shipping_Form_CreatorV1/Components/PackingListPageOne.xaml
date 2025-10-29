@@ -805,8 +805,8 @@
 
                                         <!--  PRINT MODE (text-only list)  -->
                                         <ItemsControl
-                                            Margin="0,4,0,0"
                                             MinWidth="380"
+                                            Margin="0,4,0,0"
                                             HorizontalAlignment="Center"
                                             HorizontalContentAlignment="Center"
                                             ItemsSource="{Binding LineItem.LineItemPackingUnits, RelativeSource={RelativeSource AncestorType=UserControl}}"
