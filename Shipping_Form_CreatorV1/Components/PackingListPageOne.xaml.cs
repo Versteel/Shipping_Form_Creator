@@ -82,8 +82,10 @@ namespace Shipping_Form_CreatorV1.Components
 
             if (Application.Current.MainWindow?.DataContext is not MainViewModel viewModel) return;
 
-            var originalLineItem = viewModel.SelectedReport.LineItems
-                .FirstOrDefault(li => li.Id == lineItemCopy.Id);
+            var originalLineItem = viewModel.SelectedReport.LineItems.FirstOrDefault(li =>
+                 li.TempId == lineItemCopy.TempId ||
+                 (li.Id != 0 && li.Id == lineItemCopy.Id));
+
 
             if (originalLineItem == null)
             {

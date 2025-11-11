@@ -14,6 +14,8 @@ public class LineItem : INotifyPropertyChanged
 
     public int LineItemHeaderId { get; set; }
     public LineItemHeader? LineItemHeader { get; set; }
+    [NotMapped]
+    public Guid TempId { get; set; } = Guid.NewGuid();
 
 
     public ObservableCollection<LineItemDetail> LineItemDetails { get; set; } = [];
@@ -47,7 +49,7 @@ public class LineItem : INotifyPropertyChanged
         LineItemHeader = original.LineItemHeader; // Copying reference is fine for immutable headers
         ReportModelId = original.ReportModelId;
         ReportModel = original.ReportModel;
-
+        TempId = original.TempId;
         LineItemDetails = new ObservableCollection<LineItemDetail>(original.LineItemDetails);
 
         LineItemPackingUnits = newPackingUnits;
