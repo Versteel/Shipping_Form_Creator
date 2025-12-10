@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shipping Form Creator Documentation</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="sidebar">
+        <h2>Documentation</h2>
+        <input type="text" id="searchInput" onkeyup="search()" placeholder="Search for topics...">
+        <ul id="toc">
+            <li><a href="#user_guide/introduction.md">Introduction</a></li>
+            <li><a href="#user_guide/installation.md">Installation</a></li>
+            <li><a href="#user_guide/getting_started.md">Getting Started</a></li>
+            <li><a href="#user_guide/packing_lists.md">Packing Lists</a></li>
+            <li><a href="#user_guide/bills_of_lading.md">Bills of Lading</a></li>
+            <li><a href="#user_guide/handling_units.md">Handling Units</a></li>
+            <li><a href="#user_guide/multi_truck_shipments.md">Multi-Truck Shipments</a></li>
+            <li><a href="#user_guide/searching_and_printing.md">Searching and Printing</a></li>
+            <li><a href="#developer_guide/architecture.md">Architecture</a></li>
+            <li><a href="#developer_guide/database.md">Database</a></li>
+            <li><a href="#developer_guide/services.md">Services</a></li>
+            <li><a href="#developer_guide/contributing.md">Contributing</a></li>
+        </ul>
+    </div>
+    <div class="content">
+        <div id="markdown-content"></div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="search.js"></script>
+    <script>
+        const contentDiv = document.getElementById('markdown-content');
+        const tocLinks = document.querySelectorAll('#toc a');
+
+        async function loadContent(hash) {
+            const path = hash.substring(1);
+            if (!path) return;
+
+            try {
+                const response = await fetch(path);
+                if (!response.ok) {
+                    contentDiv.innerHTML = '<p>Content not found.</p>';
+                    return;
+                }
+                const markdown = await response.text();
+                contentDiv.innerHTML = marked.parse(markdown);
+            } catch (error) {
+                contentDiv.innerHTML = '<p>Error loading content.</p>';
+            }
+        }
+
+        function updateActiveLink() {
+            const hash = window.location.hash || '#user_guide/introduction.md';
+            tocLinks.forEach(link => {
+                if (link.getAttribute('href') === hash) {
+                    link.parentElement.classList.add('active');
+                } else {
+                    link.parentElement.classList.remove('active');
+                }
+            });
+            loadContent(hash);
+        }
+
+        window.addEventListener('hashchange', updateActiveLink);
+        window.addEventListener('load', updateActiveLink);
+    </script>
+</body>
+</html>
