@@ -15,21 +15,21 @@ public class SqliteService(IDbContextFactory<AppDbContext> dbContext) : ISqliteS
         await using var db = await dbContext.CreateDbContextAsync(ct);
 
         var reportModelId = await db.ReportHeaders
-            .Where(h => h.OrderNumber == orderNumber)
-            .Where(h => h.Suffix == suffixNumber)
+            .Where(h => h.OrderNumber == orderNumber && h.Suffix == suffixNumber)
             .Select(h => h.ReportModelId)
             .FirstOrDefaultAsync(ct);
 
         if (reportModelId == 0)
             return null;
 
+        // Filter by the specific ID we just found
         var report = await db.ReportModels
-            .Where(r => r.Header.OrderNumber == orderNumber)
+            .Where(r => r.Id == reportModelId) // Use the ID directly
             .Include(r => r.Header)
             .Include(r => r.HandlingUnits)
-            .ThenInclude(handlingUnit => handlingUnit.ContainedUnits)
-                .ThenInclude(packingUnit => packingUnit.LineItem)
-                    .ThenInclude(lineItem => lineItem.LineItemHeader)
+                .ThenInclude(hu => hu.ContainedUnits)
+                    .ThenInclude(pu => pu.LineItem)
+                        .ThenInclude(li => li.LineItemHeader)
             .Include(r => r.LineItems)
                 .ThenInclude(li => li.LineItemHeader)
             .Include(r => r.LineItems)
@@ -40,9 +40,7 @@ public class SqliteService(IDbContextFactory<AppDbContext> dbContext) : ISqliteS
             .AsNoTracking()
             .FirstOrDefaultAsync(ct);
 
-
         return report;
-    
     }
 
     public async Task<List<ReportModel>> GetAllReportsByDateAsync(DateTime date, CancellationToken ct = default)
@@ -161,6 +159,8 @@ public class SqliteService(IDbContextFactory<AppDbContext> dbContext) : ISqliteS
     private static void UpdateReportHeader(ReportHeader existing, ReportHeader updated)
     {
         existing.LogoImagePath = updated.LogoImagePath;
+        existing.HeaderEmail = updated.HeaderEmail;
+        existing.HeaderPhoneNumber = updated.HeaderPhoneNumber;
         existing.OrderNumber = updated.OrderNumber;
         existing.PageCount = updated.PageCount;
         existing.OrdEnterDate = updated.OrdEnterDate;

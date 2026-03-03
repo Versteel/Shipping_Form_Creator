@@ -4,6 +4,8 @@ using Shipping_Form_CreatorV1.Models;
 using Shipping_Form_CreatorV1.Services.Implementations;
 using Shipping_Form_CreatorV1.Utilities;
 using Shipping_Form_CreatorV1.ViewModels;
+using System;
+using System.ComponentModel;
 using System.Windows;
 using System.Windows.Input;
 
@@ -29,6 +31,8 @@ public partial class MainWindow
 
     private void GoToPackingListBtn_Click(object sender, RoutedEventArgs e)
     {
+        if (!ConfirmAndProceedWithNavigation()) return;
+
         OrderNumberTextBox.Clear();
         SuffixIntegerBox.Value = 0;
         _viewModel.SalesOrderNumber = string.Empty;
@@ -40,6 +44,8 @@ public partial class MainWindow
 
     private void GoToBillOfLadingBtn_Click(object sender, RoutedEventArgs e)
     {
+        if (!ConfirmAndProceedWithNavigation()) return;
+
         OrderNumberTextBox.Clear();
         SuffixIntegerBox.Value = 0;
         _viewModel.SalesOrderNumber = string.Empty;
@@ -55,6 +61,9 @@ public partial class MainWindow
         {
             if (!OrderNumberIsValid(OrderNumberTextBox.Text.Trim())) return;
             if (e.Key != Key.Enter) return;
+
+            if (!ConfirmAndProceedWithNavigation()) return;
+
             _viewModel.SelectedReportView = Constants.ViewOptions[0];
             await _viewModel.LoadDocumentAsync(OrderNumberTextBox.Text.Trim(), SuffixIntegerBox.Text.Trim());
             if (_viewModel.SelectedReportTitle == "SEARCH RESULTS")
@@ -79,7 +88,8 @@ public partial class MainWindow
     {
         try
         {
-            
+            if (!ConfirmAndProceedWithNavigation()) return;
+
             _viewModel.SelectedReportView = Constants.ViewOptions[0];
             await _viewModel.LoadDocumentAsync(OrderNumberTextBox.Text.Trim(), SuffixIntegerBox.Text.Trim());
             if (_viewModel.SelectedReportTitle == "SEARCH RESULTS")
@@ -143,9 +153,21 @@ public partial class MainWindow
                         break;
                     }
                 case "BILL OF LADING":
-                    {
-                        var page = _printService.BuildBillOfLadingPage(_viewModel);
-                        await _printService.PrintBillOfLadingAsync(page);
+                {
+                        if (ContentFrame.Content is BillOfLading bolPage)
+                        {
+                            // 1. Get the current status from the screen the user is looking at
+                            bool isCurrentlyChecked = bolPage.MarkCollectCheckBox.IsChecked ?? false;
+
+                            // 2. Build the separate page for printing
+                            var printInstance = _printService.BuildBillOfLadingPage(_viewModel);
+
+                            // 3. Transfer the state to the print instance
+                            printInstance.IsPrinting = true;
+                            printInstance.ShowCollectText = isCurrentlyChecked;
+                            printInstance.IsCollectChecked = isCurrentlyChecked;
+                            await _printService.PrintBillOfLadingAsync(printInstance);
+                        }
                         break;
                     }
                 default:
@@ -194,11 +216,14 @@ public partial class MainWindow
     {
         try
         {
+            if (!ConfirmAndProceedWithNavigation()) return;
+
             if (_viewModel.SearchByDate is null)
             {
                 DialogService.ShowErrorDialog("Please choose a ship date.");
                 return;
             }
+
             _viewModel.SelectedReportView = Constants.ViewOptions[0];
             await _viewModel.GetSearchByDateResults(_viewModel.SearchByDate.Value);
             ContentFrame.Content = new SearchByDateResultsPage(_viewModel, _printService);
@@ -211,6 +236,8 @@ public partial class MainWindow
 
     public void NavigateToReport(ReportModel report, string target)
     {
+        if (!ConfirmAndProceedWithNavigation()) return;
+
         _viewModel.SelectedReport = report;
         _viewModel.SelectedReportTitle = target;
         _viewModel.SelectedReportView = Constants.ViewOptions[0];
@@ -220,4 +247,51 @@ public partial class MainWindow
             ContentFrame.Content = new BillOfLading(_viewModel);
     }
 
+    protected override void OnClosing(CancelEventArgs e)
+    {
+        if (_viewModel.HasUnsavedChanges)
+        {
+            var result = MessageBox.Show(
+                "You have unsaved changes. Do you want to save them before exiting?\n\n" +
+                "Click 'Yes' to return to the app and save.\n" +
+                "Click 'No' to discard changes and exit.",
+                "Unsaved Changes",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Warning);
+
+            if (result == MessageBoxResult.Yes)
+            {
+                // Cancel the close so the user can click the Save button
+                // (Handling async saving directly inside OnClosing is complex/risky)
+                e.Cancel = true;
+            }
+            else if (result == MessageBoxResult.Cancel)
+            {
+                // Just stay in the app
+                e.Cancel = true;
+            }
+            // If 'No', do nothing and allow the app to close
+        }
+
+        base.OnClosing(e);
+    }
+
+    private bool ConfirmAndProceedWithNavigation()
+    {
+        if (!_viewModel.HasUnsavedChanges) return true;
+
+        var result = MessageBox.Show(
+            "You have unsaved changes that will be lost. Do you want to discard them and continue?",
+            "Unsaved Changes",
+            MessageBoxButton.YesNo,
+            MessageBoxImage.Warning);
+
+        if (result == MessageBoxResult.Yes)
+        {
+            _viewModel.HasUnsavedChanges = false; // Reset the flag
+            return true; // Proceed with navigation
+        }
+
+        return false; // Stay on the current page
+    }
 }

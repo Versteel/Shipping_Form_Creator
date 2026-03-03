@@ -3,6 +3,7 @@ using Shipping_Form_CreatorV1.Services.Interfaces;
 using System.Collections.ObjectModel;
 using System.Data.Common;
 using System.Data.Odbc;
+using System.Diagnostics;
 
 namespace Shipping_Form_CreatorV1.Services.Implementations;
 
@@ -234,12 +235,14 @@ public class OdbcService : IOdbcService
         await using var headerReader = await headerCommand.ExecuteReaderAsync(ct);
         if (await headerReader.ReadAsync(ct))
         {
+           var shipDate = GetSafeString(headerReader, "ShipDate") == "00/00/2000"  ? DateTime.Now.ToShortDateString() : GetSafeString(headerReader, "ShipDate");
+
             rpt.Header = new ReportHeader
             {
                 OrderNumber = GetSafeInt(headerReader, "OHORD#"),
                 Suffix = GetSafeInt(headerReader, "OHLSUF"),
                 OrdEnterDate = GetSafeString(headerReader, "OrderEnteredDate"),
-                ShipDate = GetSafeString(headerReader, "ShipDate"),
+                ShipDate = shipDate,
                 SoldToCustNumber = GetSafeString(headerReader, "C1STKY"),
                 SoldToName = GetSafeString(headerReader, "CMNAME"),
                 SoldToCustAddressLine1 = GetSafeString(headerReader, "CMLNE1"),
@@ -324,6 +327,8 @@ public class OdbcService : IOdbcService
                 PackingListFlag = GetSafeString(notesReader, "ODPRT2"),
                 BolFlag = GetSafeString(notesReader, "ODPRT3")
             };
+
+            Debug.WriteLine($"BOL FLAG-{detail.BolFlag}  NOTETEXT-{detail.NoteText}");
 
             if (lineItemMap.TryGetValue(modelItem, out var li))
             {

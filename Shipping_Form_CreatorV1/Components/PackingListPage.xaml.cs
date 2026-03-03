@@ -57,6 +57,8 @@ public partial class PackingListPage
 
         var header = selectedReport.Header;
         header.LogoImagePath = _viewModel.IsDittoUser ? Constants.DITTO_LOGO : Constants.VERSTEEL_LOGO;
+        header.HeaderPhoneNumber = _viewModel.IsDittoUser ? "812.482.3043" : "800.876.2120";
+        header.HeaderEmail = _viewModel.IsDittoUser ? "dittosales.com" : "versteel.com";
 
         var trailerNotes = selectedReport.LineItems
             .SelectMany(li => li.LineItemDetails)
@@ -117,7 +119,7 @@ public partial class PackingListPage
             {
                 var currentPageItems = new List<LineItem>();
                 var currentDetailsOnPage = 0;
-                const int maxDetailsPerPage = 35;
+                const int maxDetailsPerPage = 25;
                 const double basePackingUnitHeight = 50;
                 const double heightIncreasePerUnit = 20;
                 const double detailsPerBlock = 2;
@@ -167,23 +169,27 @@ public partial class PackingListPage
 
         }
 
-        // Add the notes page if it exists
-        if ((_viewModel.PackingListNotes != null && _viewModel.PackingListNotes.Any()) ||
-            (_viewModel.SelectedReport.HandlingUnits != null && _viewModel.SelectedReport.HandlingUnits.Any()))
+        if (!_viewModel.IsDittoUser)
         {
-            _viewModel.UpdateOrderSummary();
-
-            var orderSummaryPage = new PackingListNotesPage
+            // Add the notes page if it exists
+            if ((_viewModel.PackingListNotes != null && _viewModel.PackingListNotes.Any()) ||
+                (_viewModel.SelectedReport.HandlingUnits != null && _viewModel.SelectedReport.HandlingUnits.Any()))
             {
-                DataContext = _viewModel,
-                Header = header,
-                ShippingInstructions = _viewModel.ShippingInstructions,
-                ConsolidatedSummary = _viewModel.ConsolidatedSummary,
-                OverallTotals = _viewModel.OverallTotals,
-                HandlingUnits = new ObservableCollection<HandlingUnit>(_viewModel.SelectedReport.HandlingUnits)
-            };
-            PageContainer.Children.Add(orderSummaryPage);
+                _viewModel.UpdateOrderSummary();
+
+                var orderSummaryPage = new PackingListNotesPage
+                {
+                    DataContext = _viewModel,
+                    Header = header,
+                    ShippingInstructions = _viewModel.ShippingInstructions,
+                    ConsolidatedSummary = _viewModel.ConsolidatedSummary,
+                    OverallTotals = _viewModel.OverallTotals,
+                    HandlingUnits = new ObservableCollection<HandlingUnit>(_viewModel.SelectedReport.HandlingUnits)
+                };
+                PageContainer.Children.Add(orderSummaryPage);
+            }
         }
+        
 
         // Final page numbering logic
         var totalPages = PageContainer.Children.Count;

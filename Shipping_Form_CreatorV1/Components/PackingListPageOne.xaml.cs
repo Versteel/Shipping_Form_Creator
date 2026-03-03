@@ -15,6 +15,9 @@ namespace Shipping_Form_CreatorV1.Components
     /// </summary>
     public partial class PackingListPageOne
     {
+        private static readonly MainViewModel _viewModel;
+
+
         public static readonly DependencyProperty PageNumberTextProperty =
             DependencyProperty.Register(nameof(PageNumberText), typeof(string), typeof(PackingListPageOne),
                 new PropertyMetadata(string.Empty));
@@ -58,7 +61,7 @@ namespace Shipping_Form_CreatorV1.Components
         public string TruckNumber { get; set; } = Constants.TruckNumbers[0];
         public int Weight { get; set; }
         public static string[] CartonOrSkidOptions => Constants.CartonOrSkidOptions;
-        public static string[] PackingUnitCategories => Constants.PackingUnitCategories;
+        public static string[] PackingUnitCategories;
         public static string[] TruckNumbers => Constants.TruckNumbers;
 
         public ObservableCollection<LineItemPackingUnit> PackingUnits
@@ -104,6 +107,8 @@ namespace Shipping_Form_CreatorV1.Components
                 LineItemId = originalLineItem.Id
             };
 
+            newPackingUnit.PropertyChanged += viewModel.OnPackingUnitPropertyChanged;
+
             if (originalLineItem.LineItemPackingUnits is { } observable)
             {
                 observable.Add(newPackingUnit);
@@ -114,6 +119,7 @@ namespace Shipping_Form_CreatorV1.Components
             }
 
             viewModel.UpdateViewOptions();
+            //viewModel.MarkAsUnsaved();
         });
 
         public ICommand RemovePackUnitCommand => new RelayCommand(param =>
@@ -143,11 +149,15 @@ namespace Shipping_Form_CreatorV1.Components
                     break;
                 }
             }
+            //viewModel.MarkAsUnsaved();
         });
 
         public PackingListPageOne()
         {
-
+            if(Application.Current.MainWindow?.DataContext is MainViewModel vm)
+            {
+                PackingUnitCategories = vm.IsDittoUser ? Constants.DittoPackingUnitCategories : Constants.PackingUnitCategories;
+            }
             InitializeComponent();
         }
 
@@ -155,6 +165,13 @@ namespace Shipping_Form_CreatorV1.Components
         {
             get => (string)GetValue(PageNumberTextProperty);
             set => SetValue(PageNumberTextProperty, value);
+        }
+        private void OnInputChanged(object sender, System.Windows.Data.DataTransferEventArgs e)
+        {
+            if (DataContext is MainViewModel vm)
+            {
+                //vm.MarkAsUnsaved();
+            }
         }
 
         public ReportHeader? Header
@@ -171,6 +188,8 @@ namespace Shipping_Form_CreatorV1.Components
 
         private void TruckComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
+            if(!IsLoaded) return;
+
             // Ensure we have a view model and something was actually selected
             if (Application.Current.MainWindow?.DataContext is not MainViewModel viewModel || e.AddedItems.Count == 0)
             {
@@ -193,6 +212,7 @@ namespace Shipping_Form_CreatorV1.Components
 
             
             viewModel.SelectedTruck = selectedTruck;
+            //viewModel.MarkAsUnsaved();
         }
     }
 }

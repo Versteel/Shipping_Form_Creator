@@ -1,18 +1,11 @@
 using GongSolutions.Wpf.DragDrop;
-using Microsoft.Data.Sqlite;
 using Serilog;
 using Shipping_Form_CreatorV1.Models;
 using Shipping_Form_CreatorV1.Services.Implementations;
 using Shipping_Form_CreatorV1.Services.Interfaces;
 using Shipping_Form_CreatorV1.Utilities;
-using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Data.Odbc;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 
@@ -123,7 +116,7 @@ public class MainViewModel : INotifyPropertyChanged, IDropTarget
         }
     }
 
-    public ObservableCollection<HandlingUnit>? HandlingUnits => new ObservableCollection<HandlingUnit>(SelectedReport.HandlingUnits);
+    public ObservableCollection<HandlingUnit>? HandlingUnits => new(SelectedReport.HandlingUnits);
 
     // -------------------------
     // UI State & Input Properties
@@ -179,6 +172,18 @@ public class MainViewModel : INotifyPropertyChanged, IDropTarget
             _searchByDate = value;
             OnPropertyChanged(nameof(SearchByDate));
             OnPropertyChanged(nameof(SearchDateString));
+        }
+    }
+
+    private bool _hasUnsavedChanges;
+    public bool HasUnsavedChanges
+    {
+        get => _hasUnsavedChanges;
+        set
+        {
+            if (_hasUnsavedChanges == value) return;
+            _hasUnsavedChanges = value;
+            OnPropertyChanged(nameof(HasUnsavedChanges));
         }
     }
 
@@ -285,7 +290,13 @@ public class MainViewModel : INotifyPropertyChanged, IDropTarget
 
             return new(SelectedReport.LineItems
                 .SelectMany(li => li.LineItemDetails)
-                .Where(detail => detail.BolFlag != null && detail.BolFlag.Equals("Y", StringComparison.InvariantCultureIgnoreCase)));
+                .Where(detail => detail.BolFlag != null 
+                        && detail.BolFlag.Equals("Y", StringComparison.InvariantCultureIgnoreCase)
+                        && !detail.NoteText!.StartsWith("---")
+                        && !detail.NoteText!.StartsWith("NOTES:")
+                        && !detail.NoteText!.Contains("CONTRACT")
+                        && !detail.NoteText!.StartsWith("REV")
+                        ));
         }
     }
 
@@ -334,12 +345,12 @@ public class MainViewModel : INotifyPropertyChanged, IDropTarget
         var summaryItems = SelectedReport.LineItems
              .Where(li => li.LineItemHeader != null &&
                           li.LineItemHeader.PickOrShipQuantityInt > 0 &&
-                          !string.IsNullOrWhiteSpace(li.LineItemHeader.ProductDescription)) // <-- Add this line
+                          !string.IsNullOrWhiteSpace(li.LineItemHeader.ProductDescription))
              .GroupBy(li => li.LineItemHeader?.ProductDescription.Trim())
              .Select(g => new PackingListSummaryItem
              {
-                 Description = g.Key,
-                 Quantity = g.Sum(li => li.LineItemHeader.PickOrShipQuantityInt),
+                 Description = g.Key!,
+                 Quantity = g.Sum(li => li.LineItemHeader!.PickOrShipQuantityInt),
                  TotalWeight = g.SelectMany(li => li.LineItemPackingUnits).Sum(pu => pu.Weight)
              });
 
@@ -414,8 +425,7 @@ public class MainViewModel : INotifyPropertyChanged, IDropTarget
 
                     if (cachedLineItem != null)
                     {
-                        erpLineItem.Id = cachedLineItem.Id; // Preserve the line item ID
-                                                            // This is the key: we copy the user's work into the fresh data.
+                        erpLineItem.Id = cachedLineItem.Id;
                         erpLineItem.LineItemPackingUnits = cachedLineItem.LineItemPackingUnits;
                     }
                 }
@@ -424,6 +434,8 @@ public class MainViewModel : INotifyPropertyChanged, IDropTarget
             SelectedReport = erpDocument; // The final, merged report is now set.
             UpdateLineNumbers();
             LinkPackingUnitsToHandlingUnits();
+            AttachPropertyListeners();
+            HasUnsavedChanges = false;
         }
         catch (Exception ex)
         {
@@ -544,11 +556,20 @@ public class MainViewModel : INotifyPropertyChanged, IDropTarget
     {
         await _sqliteService.SaveReportAsync(SelectedReport, ct);
         UpdateViewOptions();
+        HasUnsavedChanges = false;
     }
 
     // -------------------------
     // Private Helper Methods
     // -------------------------
+
+    public void MarkAsUnsaved()
+    {
+        if (!HasUnsavedChanges)
+        {
+            HasUnsavedChanges = true;
+        }
+    }
 
     private void LinkPackingUnitsToHandlingUnits()
     {
@@ -639,6 +660,8 @@ public class MainViewModel : INotifyPropertyChanged, IDropTarget
         var selectedView = SelectedReportView;
         var isAllView = selectedView == "ALL";
 
+        IEnumerable<BolSummaryRow> summary = Enumerable.Empty<BolSummaryRow>();
+
         var units = items
             .SelectMany(li => li.LineItemPackingUnits ?? Enumerable.Empty<LineItemPackingUnit>())
             .Where(pu => !string.IsNullOrWhiteSpace(pu.TypeOfUnit))
@@ -646,7 +669,9 @@ public class MainViewModel : INotifyPropertyChanged, IDropTarget
             .Where(pu => isAllView || string.Equals(pu.TruckNumber, selectedView, StringComparison.OrdinalIgnoreCase))
             .ToList();
 
-        var summary = units
+        if (!IsDittoUser)
+        {
+            summary = units
             .GroupBy(u => new { TypeOfUnit = NormalizeUnitType(u.TypeOfUnit), CartonOrSkid = string.IsNullOrWhiteSpace(u.CartonOrSkid) ? "Unknown" : u.CartonOrSkid })
             .Select(g => new BolSummaryRow
             {
@@ -664,19 +689,20 @@ public class MainViewModel : INotifyPropertyChanged, IDropTarget
                     var t when t == Constants.PackingUnitCategories[0] => "70",
                     var t when t == Constants.PackingUnitCategories[1] => "70",
                     var t when t == Constants.PackingUnitCategories[2] => "250",
-                    var t when t == Constants.PackingUnitCategories[3] => "250",
+                    var t when t == Constants.PackingUnitCategories[3] => "92.5",
                     var t when t == Constants.PackingUnitCategories[4] => "250",
                     var t when t == Constants.PackingUnitCategories[5] => "250",
                     var t when t == Constants.PackingUnitCategories[6] => "250",
-                    var t when t == Constants.PackingUnitCategories[7] => "125",
-                    var t when t == Constants.PackingUnitCategories[8] => "71",
-                    var t when t == Constants.PackingUnitCategories[9] => "70",
-                    var t when t == Constants.PackingUnitCategories[10] => "70",
+                    var t when t == Constants.PackingUnitCategories[7] => "250",
+                    var t when t == Constants.PackingUnitCategories[8] => "125",
+                    var t when t == Constants.PackingUnitCategories[9] => "71",
+                    var t when t == Constants.PackingUnitCategories[10]=> "70",
                     var t when t == Constants.PackingUnitCategories[11] => "70",
                     var t when t == Constants.PackingUnitCategories[12] => "70",
-                    var t when t == Constants.PackingUnitCategories[13] => "85",
-                    var t when t == Constants.PackingUnitCategories[14] => "100",
-                    var t when t == Constants.PackingUnitCategories[15] => "125",
+                    var t when t == Constants.PackingUnitCategories[13] => "70",
+                    var t when t == Constants.PackingUnitCategories[14] => "85",
+                    var t when t == Constants.PackingUnitCategories[15] => "100",
+                    var t when t == Constants.PackingUnitCategories[16] => "125",
                     _ => "0",
                 },
                 NMFC = g.Key.TypeOfUnit switch
@@ -684,24 +710,64 @@ public class MainViewModel : INotifyPropertyChanged, IDropTarget
                     var t when t == Constants.PackingUnitCategories[0] => "79300-09",
                     var t when t == Constants.PackingUnitCategories[1] => "79300-09",
                     var t when t == Constants.PackingUnitCategories[2] => "79300-03",
-                    var t when t == Constants.PackingUnitCategories[3] => "79300-03",
+                    var t when t == Constants.PackingUnitCategories[3] => "79300-07",
                     var t when t == Constants.PackingUnitCategories[4] => "79300-03",
                     var t when t == Constants.PackingUnitCategories[5] => "79300-03",
-                    var t when t == Constants.PackingUnitCategories[6] => "79300-05",
+                    var t when t == Constants.PackingUnitCategories[6] => "79300-03",
                     var t when t == Constants.PackingUnitCategories[7] => "79300-05",
-                    var t when t == Constants.PackingUnitCategories[8] => "61680-01",
-                    var t when t == Constants.PackingUnitCategories[9] => "189035",
-                    var t when t == Constants.PackingUnitCategories[10] => "95190-09",
+                    var t when t == Constants.PackingUnitCategories[8] => "79300-05",
+                    var t when t == Constants.PackingUnitCategories[9] => "61680-01",
+                    var t when t == Constants.PackingUnitCategories[10] => "189035",
                     var t when t == Constants.PackingUnitCategories[11] => "95190-09",
                     var t when t == Constants.PackingUnitCategories[12] => "95190-09",
-                    var t when t == Constants.PackingUnitCategories[13] => "83060",
-                    var t when t == Constants.PackingUnitCategories[14] => "22260-06",
-                    var t when t == Constants.PackingUnitCategories[15] => "79300-05",
+                    var t when t == Constants.PackingUnitCategories[13] => "95190-09",
+                    var t when t == Constants.PackingUnitCategories[14] => "83060",
+                    var t when t == Constants.PackingUnitCategories[15] => "22260-06",
+                    var t when t == Constants.PackingUnitCategories[16] => "79300-05",
                     _ => "000000-00",
                 }
             })
             .OrderBy(r => r.TypeOfUnit)
             .ThenBy(r => r.CartonOrSkid);
+        }
+        else
+        {
+            summary = units
+            .GroupBy(u => new { TypeOfUnit = NormalizeUnitType(u.TypeOfUnit), CartonOrSkid = string.IsNullOrWhiteSpace(u.CartonOrSkid) ? "Unknown" : u.CartonOrSkid })
+            .Select(g => new BolSummaryRow
+            {
+                TypeOfUnit = g.Key.TypeOfUnit,
+                CartonOrSkid = g.Key.CartonOrSkid,
+                CartonCount = g.Where(x => x.CartonOrSkid?.Equals("BOX", StringComparison.InvariantCultureIgnoreCase) == true
+                                           || x.CartonOrSkid?.Equals("SINGLE PACK") == true)
+                    .Sum(x => x.Quantity),
+                SkidCount = g.Where(x => x.CartonOrSkid?.Equals("SKID", StringComparison.InvariantCultureIgnoreCase) == true)
+                    .Sum(x => x.Quantity),
+                TotalPieces = g.Sum(x => x.Quantity),
+                TotalWeight = g.Sum(x => x.Weight),
+                Class = g.Key.TypeOfUnit switch
+                {
+                    var t when t == Constants.DittoPackingUnitCategories[0] => "65",
+                    var t when t == Constants.DittoPackingUnitCategories[1] => "60",
+                    var t when t == Constants.DittoPackingUnitCategories[2] => "50",
+                    var t when t == Constants.DittoPackingUnitCategories[3] => string.Empty,
+                    var t when t == Constants.DittoPackingUnitCategories[4] => string.Empty,
+                    _ => "0",
+                },
+                NMFC = g.Key.TypeOfUnit switch
+                {
+                    var t when t == Constants.DittoPackingUnitCategories[0] => "86700-08",
+                    var t when t == Constants.DittoPackingUnitCategories[1] => "96775",
+                    var t when t == Constants.DittoPackingUnitCategories[2] => "199990-03",
+                    var t when t == Constants.DittoPackingUnitCategories[3] => string.Empty,
+                    var t when t == Constants.DittoPackingUnitCategories[4] => string.Empty,
+                    _ => "000000-00",
+                }
+            })
+            .OrderBy(r => r.TypeOfUnit)
+            .ThenBy(r => r.CartonOrSkid);
+        }
+         
 
         SelectedReportsGroups = new ObservableCollection<BolSummaryRow>(summary);
     }
@@ -756,6 +822,26 @@ public class MainViewModel : INotifyPropertyChanged, IDropTarget
         }
         OnPropertyChanged(nameof(IsMultiTruckOrder));
         OnPropertyChanged(nameof(ShouldDisplayTruckNumber));
+    }
+
+    public void OnPackingUnitPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        //MarkAsUnsaved();
+    }
+
+    private void AttachPropertyListeners()
+    {
+        if (SelectedReport?.LineItems == null) return;
+
+        foreach (var lineItem in SelectedReport.LineItems)
+        {
+            foreach (var unit in lineItem.LineItemPackingUnits)
+            {
+                // Unsubscribe first to ensure we don't attach multiple times
+                unit.PropertyChanged -= OnPackingUnitPropertyChanged;
+                unit.PropertyChanged += OnPackingUnitPropertyChanged;
+            }
+        }
     }
 
     private List<string> GenerateTruckList(int selectedTruckNumber)

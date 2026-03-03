@@ -205,7 +205,10 @@ public class PrintService
                 HandlingUnits = viewModel.SelectedReport.HandlingUnits,
                 IsPrinting = true
             };
-            pages.Add(orderSummaryPage);
+            if (!viewModel.IsDittoUser)
+            {
+                pages.Add(orderSummaryPage);
+            }
 
             UpdateLoadingMessage("Finalizing pages...");
             var total = pages.Count;
@@ -452,10 +455,14 @@ public class PrintService
         var printDialog = new PrintDialog();
         if (printDialog.ShowDialog() != true) return;
 
-        //ShowLoadingIndicator("Preparing Bill of Lading...");
-
         try
         {
+            // 1. SET THE FLAG HERE
+            if (bolPage is BillOfLading bol)
+            {
+                bol.IsPrinting = true;
+            }
+
             var pageWidth = printDialog.PrintableAreaWidth > 0 ? printDialog.PrintableAreaWidth : 816;
             var pageHeight = printDialog.PrintableAreaHeight > 0 ? printDialog.PrintableAreaHeight : 1056;
 
@@ -465,16 +472,21 @@ public class PrintService
                 return;
             }
 
+            // 2. FORCE RE-LAYOUT (crucial so the X actually appears before capture)
             await PerformLayoutAsync(printArea, pageWidth, pageHeight);
+
             var fixedPage = await CreateFixedPageFromVisualAsync(printArea, pageWidth, pageHeight);
             var fixedDoc = new FixedDocument();
             var pageContent = new PageContent();
             ((IAddChild)pageContent).AddChild(fixedPage);
             fixedDoc.Pages.Add(pageContent);
+
             printDialog.PrintDocument(fixedDoc.DocumentPaginator, "Bill of Lading");
         }
         finally
         {
+            // Reset flag if you intend to reuse the page in the UI
+            if (bolPage is BillOfLading bol) bol.IsPrinting = false;
             HideLoadingIndicator();
         }
     }
@@ -538,7 +550,11 @@ public class PrintService
 
     public BillOfLading BuildBillOfLadingPage(MainViewModel viewModel)
     {
-        return new BillOfLading(viewModel);
+        var page = new BillOfLading(viewModel)
+        {
+            IsPrinting = true
+        };
+        return page;
     }
 
     private static bool IsNoteOnly(LineItem li)

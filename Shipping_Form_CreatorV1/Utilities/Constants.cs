@@ -52,6 +52,7 @@ public class Constants
         "TABLE TOPS",
         "TABLE LEGS, TUBULAR STL EXC 1 QTR DIAMETER, N-G-T 2 INCH DIAMETER",
         "CHAIRS",
+        "ROLLIC SERIES",
         "CURVARE",
         "IMMIX",
         "OH!",
@@ -65,7 +66,15 @@ public class Constants
         "KEYBOARDS/CPU HOLDERS",
         "WIRE BASKETS/WIRE RUNNERS",
         "STORAGE CABINET/LIGHT BAR",
+    ];
 
+    public static readonly string[] DittoPackingUnitCategories = 
+    [
+        "FLAT TEMPERED GLASS LESS THAN 220 IN",
+        "SLIDES,DRAWER, SHELF OR TABLE",
+        "WOODEN DOWEL PINS/RODS R.T.",
+        "ABRASIVES",
+        "MACHINERY"
     ];
 
     public static readonly string DITTO_LOGO = "pack://application:,,,/ditto_logo.jpg";

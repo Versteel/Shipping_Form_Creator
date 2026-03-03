@@ -18,8 +18,8 @@
                 Source="{Binding Header.LogoImagePath, ElementName=Root}" />
             <TextBlock FontSize="14" Text="2332 Cathy Lane" />
             <TextBlock FontSize="14" Text="Jasper, Indiana 47546" />
-            <TextBlock FontSize="14" Text="800.876.2120" />
-            <TextBlock FontSize="14" Text="versteel.com" />
+            <TextBlock FontSize="14" Text="{Binding Header.HeaderPhoneNumber, ElementName=Root}" />
+            <TextBlock FontSize="14" Text="{Binding Header.HeaderEmail, ElementName=Root}" />
         </StackPanel>
 
         <StackPanel Grid.Column="1" Orientation="Vertical">

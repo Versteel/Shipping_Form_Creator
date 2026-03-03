@@ -56,6 +56,8 @@
 		<PackageReference Include="Syncfusion.Themes.Windows11Light.WPF" Version="30.2.6" />
 		<PackageReference Include="System.Data.ODBC" Version="9.0.8" />
 		<PackageReference Include="System.DirectoryServices.AccountManagement" Version="9.0.8" />
+		<PackageReference Include="WindowsAPICodePack-Core" Version="1.1.2" />
+		<PackageReference Include="WindowsAPICodePack-Shell" Version="1.1.1" />
 	</ItemGroup>
 
 

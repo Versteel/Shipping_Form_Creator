@@ -679,7 +679,10 @@
                                                                                 FontSize="10"
                                                                                 Foreground="#000"
                                                                                 Text="Qty" />
-                                                                            <syncfusion:IntegerTextBox Width="25" Value="{Binding Quantity, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                                                            <syncfusion:IntegerTextBox
+                                                                                Width="25"
+                                                                                SourceUpdated="OnInputChanged"
+                                                                                Value="{Binding Quantity, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, NotifyOnSourceUpdated=True}" />
                                                                         </StackPanel>
                                                                         <StackPanel
                                                                             x:Name="spCartonOrSkidContents"
@@ -692,8 +695,8 @@
                                                                             <syncfusion:ComboBoxAdv
                                                                                 Width="100"
                                                                                 Height="20"
-                                                                                ItemsSource="{x:Static local:PackingListPageOne.PackingUnitCategories}"
-                                                                                SelectedItem="{Binding CartonOrSkidContents, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                                                                SelectedItem="{Binding CartonOrSkidContents, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, NotifyOnSourceUpdated=True}"
+                                                                                SourceUpdated="OnInputChanged" />
                                                                         </StackPanel>
                                                                         <StackPanel Orientation="Vertical">
                                                                             <TextBlock
@@ -704,7 +707,8 @@
                                                                                 Width="100"
                                                                                 Height="20"
                                                                                 ItemsSource="{x:Static local:PackingListPageOne.CartonOrSkidOptions}"
-                                                                                SelectedItem="{Binding CartonOrSkid, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                                                                SelectedItem="{Binding CartonOrSkid, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, NotifyOnSourceUpdated=True}"
+                                                                                SourceUpdated="OnInputChanged" />
                                                                         </StackPanel>
 
                                                                         <StackPanel x:Name="spTypeOfUnit" Orientation="Vertical">
@@ -716,7 +720,8 @@
                                                                                 Width="100"
                                                                                 Height="20"
                                                                                 ItemsSource="{x:Static local:PackingListPageOne.PackingUnitCategories}"
-                                                                                SelectedItem="{Binding TypeOfUnit, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                                                                SelectedItem="{Binding TypeOfUnit, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, NotifyOnSourceUpdated=True}"
+                                                                                SourceUpdated="OnInputChanged" />
                                                                         </StackPanel>
 
                                                                         <StackPanel
@@ -731,7 +736,8 @@
                                                                                 Width="50"
                                                                                 Height="20"
                                                                                 ItemsSource="{Binding DataContext.LineNumbersForDropdown, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                                                                SelectedItem="{Binding LineNumber, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                                                                SelectedItem="{Binding LineNumber, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, NotifyOnSourceUpdated=True}"
+                                                                                SourceUpdated="OnInputChanged" />
                                                                         </StackPanel>
 
                                                                         <StackPanel
@@ -742,7 +748,10 @@
                                                                                 FontSize="10"
                                                                                 Foreground="#000"
                                                                                 Text="Wgt" />
-                                                                            <syncfusion:IntegerTextBox Width="35" Value="{Binding Weight, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                                                            <syncfusion:IntegerTextBox
+                                                                                Width="35"
+                                                                                SourceUpdated="OnInputChanged"
+                                                                                Value="{Binding Weight, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, NotifyOnSourceUpdated=True}" />
                                                                         </StackPanel>
 
                                                                         <StackPanel x:Name="spTruckNumber" Orientation="Vertical">
@@ -754,8 +763,9 @@
                                                                                 Width="80"
                                                                                 Height="20"
                                                                                 ItemsSource="{Binding DataContext.Trucks, RelativeSource={RelativeSource AncestorType={x:Type local:PackingListPage}}}"
-                                                                                SelectedItem="{Binding TruckNumber, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                                                                SelectionChanged="TruckComboBox_SelectionChanged" />
+                                                                                SelectedItem="{Binding TruckNumber, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, NotifyOnSourceUpdated=True}"
+                                                                                SelectionChanged="TruckComboBox_SelectionChanged"
+                                                                                SourceUpdated="OnInputChanged" />
                                                                         </StackPanel>
                                                                     </StackPanel>
                                                                 </Border>

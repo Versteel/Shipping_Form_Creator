@@ -2,12 +2,9 @@
 using Shipping_Form_CreatorV1.Utilities;
 using Shipping_Form_CreatorV1.ViewModels;
 using System.Collections.ObjectModel;
-using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using static iTextSharp.text.pdf.AcroFields;
-using System;
 
 namespace Shipping_Form_CreatorV1.Components
 {
@@ -15,6 +12,10 @@ namespace Shipping_Form_CreatorV1.Components
     {
         public PackingListPageTwoPlus()
         {
+            if (Application.Current.MainWindow?.DataContext is MainViewModel vm)
+            {
+                PackingUnitCategories = vm.IsDittoUser ? Constants.DittoPackingUnitCategories : Constants.PackingUnitCategories;
+            }
             InitializeComponent();
         }
 
@@ -59,7 +60,7 @@ namespace Shipping_Form_CreatorV1.Components
         }
 
         public static string[] CartonOrSkidOptions => Constants.CartonOrSkidOptions;
-        public static string[] PackingUnitCategories => Constants.PackingUnitCategories;
+        public static string[] PackingUnitCategories;
                 
         public ICommand AddPackUnitCommand => new RelayCommand(param =>
         {
@@ -83,11 +84,22 @@ namespace Shipping_Form_CreatorV1.Components
                 LineItemId = originalLineItem.Id
             };
 
+            newPackingUnit.PropertyChanged += viewModel.OnPackingUnitPropertyChanged;
+
             originalLineItem.LineItemPackingUnits.Add(newPackingUnit);
             lineItemCopy.LineItemPackingUnits.Add(newPackingUnit);
             
             viewModel.UpdateViewOptions();
+            //viewModel.MarkAsUnsaved();
         });
+
+        private void OnInputChanged(object sender, System.Windows.Data.DataTransferEventArgs e)
+        {
+            if (DataContext is MainViewModel vm)
+            {
+                //vm.MarkAsUnsaved();
+            }
+        }
 
         public ICommand RemovePackUnitCommand => new RelayCommand(param =>
         {
@@ -116,10 +128,14 @@ namespace Shipping_Form_CreatorV1.Components
                     break;
                 }
             }
+            //viewModel.MarkAsUnsaved();
         });
 
         private void TruckComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
+
+            if (!IsLoaded) return;
+
             if (Application.Current.MainWindow?.DataContext is not MainViewModel viewModel || e.AddedItems.Count == 0)
             {
                 return;
@@ -141,6 +157,7 @@ namespace Shipping_Form_CreatorV1.Components
 
 
             viewModel.SelectedTruck = selectedTruck;
+            //viewModel.MarkAsUnsaved();
         }
     }
 }

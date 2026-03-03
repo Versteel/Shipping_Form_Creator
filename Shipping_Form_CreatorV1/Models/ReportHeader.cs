@@ -5,9 +5,11 @@ namespace Shipping_Form_CreatorV1.Models;
 
 public class ReportHeader
 {
-    [DatabaseGenerated(DatabaseGeneratedOption.Identity)] // <-- VERIFY THIS EXISTS
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public int Id { get; set; }
     public string LogoImagePath { get; set; } = string.Empty;
+    public string HeaderPhoneNumber { get; set; } = string.Empty;
+    public string HeaderEmail { get; set; } = string.Empty;
     public int OrderNumber { get; set; }
     public int Suffix { get; set; }
     [NotMapped]
