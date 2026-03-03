@@ -133,8 +133,8 @@ public class PrintService
             }
             else
             {
-                const int maxDetailsPageOne = 15;
-                const int maxDetailsPerPage = 25;
+                const int maxDetailsPageOne = 30;
+                const int maxDetailsPerPage = 30;
 
                 var currentPageItems = new List<LineItem>();
                 var currentDetailsOnPage = 0;
