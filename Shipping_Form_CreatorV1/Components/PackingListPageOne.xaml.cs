@@ -34,6 +34,10 @@ namespace Shipping_Form_CreatorV1.Components
             DependencyProperty.Register(nameof(Details), typeof(ObservableCollection<LineItemDetail>),
                 typeof(PackingListPageOne), new PropertyMetadata(null));
 
+        public static readonly DependencyProperty ItemsProperty =
+            DependencyProperty.Register(nameof(Items), typeof(ObservableCollection<LineItem>),
+                typeof(PackingListPageOne), new PropertyMetadata(null));
+
         public static readonly DependencyProperty PackingUnitsProperty =
             DependencyProperty.Register(
                 nameof(PackingUnits),
@@ -68,6 +72,12 @@ namespace Shipping_Form_CreatorV1.Components
         {
             get => (ObservableCollection<LineItemPackingUnit>)GetValue(PackingUnitsProperty);
             set => SetValue(PackingUnitsProperty, value);
+        }
+
+        public ObservableCollection<LineItem>? Items
+        {
+            get => (ObservableCollection<LineItem>?)GetValue(ItemsProperty);
+            set => SetValue(ItemsProperty, value);
         }
 
         public LineItem? LineItem

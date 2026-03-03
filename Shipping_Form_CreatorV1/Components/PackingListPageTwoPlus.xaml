@@ -448,7 +448,8 @@
 
                                                         <ScrollViewer
                                                             Grid.Row="1"
-                                                            Height="{Binding PackingUnitHeight}"
+                                                            MinHeight="{Binding PackingUnitHeight}"
+                                                            MaxHeight="250"
                                                             MinWidth="380"
                                                             HorizontalScrollBarVisibility="Disabled"
                                                             VerticalScrollBarVisibility="Auto">

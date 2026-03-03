@@ -89,6 +89,7 @@ public partial class PackingListPage
             if (!originalItem.LineItemPackingUnits.Any() || filteredPackingUnits.Any())
             {
                 var itemCopy = new LineItem(originalItem, filteredPackingUnits);
+                itemCopy.LineItemDetails = new ObservableCollection<LineItemDetail>(GetDetailsFor(itemCopy));
                 displayItems.Add(itemCopy);
             }
         }
@@ -96,47 +97,46 @@ public partial class PackingListPage
 
         if (displayItems.Count == 0)
         {
-            var emptyPage = new PackingListPageOne { DataContext = _viewModel, Header = header, PageNumberText = "Page 1 of 1" };
+            var emptyPage = new PackingListPageOne { DataContext = _viewModel, Header = header, PageNumberText = "Page 1 of 1", Items = [] };
             PageContainer.Children.Add(emptyPage);
             _viewModel.PageCount = 1;
         }
         else
         {
-            // Page 1: Handle the FIRST item separately
-            var firstItem = displayItems.First();
-            var pageOne = new PackingListPageOne
-            {
-                DataContext = _viewModel,
-                Header = header,
-                LineItem = firstItem,
-                Details = new ObservableCollection<LineItemDetail>(GetDetailsFor(firstItem))
-            };
-            PageContainer.Children.Add(pageOne);
+            const int maxDetailsPageOne = 35;
+            const int maxDetailsPerPage = 35;
+            const double basePackingUnitHeight = 50;
+            const double heightIncreasePerUnit = 20;
+            const double detailsPerBlock = 2;
+            const double maxPackingUnitHeight = 450;
 
-            // Handle all REMAINING items for subsequent pages.
-            var remainingItems = displayItems.Skip(1).ToList();
-            if (remainingItems.Count != 0)
-            {
-                var currentPageItems = new List<LineItem>();
-                var currentDetailsOnPage = 0;
-                const int maxDetailsPerPage = 25;
-                const double basePackingUnitHeight = 50;
-                const double heightIncreasePerUnit = 20;
-                const double detailsPerBlock = 2;
-                const double maxPackingUnitHeight = 450;
+            var currentPageItems = new List<LineItem>();
+            var currentDetailsOnPage = 0;
+            var isFirstPage = true;
 
-                foreach (var item in remainingItems)
+            foreach (var item in displayItems)
+            {
+                var itemDetailsCount = GetDetailsFor(item).Count;
+                var detailsBlocks = itemDetailsCount / detailsPerBlock;
+                var calculatedHeight = basePackingUnitHeight + (detailsBlocks * heightIncreasePerUnit);
+                item.PackingUnitHeight = Math.Min(calculatedHeight, maxPackingUnitHeight);
+
+                var maxLimit = isFirstPage ? maxDetailsPageOne : maxDetailsPerPage;
+
+                if (currentDetailsOnPage + itemDetailsCount > maxLimit && currentPageItems.Count != 0)
                 {
-                    var itemDetailsCount = GetDetailsFor(item).Count;
-                    var detailsBlocks = itemDetailsCount / detailsPerBlock;
-
-                    // Simplified: Calculate height and cap it, removing the special 'lastItem' logic
-                    var calculatedHeight = basePackingUnitHeight + (detailsBlocks * heightIncreasePerUnit);
-                    item.PackingUnitHeight = Math.Min(calculatedHeight, maxPackingUnitHeight);
-
-                    // If adding this item would exceed the max, start a new page
-                    // **This is your primary page break condition.**
-                    if (currentDetailsOnPage + itemDetailsCount > maxDetailsPerPage && currentPageItems.Count != 0)
+                    if (isFirstPage)
+                    {
+                        var pageOne = new PackingListPageOne
+                        {
+                            DataContext = _viewModel,
+                            Header = header,
+                            Items = new ObservableCollection<LineItem>(currentPageItems)
+                        };
+                        PageContainer.Children.Add(pageOne);
+                        isFirstPage = false;
+                    }
+                    else
                     {
                         var nextPage = new PackingListPageTwoPlus
                         {
@@ -145,17 +145,30 @@ public partial class PackingListPage
                             Items = new ObservableCollection<LineItem>(currentPageItems)
                         };
                         PageContainer.Children.Add(nextPage);
-
-                        currentPageItems = [];
-                        currentDetailsOnPage = 0;
                     }
 
-                    currentPageItems.Add(item);
-                    currentDetailsOnPage += itemDetailsCount;
+                    currentPageItems = [];
+                    currentDetailsOnPage = 0;
                 }
 
-                // Add the final batch of items
-                if (currentPageItems.Count != 0)
+                currentPageItems.Add(item);
+                currentDetailsOnPage += itemDetailsCount;
+            }
+
+            // Add the final batch of items
+            if (currentPageItems.Count != 0)
+            {
+                if (isFirstPage)
+                {
+                    var pageOne = new PackingListPageOne
+                    {
+                        DataContext = _viewModel,
+                        Header = header,
+                        Items = new ObservableCollection<LineItem>(currentPageItems)
+                    };
+                    PageContainer.Children.Add(pageOne);
+                }
+                else
                 {
                     var finalPage = new PackingListPageTwoPlus
                     {
@@ -166,7 +179,6 @@ public partial class PackingListPage
                     PageContainer.Children.Add(finalPage);
                 }
             }
-
         }
 
         if (!_viewModel.IsDittoUser)
