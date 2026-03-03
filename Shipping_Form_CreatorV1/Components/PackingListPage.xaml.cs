@@ -103,8 +103,8 @@ public partial class PackingListPage
         }
         else
         {
-            const int maxDetailsPageOne = 35;
-            const int maxDetailsPerPage = 35;
+            const int maxDetailsPageOne = 30;
+            const int maxDetailsPerPage = 30;
             const double basePackingUnitHeight = 50;
             const double heightIncreasePerUnit = 20;
             const double detailsPerBlock = 2;

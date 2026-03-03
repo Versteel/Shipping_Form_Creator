@@ -116,6 +116,7 @@ public class PrintService
                   original: li,
                   newPackingUnits: new ObservableCollection<LineItemPackingUnit>(filteredPackingUnits)
                 );
+                lineItemCopy.LineItemDetails = new ObservableCollection<LineItemDetail>(GetDetailsFor(lineItemCopy));
 
                 // Add every line item copy to the list for printing.
                 lineItemsForPrinting.Add(lineItemCopy);
@@ -124,63 +125,84 @@ public class PrintService
             var lineItems = lineItemsForPrinting;
 
 
-            if (lineItems.Count > 0)
+            if (lineItems.Count == 0)
             {
-                UpdateLoadingMessage("Creating page 1...");
-                var firstLineItem = lineItems[0];
-
-                var pageOne = new PackingListPageOne
-                {
-                    Header = header,
-                    LineItem = firstLineItem,
-                    Details = new ObservableCollection<LineItemDetail>(GetDetailsFor(firstLineItem)),
-                    PackingUnits = firstLineItem.LineItemPackingUnits,
-                    IsPrinting = true
-                };
-                pages.Add(pageOne);
-                await Task.Delay(25);
+                UpdateLoadingMessage("Creating empty page...");
+                var emptyPage = new PackingListPageOne { Header = header, Items = [], IsPrinting = true };
+                pages.Add(emptyPage);
             }
-
-            var remainingItems = lineItems.Skip(1).ToList();
-
-
-            const int maxDetailsPerPage = 35;
-            var currentPageItems = new List<LineItem>();
-            var currentDetailsCount = 0;
-
-            foreach (var item in remainingItems)
+            else
             {
-                var detailsCount = GetDetailsFor(item).Count;
+                const int maxDetailsPageOne = 15;
+                const int maxDetailsPerPage = 25;
 
-                if (currentDetailsCount + detailsCount > maxDetailsPerPage && currentPageItems.Count > 0)
+                var currentPageItems = new List<LineItem>();
+                var currentDetailsOnPage = 0;
+                var isFirstPage = true;
+
+                foreach (var item in lineItems)
                 {
-                    var pageTwoPlus = new PackingListPageTwoPlus
-                    {
-                        Header = header,
-                        Items = new ObservableCollection<LineItem>(currentPageItems),
-                        IsPrinting = true
-                    };
-                    pages.Add(pageTwoPlus);
-                    await Task.Delay(25);
+                    var itemDetailsCount = item.LineItemDetails.Count;
+                    var maxLimit = isFirstPage ? maxDetailsPageOne : maxDetailsPerPage;
 
-                    currentPageItems = [];
-                    currentDetailsCount = 0;
+                    if (currentDetailsOnPage + itemDetailsCount > maxLimit && currentPageItems.Count > 0)
+                    {
+                        if (isFirstPage)
+                        {
+                            var pageOne = new PackingListPageOne
+                            {
+                                Header = header,
+                                Items = new ObservableCollection<LineItem>(currentPageItems),
+                                IsPrinting = true
+                            };
+                            pages.Add(pageOne);
+                            isFirstPage = false;
+                        }
+                        else
+                        {
+                            var pageTwoPlus = new PackingListPageTwoPlus
+                            {
+                                Header = header,
+                                Items = new ObservableCollection<LineItem>(currentPageItems),
+                                IsPrinting = true
+                            };
+                            pages.Add(pageTwoPlus);
+                        }
+
+                        currentPageItems = [];
+                        currentDetailsOnPage = 0;
+                        await Task.Delay(25);
+                    }
+
+                    currentPageItems.Add(item);
+                    currentDetailsOnPage += itemDetailsCount;
                 }
 
-                currentPageItems.Add(item);
-                currentDetailsCount += detailsCount;
-            }
-
-            if (currentPageItems.Count > 0)
-            {
-                var pageTwoPlus = new PackingListPageTwoPlus
+                // Add the final batch of items
+                if (currentPageItems.Count > 0)
                 {
-                    Header = header,
-                    Items = new ObservableCollection<LineItem>(currentPageItems),
-                    IsPrinting = true
-                };
-                pages.Add(pageTwoPlus);
-                await Task.Delay(25);
+                    if (isFirstPage)
+                    {
+                        var pageOne = new PackingListPageOne
+                        {
+                            Header = header,
+                            Items = new ObservableCollection<LineItem>(currentPageItems),
+                            IsPrinting = true
+                        };
+                        pages.Add(pageOne);
+                    }
+                    else
+                    {
+                        var finalPage = new PackingListPageTwoPlus
+                        {
+                            Header = header,
+                            Items = new ObservableCollection<LineItem>(currentPageItems),
+                            IsPrinting = true
+                        };
+                        pages.Add(finalPage);
+                    }
+                    await Task.Delay(25);
+                }
             }
 
             var trailerNotes = report.LineItems
