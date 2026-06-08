@@ -665,7 +665,7 @@
                                                                         </TextBlock.Style>
                                                                     </TextBlock>
 
-                                                                    <TextBlock Margin="8,0,0,0" Text="{Binding TypeOfUnit}">
+                                                                    <TextBlock Margin="8,0,0,0" Text="{Binding DisplayTypeOfUnit}">
                                                                         <TextBlock.Style>
                                                                             <Style TargetType="TextBlock">
                                                                                 <Setter Property="Visibility" Value="Visible" />

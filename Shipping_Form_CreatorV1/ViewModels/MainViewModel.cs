@@ -665,7 +665,7 @@ public class MainViewModel : INotifyPropertyChanged, IDropTarget
         var units = items
             .SelectMany(li => li.LineItemPackingUnits ?? Enumerable.Empty<LineItemPackingUnit>())
             .Where(pu => !string.IsNullOrWhiteSpace(pu.TypeOfUnit))
-            .Where(pu => pu.CartonOrSkid != "PACKED WITH LINE ") // <-- ADD THIS LINE
+            .Where(pu => pu.CartonOrSkid != "PACKED WITH LINE ") 
             .Where(pu => isAllView || string.Equals(pu.TruckNumber, selectedView, StringComparison.OrdinalIgnoreCase))
             .ToList();
 
@@ -687,7 +687,7 @@ public class MainViewModel : INotifyPropertyChanged, IDropTarget
                 Class = g.Key.TypeOfUnit switch
                 {
                     var t when t == Constants.PackingUnitCategories[0] => "70",
-                    var t when t == Constants.PackingUnitCategories[1] => "70",
+                    var t when t == "TABLE LEGS" => "70",
                     var t when t == Constants.PackingUnitCategories[2] => "250",
                     var t when t == Constants.PackingUnitCategories[3] => "92.5",
                     var t when t == Constants.PackingUnitCategories[4] => "250",
@@ -708,7 +708,7 @@ public class MainViewModel : INotifyPropertyChanged, IDropTarget
                 NMFC = g.Key.TypeOfUnit switch
                 {
                     var t when t == Constants.PackingUnitCategories[0] => "79300-09",
-                    var t when t == Constants.PackingUnitCategories[1] => "79300-09",
+                    var t when t == "TABLE LEGS" => "79300-09",
                     var t when t == Constants.PackingUnitCategories[2] => "79300-03",
                     var t when t == Constants.PackingUnitCategories[3] => "79300-07",
                     var t when t == Constants.PackingUnitCategories[4] => "79300-03",

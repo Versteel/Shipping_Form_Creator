@@ -50,7 +50,7 @@ public class Constants
     public static readonly string[] PackingUnitCategories =
     [
         "TABLE TOPS",
-        "TABLE LEGS, TUBULAR STL EXC 1 QTR DIAMETER, N-G-T 2 INCH DIAMETER",
+        "TABLE LEGS",
         "CHAIRS",
         "ROLLIC SERIES",
         "CURVARE",
@@ -84,7 +84,7 @@ public class Constants
     public static readonly string SYNCFUSION_LICENSE_KEY = @"Ngo9BigBOggjHTQxAR8/V1JEaF5cXmRCf1FpRmJGdld5fUVHYVZUTXxaS00DNHVRdkdmWXdfdHRcRmdfVkJ3X0dWYEk=";
 
     public static readonly string GHOSTSCRIPT_PATH = @"\\store2\c$\Program Files\gs\gs10.03.1\bin\gswin64c.exe";
-    public static readonly string LOG_FILE_PATH = @"\\store2\software\software\ShippingFormsCreator\Logs\DbLog.txt";
+    public static readonly string LOG_FILE_PATH = @"\\store2\e$\Shipping Form Creator\Data\Logs\log-.txt";
 
     public static readonly string CONNECTION_STRING = "Server=store2,1433;Database=ShippingFormsDb;Integrated Security=SSPI;Encrypt=False;TrustServerCertificate=True;MultipleActiveResultSets=True;";
 }

@@ -70,14 +70,15 @@ public class PrintService
 
             // 1. Get the selected view (Truck Number or "ALL")
             var selectedView = viewModel.SelectedReportView;
-            var isAllView = selectedView == Constants.ViewOptions[0]; // Assuming Constants.ViewOptions[0] is "ALL"
+            var isAllView = selectedView == Constants.ViewOptions[0];
 
-            // 2. Filter line items by number and general note-only status
+            // 2. Filter line items
             var rawLineItems = report.LineItems
                 .Where(li => !IsNoteOnly(li))
                 .Where(li => !string.IsNullOrWhiteSpace(li.LineItemHeader?.ProductDescription))
                 .OrderBy(li => li.LineItemHeader?.LineItemNumber ?? 0)
                 .ToList();
+
             bool onlyDefaultTruckUsed = rawLineItems
                 .SelectMany(item => item.LineItemPackingUnits)
                 .All(pu => pu.TruckNumber == Constants.TruckNumbers[0] || string.IsNullOrEmpty(pu.TruckNumber));
@@ -93,37 +94,23 @@ public class PrintService
                 }
             }
 
-            // This part remains the same (Unit Type transformation)
-            var tableLegUnits = rawLineItems
-                .SelectMany(li => li.LineItemPackingUnits)
-                .Where(pu => pu.TypeOfUnit == Constants.PackingUnitCategories[1]);
-            foreach (var packingUnit in tableLegUnits)
-                packingUnit.TypeOfUnit = "TABLE LEGS";
-
-
-            // 3. FILTER AND CLONE LINE ITEMS TO ONLY INCLUDE SELECTED PACKING UNITS
-            var lineItemsForPrinting = new List<LineItem>(); // Renamed for clarity
-            foreach (var li in rawLineItems)
+            // 3. Filter and Clone
+            var lineItemsForPrinting = new List<LineItem>();
+            foreach (var li in rawLineItems)
             {
-                // Filter packing units based on the selected view
-                var filteredPackingUnits = li.LineItemPackingUnits
+                var filteredPackingUnits = li.LineItemPackingUnits
                   .Where(pu => isAllView || string.Equals(pu.TruckNumber, selectedView, StringComparison.OrdinalIgnoreCase))
                   .ToList();
 
-                // Create a copy of the line item, including its original details,
-                // but using the *filtered* list of packing units (which might be empty).
-                var lineItemCopy = new LineItem(
+                var lineItemCopy = new LineItem(
                   original: li,
                   newPackingUnits: new ObservableCollection<LineItemPackingUnit>(filteredPackingUnits)
                 );
                 lineItemCopy.LineItemDetails = new ObservableCollection<LineItemDetail>(GetDetailsFor(lineItemCopy));
-
-                // Add every line item copy to the list for printing.
-                lineItemsForPrinting.Add(lineItemCopy);
+                lineItemsForPrinting.Add(lineItemCopy);
             }
-            // Use this list for the rest of the page building logic
-            var lineItems = lineItemsForPrinting;
 
+            var lineItems = lineItemsForPrinting;
 
             if (lineItems.Count == 0)
             {
@@ -133,8 +120,10 @@ public class PrintService
             }
             else
             {
-                const int maxDetailsPageOne = 30;
-                const int maxDetailsPerPage = 30;
+                // --- UPDATED PAGINATION LOGIC ---
+                const int maxItemsPageOne = 3;       // Cap items on Page 1
+                const int maxDetailsPageOne = 25;    // Detail limit for Page 1
+                const int maxDetailsPerPage = 25;    // Detail limit for Page 2+
 
                 var currentPageItems = new List<LineItem>();
                 var currentDetailsOnPage = 0;
@@ -143,33 +132,48 @@ public class PrintService
                 foreach (var item in lineItems)
                 {
                     var itemDetailsCount = item.LineItemDetails.Count;
-                    var maxLimit = isFirstPage ? maxDetailsPageOne : maxDetailsPerPage;
 
-                    if (currentDetailsOnPage + itemDetailsCount > maxLimit && currentPageItems.Count > 0)
+                    bool shouldFlipPage = false;
+                    if (isFirstPage)
+                    {
+                        // Flip if we hit the item count limit (3) OR the detail limit
+                        if (currentPageItems.Count >= maxItemsPageOne || currentDetailsOnPage + itemDetailsCount > maxDetailsPageOne)
+                        {
+                            shouldFlipPage = true;
+                        }
+                    }
+                    else
+                    {
+                        // Standard detail limit for subsequent pages
+                        if (currentDetailsOnPage + itemDetailsCount > maxDetailsPerPage)
+                        {
+                            shouldFlipPage = true;
+                        }
+                    }
+
+                    if (shouldFlipPage && currentPageItems.Count > 0)
                     {
                         if (isFirstPage)
                         {
-                            var pageOne = new PackingListPageOne
+                            pages.Add(new PackingListPageOne
                             {
                                 Header = header,
                                 Items = new ObservableCollection<LineItem>(currentPageItems),
                                 IsPrinting = true
-                            };
-                            pages.Add(pageOne);
+                            });
                             isFirstPage = false;
                         }
                         else
                         {
-                            var pageTwoPlus = new PackingListPageTwoPlus
+                            pages.Add(new PackingListPageTwoPlus
                             {
                                 Header = header,
                                 Items = new ObservableCollection<LineItem>(currentPageItems),
                                 IsPrinting = true
-                            };
-                            pages.Add(pageTwoPlus);
+                            });
                         }
 
-                        currentPageItems = [];
+                        currentPageItems = new List<LineItem>();
                         currentDetailsOnPage = 0;
                         await Task.Delay(25);
                     }
@@ -183,28 +187,17 @@ public class PrintService
                 {
                     if (isFirstPage)
                     {
-                        var pageOne = new PackingListPageOne
-                        {
-                            Header = header,
-                            Items = new ObservableCollection<LineItem>(currentPageItems),
-                            IsPrinting = true
-                        };
-                        pages.Add(pageOne);
+                        pages.Add(new PackingListPageOne { Header = header, Items = new ObservableCollection<LineItem>(currentPageItems), IsPrinting = true });
                     }
                     else
                     {
-                        var finalPage = new PackingListPageTwoPlus
-                        {
-                            Header = header,
-                            Items = new ObservableCollection<LineItem>(currentPageItems),
-                            IsPrinting = true
-                        };
-                        pages.Add(finalPage);
+                        pages.Add(new PackingListPageTwoPlus { Header = header, Items = new ObservableCollection<LineItem>(currentPageItems), IsPrinting = true });
                     }
                     await Task.Delay(25);
                 }
             }
 
+            // --- SUMMARY & NUMBERING (Keep existing logic) ---
             var trailerNotes = report.LineItems
                 .SelectMany(li => li.LineItemDetails)
                 .Where(d => d.ModelItem == 950m)
@@ -218,18 +211,17 @@ public class PrintService
             UpdateLoadingMessage("Creating summary page...");
             viewModel.UpdateOrderSummary();
 
-            var orderSummaryPage = new PackingListNotesPage
-            {
-                Header = header,
-                ShippingInstructions = viewModel.ShippingInstructions,
-                ConsolidatedSummary = viewModel.ConsolidatedSummary,
-                OverallTotals = viewModel.OverallTotals,
-                HandlingUnits = viewModel.SelectedReport.HandlingUnits,
-                IsPrinting = true
-            };
             if (!viewModel.IsDittoUser)
             {
-                pages.Add(orderSummaryPage);
+                pages.Add(new PackingListNotesPage
+                {
+                    Header = header,
+                    ShippingInstructions = viewModel.ShippingInstructions,
+                    ConsolidatedSummary = viewModel.ConsolidatedSummary,
+                    OverallTotals = viewModel.OverallTotals,
+                    HandlingUnits = viewModel.SelectedReport.HandlingUnits,
+                    IsPrinting = true
+                });
             }
 
             UpdateLoadingMessage("Finalizing pages...");

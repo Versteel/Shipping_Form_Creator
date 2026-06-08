@@ -14,7 +14,6 @@ public partial class PackingListPage
     private readonly MainViewModel _viewModel;
     public MainViewModel VM => _viewModel;
 
-
     public PackingListPage(MainViewModel viewModel)
     {
         _viewModel = viewModel;
@@ -94,7 +93,6 @@ public partial class PackingListPage
             }
         }
 
-
         if (displayItems.Count == 0)
         {
             var emptyPage = new PackingListPageOne { DataContext = _viewModel, Header = header, PageNumberText = "Page 1 of 1", Items = [] };
@@ -103,8 +101,10 @@ public partial class PackingListPage
         }
         else
         {
-            const int maxDetailsPageOne = 30;
-            const int maxDetailsPerPage = 30;
+            // Pagination Constants
+            const int maxItemsPageOne = 3;       // Max line items allowed on first page
+            const int maxDetailsPageOne = 25;    // Max detail lines allowed on first page
+            const int maxDetailsPerPage = 25;    // Max detail lines allowed on subsequent pages
             const double basePackingUnitHeight = 50;
             const double heightIncreasePerUnit = 20;
             const double detailsPerBlock = 2;
@@ -121,9 +121,26 @@ public partial class PackingListPage
                 var calculatedHeight = basePackingUnitHeight + (detailsBlocks * heightIncreasePerUnit);
                 item.PackingUnitHeight = Math.Min(calculatedHeight, maxPackingUnitHeight);
 
-                var maxLimit = isFirstPage ? maxDetailsPageOne : maxDetailsPerPage;
+                // Logic to determine if a page break is needed
+                bool shouldFlipPage = false;
+                if (isFirstPage)
+                {
+                    // Flip if we hit the 3-item limit OR the detail text limit
+                    if (currentPageItems.Count >= maxItemsPageOne || currentDetailsOnPage + itemDetailsCount > maxDetailsPageOne)
+                    {
+                        shouldFlipPage = true;
+                    }
+                }
+                else
+                {
+                    // Flip if we hit the detail text limit
+                    if (currentDetailsOnPage + itemDetailsCount > maxDetailsPerPage)
+                    {
+                        shouldFlipPage = true;
+                    }
+                }
 
-                if (currentDetailsOnPage + itemDetailsCount > maxLimit && currentPageItems.Count != 0)
+                if (shouldFlipPage && currentPageItems.Count != 0)
                 {
                     if (isFirstPage)
                     {
@@ -147,7 +164,7 @@ public partial class PackingListPage
                         PageContainer.Children.Add(nextPage);
                     }
 
-                    currentPageItems = [];
+                    currentPageItems = new List<LineItem>();
                     currentDetailsOnPage = 0;
                 }
 
@@ -183,7 +200,6 @@ public partial class PackingListPage
 
         if (!_viewModel.IsDittoUser)
         {
-            // Add the notes page if it exists
             if ((_viewModel.PackingListNotes != null && _viewModel.PackingListNotes.Any()) ||
                 (_viewModel.SelectedReport.HandlingUnits != null && _viewModel.SelectedReport.HandlingUnits.Any()))
             {
@@ -201,7 +217,6 @@ public partial class PackingListPage
                 PageContainer.Children.Add(orderSummaryPage);
             }
         }
-        
 
         // Final page numbering logic
         var totalPages = PageContainer.Children.Count;
@@ -230,5 +245,4 @@ public partial class PackingListPage
                .OrderBy(d => d.NoteSequenceNumber)
         ];
     }
-
 }
