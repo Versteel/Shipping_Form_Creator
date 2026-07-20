@@ -1,4 +1,4 @@
-﻿using Shipping_Form_CreatorV1.Models;
+using Shipping_Form_CreatorV1.Models;
 using Shipping_Form_CreatorV1.Utilities;
 using Shipping_Form_CreatorV1.ViewModels;
 using System.Collections.ObjectModel;
@@ -90,14 +90,14 @@ namespace Shipping_Form_CreatorV1.Components
             lineItemCopy.LineItemPackingUnits.Add(newPackingUnit);
             
             viewModel.UpdateViewOptions();
-            //viewModel.MarkAsUnsaved();
+            viewModel.MarkAsUnsaved();
         });
 
         private void OnInputChanged(object sender, System.Windows.Data.DataTransferEventArgs e)
         {
             if (DataContext is MainViewModel vm)
             {
-                //vm.MarkAsUnsaved();
+                vm.MarkAsUnsaved();
             }
         }
 
@@ -128,7 +128,7 @@ namespace Shipping_Form_CreatorV1.Components
                     break;
                 }
             }
-            //viewModel.MarkAsUnsaved();
+            viewModel.MarkAsUnsaved();
         });
 
         private void TruckComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -157,7 +157,7 @@ namespace Shipping_Form_CreatorV1.Components
 
 
             viewModel.SelectedTruck = selectedTruck;
-            //viewModel.MarkAsUnsaved();
+            viewModel.MarkAsUnsaved();
         }
     }
 }

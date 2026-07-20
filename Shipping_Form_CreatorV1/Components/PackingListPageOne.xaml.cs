@@ -1,4 +1,4 @@
-﻿using Shipping_Form_CreatorV1.Models;
+using Shipping_Form_CreatorV1.Models;
 using Shipping_Form_CreatorV1.Utilities;
 using Shipping_Form_CreatorV1.ViewModels;
 using Syncfusion.Windows.Tools.Controls;
@@ -129,7 +129,7 @@ namespace Shipping_Form_CreatorV1.Components
             }
 
             viewModel.UpdateViewOptions();
-            //viewModel.MarkAsUnsaved();
+            viewModel.MarkAsUnsaved();
         });
 
         public ICommand RemovePackUnitCommand => new RelayCommand(param =>
@@ -159,7 +159,7 @@ namespace Shipping_Form_CreatorV1.Components
                     break;
                 }
             }
-            //viewModel.MarkAsUnsaved();
+            viewModel.MarkAsUnsaved();
         });
 
         public PackingListPageOne()
@@ -180,7 +180,7 @@ namespace Shipping_Form_CreatorV1.Components
         {
             if (DataContext is MainViewModel vm)
             {
-                //vm.MarkAsUnsaved();
+                vm.MarkAsUnsaved();
             }
         }
 
@@ -222,7 +222,7 @@ namespace Shipping_Form_CreatorV1.Components
 
             
             viewModel.SelectedTruck = selectedTruck;
-            //viewModel.MarkAsUnsaved();
+            viewModel.MarkAsUnsaved();
         }
     }
 }

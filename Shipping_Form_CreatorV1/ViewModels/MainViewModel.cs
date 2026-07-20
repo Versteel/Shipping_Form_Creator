@@ -331,6 +331,7 @@ public class MainViewModel : INotifyPropertyChanged, IDropTarget
                 packingUnit.HandlingUnitId = targetHandlingUnit.Id;
                 LinkPackingUnitsToHandlingUnits();
                 OnPropertyChanged(nameof(SelectedReport));
+                MarkAsUnsaved();
             }
         }
     }
@@ -623,6 +624,7 @@ public class MainViewModel : INotifyPropertyChanged, IDropTarget
         SelectedReport.HandlingUnits.Add(newHandlingUnit);
         OnPropertyChanged(nameof(SelectedReport));
         OnPropertyChanged(nameof(HandlingUnitCount));
+        MarkAsUnsaved();
     }
 
     private void RemoveHandlingUnit(object? obj)
@@ -643,6 +645,7 @@ public class MainViewModel : INotifyPropertyChanged, IDropTarget
         OnPropertyChanged(nameof(SelectedReport));
         OnPropertyChanged(nameof(HandlingUnitCount));
         LinkPackingUnitsToHandlingUnits();
+        MarkAsUnsaved();
     }
 
     private void UpdateLineNumbers()
@@ -826,7 +829,7 @@ public class MainViewModel : INotifyPropertyChanged, IDropTarget
 
     public void OnPackingUnitPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        //MarkAsUnsaved();
+        MarkAsUnsaved();
     }
 
     private void AttachPropertyListeners()
